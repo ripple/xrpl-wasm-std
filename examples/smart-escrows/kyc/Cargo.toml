@@ -1,0 +1,12 @@
+[package]
+name = "kyc"
+version = "0.0.1"
+edition = "2024"
+description = "Smart Escrow example that unlocks based on the presence of specific KYC credentials on the XRPL"
+license = "ISC"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+xrpl-wasm-std = { path = "../../../../xrpl-wasm-std" }
