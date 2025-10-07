@@ -27,8 +27,8 @@ You can also run individual test suites:
 
 ### Main Scripts
 
-- **`build-and-test.sh`** - Build and test the native workspace, build WASM projects, and run craft
-- **`build.sh`** - Build all projects (accepts `release` argument for release builds)
+- **`build-and-test.sh`** - Build and test the native workspace, build WASM examples, and run craft
+- **`build.sh`** - Build all examples (accepts `release` argument for release builds)
 
 ### Helper Scripts
 

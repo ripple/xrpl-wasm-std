@@ -1,6 +1,6 @@
 #!/bin/bash
 # WASM contract exports checking script
-# Checks that all WASM projects export the required finish function
+# Checks that all WASM examples export the required finish function
 
 set -euo pipefail
 
@@ -10,8 +10,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "🔍 Checking WASM contract exports..."
-# Check that all WASM projects export the required finish function
-find projects -type d -name "src" | while read -r src_dir; do
+# Check that all WASM examples export the required finish function
+find examples -type d -name "src" | while read -r src_dir; do
     dir=$(dirname "$src_dir")
     echo "🔧 Checking exports in $dir"
     if [[ -f "$src_dir/lib.rs" ]]; then

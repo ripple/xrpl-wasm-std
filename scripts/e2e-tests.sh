@@ -15,12 +15,12 @@ echo "🔧 Running end-to-end tests..."
 echo "📦 Ensuring wasm32v1-none target is installed..."
 rustup target add wasm32v1-none
 
-echo "🏗️  Building projects..."
+echo "🏗️  Building examples..."
 scripts/build.sh
 scripts/build.sh release
 
 echo "🧪 Running integration tests..."
-find projects -name "Cargo.toml" -type f | while read -r cargo_file; do
+find examples -name "Cargo.toml" -type f | while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
     if [ -d "$dir/fixtures" ]; then
