@@ -57,4 +57,3 @@ This macro provides a clean, compile-time solution for embedding XRPL addresses 
 - **Simple**: Just use `r_address!("r...")` directly in your code
 - **Safe**: Invalid addresses are caught at compile time
 - **Efficient**: No runtime overhead or extra dependencies in the final WASM
-
