@@ -1,0 +1,28 @@
+[package]
+name = "xrpl-address-macro"
+version = "0.1.0"
+edition = "2024"
+description = "Compile-time macro for converting XRPL r-addresses to 20-byte arrays"
+license = "ISC"
+repository = "https://github.com/ripple/craft"
+homepage = "https://github.com/ripple/craft"
+readme = "README.md"
+keywords = ["xrpl", "macro", "address", "codec"]
+categories = ["cryptography", "no-std", "encoding"]
+
+[dependencies]
+bs58 = "0.5"
+sha2 = "0.10"
+
+[lib]
+proc-macro = true
+
+[dependencies.syn]
+version = "2.0"
+features = ["full"]
+
+[dependencies.quote]
+version = "1.0"
+
+[dependencies.proc-macro2]
+version = "1.0"

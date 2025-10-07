@@ -1,5 +1,4 @@
 //TODO add docs after discussing the interface
-//Note that Craft currently does not honor the rounding modes
 #[allow(unused)]
 pub const FLOAT_ROUNDING_MODES_TO_NEAREST: i32 = 0;
 #[allow(unused)]

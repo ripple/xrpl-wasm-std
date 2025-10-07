@@ -379,7 +379,7 @@ Developers should use named SFields. For example, use `sfield::MemoType` instead
 
 **Solution**: Verify field is actually an array type
 
-**Note**: This error code list is subject to expansion. Additional error codes may be added in future versions. For the most up-to-date list, see the [error code definitions in xrpl-wasm-std](https://github.com/ripple/craft/blob/main/xrpl-wasm-std/src/host/error_codes.rs).
+**Note**: This error code list is subject to expansion. Additional error codes may be added in future versions. For the most up-to-date list, see the [error code definitions in xrpl-wasm-std](https://github.com/ripple/xrpl-wasm-std/blob/main/xrpl-wasm-std/src/host/error_codes.rs).
 
 ### Debugging Tips
 

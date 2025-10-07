@@ -67,8 +67,6 @@ jobs:
       - name: Check WASM contract exports
         run: ./scripts/check-wasm-exports.sh
 
-  # Note: This job should not be "required" for PRs, as during development there may be temporary
-  # discrepancies between craft and rippled
   host_function_audit:
     runs-on: ubuntu-latest
     steps:
