@@ -4,22 +4,46 @@ The XRPL Standard Library provides safe, type-safe access to XRPL host functions
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Installation](#installation)
-- [Core Concepts](#core-concepts)
-- [API Reference](#api-reference)
-  - [Transaction Access](#transaction-access)
-  - [Ledger Object Access](#ledger-object-access)
-  - [Type System](#type-system)
-  - [Field Access](#field-access)
-  - [Cryptographic Functions](#cryptographic-functions)
-  - [State Management](#state-management)
-  - [Logging and Debugging](#logging-and-debugging)
-- [Required Module Exports](#required-module-exports)
-- [Usage Examples](#usage-examples)
-- [Safety and Constraints](#safety-and-constraints)
-- [Error Handling](#error-handling)
-- [Best Practices](#best-practices)
+- [xrpl-wasm-std Library](#xrpl-wasm-std-library)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Installation](#installation)
+  - [Core Concepts](#core-concepts)
+    - [Host Functions](#host-functions)
+    - [Memory Model](#memory-model)
+    - [Error Handling](#error-handling)
+  - [API Reference](#api-reference)
+    - [Transaction Access](#transaction-access)
+    - [Ledger Object Access](#ledger-object-access)
+    - [Type System](#type-system)
+    - [Field Access](#field-access)
+      - [Direct Field Access](#direct-field-access)
+      - [Nested Field Access](#nested-field-access)
+    - [Keylet Generation](#keylet-generation)
+    - [Cryptographic Functions](#cryptographic-functions)
+    - [State Management](#state-management)
+    - [Logging and Debugging](#logging-and-debugging)
+  - [Required Module Exports](#required-module-exports)
+  - [Usage Examples](#usage-examples)
+    - [Basic Balance Check](#basic-balance-check)
+    - [Using classic (r...) addresses](#using-classic-r-addresses)
+    - [Build and run your contract](#build-and-run-your-contract)
+    - [Time-based Release](#time-based-release)
+    - [Credential Verification](#credential-verification)
+  - [Safety and Constraints](#safety-and-constraints)
+    - [Memory Safety](#memory-safety)
+    - [Execution Constraints](#execution-constraints)
+    - [Security Considerations](#security-considerations)
+  - [Error Handling](#error-handling-1)
+    - [Best Practices](#best-practices)
+    - [Common Error Scenarios](#common-error-scenarios)
+  - [Best Practices](#best-practices-1)
+    - [1. Minimize Host Function Calls](#1-minimize-host-function-calls)
+    - [2. Handle Optional Fields](#2-handle-optional-fields)
+    - [3. Use Type-Safe APIs](#3-use-type-safe-apis)
+    - [4. Fail Safely](#4-fail-safely)
+    - [5. Test Thoroughly](#5-test-thoroughly)
+  - [See Also](#see-also)
 
 ## Overview
 
@@ -307,7 +331,7 @@ pub extern "C" fn finish() -> i32 {
 
 ### Using classic (r...) addresses
 
-Contracts compare 20-byte AccountID values. If you have a classic XRPL address (r...) during development, use the `xrpl-address-macro` crate with the `r_address!` macro to convert it to a `[u8; 20]` constant at compile time. See `projects/notary` for an example of how to use this macro for address comparison inside the WASM.
+Contracts compare 20-byte AccountID values. If you have a classic XRPL address (r...) during development, use the `xrpl-address-macro` crate with the `r_address!` macro to convert it to a `[u8; 20]` constant at compile time. See `examples/notary` for an example of how to use this macro for address comparison inside the WASM.
 
 ### Build and run your contract
 
@@ -484,6 +508,4 @@ match risky_operation() {
 ## See Also
 
 - [EscrowFinish Documentation](https://xrpl.org/docs/references/protocol/transactions/types/escrowfinish)
-- [Smart Escrow System Design](../DESIGN.md)
-- [Example Projects](../projects/)
-- [WASM Host Testing Tool](../wasm-host-simulator/README.md)
+- [Example Projects](../examples/)

@@ -28,5 +28,5 @@ Run the contract using the wasm-host-simulator application:
 
 ```bash
 cd ../../../../wasm-host-simulator
-cargo run -- --dir ../projects/examples/smart-escrows/notary_macro_example --project notary_macro_example
+cargo run -- --dir ../examples/smart-escrows/notary_macro_example --project notary_macro_example
 ```

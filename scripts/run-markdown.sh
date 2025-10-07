@@ -12,12 +12,12 @@ cd "$REPO_ROOT"
 echo "🔧 Running code blocks in Markdown files..."
 
 # Find markdown files in project folders, excluding dependencies and reference folder
-# Include: root level .md files, docs/, projects/, and project-specific folders
+# Include: root level .md files, docs/, examples/, and project-specific folders
 # Exclude: target/, reference/, and dependency folders like ~/.cargo/
 find . \
     -type d \( -name target -o -name reference -o -name .git -o -name node_modules \) -prune \
     -o -name "*.md" -print | \
-    grep -E "^\./(README\.md|APEX\.md|DESIGN\.md|DEVNET\.md|ROADMAP\.md|wasm-fingerprint-spec\.md|docs/|projects/|scripts/)" | \
+    grep -E "^\./(README\.md|docs/|examples/|scripts/)" | \
     while read -r md_file; do
         echo "🔧 Running code blocks in $md_file"
         set -euo pipefail
