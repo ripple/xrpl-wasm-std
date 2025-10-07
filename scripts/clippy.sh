@@ -19,7 +19,7 @@ echo "🔍 Running Clippy on Native Workspace..."
 cargo clippy --workspace --all-targets --all-features -- -Dclippy::all
 
 echo "🔍 Running Clippy on WASM Examples Workspace..."
-cd Examples
+cd examples
 cargo clippy --workspace --target wasm32v1-none --all-features -- -Dclippy::all
 cd ..
 
