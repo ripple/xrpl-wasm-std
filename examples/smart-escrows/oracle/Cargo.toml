@@ -1,0 +1,14 @@
+[package]
+name = "oracle"
+version = "0.1.0"
+edition = "2024"
+description = "Smart Escrow example that unlocks when oracle price data meets specified threshold conditions"
+license = "ISC"
+
+
+[lib]
+crate-type = ["cdylib"]
+
+
+[dependencies]
+xrpl-wasm-std = { path = "../../../../xrpl-wasm-std" }

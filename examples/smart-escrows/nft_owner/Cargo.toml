@@ -1,0 +1,14 @@
+[package]
+name = "nft_owner"
+version = "0.1.0"
+edition = "2024"
+description = "Smart Escrow example that unlocks when the destination account owns a specific NFT provided via memo"
+license = "ISC"
+
+
+[lib]
+crate-type = ["cdylib"]
+
+
+[dependencies]
+xrpl-wasm-std = { path = "../../../../xrpl-wasm-std" }

@@ -1,0 +1,15 @@
+[package]
+name = "notary"
+version = "0.1.0"
+edition = "2024"
+description = "Smart Escrow example that unlocks when the EscrowFinish transaction is signed by a designated notary account"
+license = "ISC"
+
+
+[lib]
+crate-type = ["cdylib"]
+
+
+[dependencies]
+xrpl-wasm-std = { path = "../../../../xrpl-wasm-std" }
+xrpl-address-macro = { path = "../../../../xrpl-address-macro" }

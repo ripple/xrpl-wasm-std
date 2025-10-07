@@ -1,0 +1,15 @@
+[package]
+name = "notary_macro_example"
+version = "0.1.0"
+edition = "2024"
+description = "Smart Escrow example demonstrating compile-time XRPL r-address to hex conversion using procedural macros"
+license = "ISC"
+
+
+[lib]
+crate-type = ["cdylib"]
+
+
+[dependencies]
+xrpl-wasm-std = { path = "../../../../xrpl-wasm-std" }
+xrpl-address-macro = { path = "../../../../xrpl-address-macro" }
