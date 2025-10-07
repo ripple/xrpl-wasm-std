@@ -3,7 +3,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_address_macro::r_address;
+use xrpl_wasm_std::r_address;
 use xrpl_wasm_std::core::current_tx::escrow_finish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::host::trace::trace_num;

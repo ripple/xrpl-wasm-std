@@ -1,6 +1,9 @@
 #![doc = include_str!("../../README.md")]
 #![no_std]
 
+// Re-export the r_address macro for convenient access
+pub use xrpl_address_macro::r_address;
+
 pub mod core;
 pub mod host;
 pub mod sfield;

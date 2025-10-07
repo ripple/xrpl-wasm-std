@@ -1,14 +1,27 @@
+//! The `r_address!` macro for compile-time address conversion converts XRPL classic addresses (r-addresses)
+//! to 20-byte arrays at compile time.
+//!
+//! **Important**: The macro only accepts string literals, not runtime values.
+//! It runs during compilation and outputs only the final byte array - no base58
+//! decoding code is included in the WASM binary.
+//!
+//! # Example
+//! ```shell
+//! use xrpl_wasm_std::r_address;
+//!
+//! // ✅ Works - compile-time literal
+//! const ACCOUNT: [u8; 20] = r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");
+//!
+//! // ❌ Does NOT work - runtime value
+//! // fn convert(addr: &str) -> [u8; 20] {
+//! //     r_address!(addr)  // ERROR: expected string literal
+//! // }
+//! ```
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{LitStr, parse_macro_input};
 
-/// Macro to convert an r-address to a 20-byte array at compile time.
-///
-/// # Example
-/// ```
-/// use xrpl_address_macro::r_address;
-/// const ACCOUNT: [u8; 20] = r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");
-/// ```
 #[proc_macro]
 pub fn r_address(input: TokenStream) -> TokenStream {
     let addr_lit = parse_macro_input!(input as LitStr);

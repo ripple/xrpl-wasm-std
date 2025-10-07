@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 description = "Compile-time macro for converting XRPL r-addresses to 20-byte arrays"
 license = "ISC"
-repository = "https://github.com/ripple/craft"
-homepage = "https://github.com/ripple/craft"
+repository = "https://github.com/ripple/xrpl-wasm-std"
+homepage = "https://github.com/ripple/xrpl-wasm-std"
 readme = "README.md"
 keywords = ["xrpl", "macro", "address", "codec"]
 categories = ["cryptography", "no-std", "encoding"]
@@ -26,3 +26,4 @@ version = "1.0"
 
 [dependencies.proc-macro2]
 version = "1.0"
+
