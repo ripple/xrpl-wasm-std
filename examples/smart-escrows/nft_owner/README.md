@@ -83,7 +83,7 @@ Run the contract using the wasm-host-simulator application:
 [//]: # (TODO: Replace `shell` with `bash` once https://github.com/ripple/craft/issues/180 merges)
 ```shell
 cd ../../../../
-cargo run --package wasm-host-simulator --bin wasm-host-simulator -- --dir projects/examples/smart-escrows/nft_owner --project nft_owner
+cargo run --package wasm-host-simulator --bin wasm-host-simulator -- --dir examples/smart-escrows/nft_owner --project nft_owner
 ```
 
 ## Use Cases

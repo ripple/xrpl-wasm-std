@@ -29,7 +29,7 @@ npm install
 This guide uses the public Devnet WASM endpoint at `wss://wasm.devnet.rippletest.net:51233` and the helper scripts in
 `reference/js`.
 
-### 1) Create a notary account (funded via faucet)
+### 1. Create a notary account (funded via faucet)
 
 Use the faucet helper script. It prints export lines you can copy/paste.
 
@@ -47,7 +47,7 @@ Export them for convenience (replace with your printed values):
 export NOTARY_ADDRESS=rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh
 ```
 
-### 2) Build the notary WASM
+### 2. Build the notary WASM
 
 The notary address is hardcoded in the source code. To change it, edit `src/lib.rs` and modify the `NOTARY_ACCOUNT` constant.
 
@@ -60,10 +60,10 @@ cargo build --target wasm32v1-none --release
 Artifact:
 
 ```
-projects/examples/smart-escrows/notary/target/wasm32v1-none/release/notary.wasm
+examples/smart-escrows/notary/target/wasm32v1-none/release/notary.wasm
 ```
 
-### 3) Deploy an escrow using your FinishFunction on Devnet
+### 3. Deploy an escrow using your FinishFunction on Devnet
 
 Use the helper to deploy an escrow that references your compiled `FinishFunction`.
 
@@ -91,7 +91,7 @@ export OWNER_ADDRESS=<Account 1 Address printed by deploy script>
 export OFFER_SEQUENCE=<Sequence printed in tx_json>
 ```
 
-### 4) Finish the escrow as the notary
+### 4. Finish the escrow as the notary
 
 Submit `EscrowFinish` from the notary account you created in step 1:
 
@@ -108,7 +108,7 @@ You can also run the WASM locally with the included host emulator:
 
 ```shell
 cd ../../../../
-cargo run --package wasm-host-simulator --bin wasm-host-simulator -- --dir projects/examples/smart-escrows/notary --project notary
+cargo run --package wasm-host-simulator --bin wasm-host-simulator -- --dir examples/smart-escrows/notary --project notary
 ```
 
 ## Modifying the notary account
