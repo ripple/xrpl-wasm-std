@@ -38,13 +38,10 @@ async function test(sourceWallet, destWallet, offerSequence) {
     console.log("Submitting EscrowFinish transaction... (this should fail)")
     const responseFail = await submit(txFail, sourceWallet)
 
-    if (responseFail.result.meta.TransactionResult === "tesSUCCESS") {
-      console.log("\nEscrow finished successfully!")
-    } else {
-      console.error("\nFailed to finish escrow:", responseFail.result.meta.TransactionResult)
+    if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
+      console.log("\nEscrow finished successfully?????")
+      process.exit(1)
     }
-
-    await sleep(5000)
 
     const credTx = {
       TransactionType: 'CredentialCreate',
@@ -62,8 +59,6 @@ async function test(sourceWallet, destWallet, offerSequence) {
     } else {
       console.error("\nFailed to create credential:", credResponse.result.meta.TransactionResult)
     }
-
-    await sleep(5000)
 
     const tx = {
       TransactionType: 'EscrowFinish',

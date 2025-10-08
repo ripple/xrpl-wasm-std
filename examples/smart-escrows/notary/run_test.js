@@ -1,7 +1,13 @@
 const xrpl = require("xrpl")
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const url = process.argv.length > 4 ? process.argv[4] : "ws://127.0.0.1:6006"
 const client = new xrpl.Client(url)
+
+const notary = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", { algorithm: xrpl.ECDSA.secp256k1 })
 
 async function submit(tx, wallet, debug = false) {
   const result = await client.submitAndWait(tx, {autofill: true, wallet})
@@ -13,7 +19,7 @@ async function submit(tx, wallet, debug = false) {
   return result
 }
 
-async function test(sourceWallet, _destWallet, offerSequence) {
+async function test(sourceWallet, destWallet, offerSequence) {
   try {
     console.log("Connecting...")
     await client.connect()
@@ -31,10 +37,27 @@ async function test(sourceWallet, _destWallet, offerSequence) {
       ComputationAllowance: 1000000,
     }
 
+    console.log("Submitting EscrowFinish transaction... (this should fail)")
     const responseFail = await submit(txFail, sourceWallet)
 
-    if (responseFail.result.meta.TransactionResult !== "tesSUCCESS") {
-      console.error("\nFailed to finish escrow:", responseFail.result.meta.TransactionResult)
+    if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
+      console.log("\nEscrow finished successfully????")
+      process.exit(1)
+    }
+
+    const tx = {
+      TransactionType: 'EscrowFinish',
+      Account: notary.address,
+      Owner: notary.address,
+      OfferSequence: parseInt(offerSequence),
+      ComputationAllowance: 1000000,
+    }
+
+    console.log("Submitting EscrowFinish transaction...")
+    const response = await submit(tx, notary)
+
+    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
+      console.error("\nFailed to finish escrow:", response.result.meta.TransactionResult)
       process.exit(1)
     }
 
