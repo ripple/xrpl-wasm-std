@@ -9,6 +9,7 @@ on:
 # Make sure CI fails on all warnings, including Clippy lints
 env:
   RUSTFLAGS: "-Dwarnings"
+  CI: true
 
 jobs:
   pre-commit:

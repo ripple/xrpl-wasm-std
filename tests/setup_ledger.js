@@ -2,7 +2,7 @@ const xrpl = require("xrpl")
 const fs = require('fs')
 const path = require('path')
 
-const client = new xrpl.Client("ws://127.0.0.1:6006")
+const client = process.argv.length > 2 ? new xrpl.Client(process.argv[2]) : new xrpl.Client("ws://127.0.0.1:6006")
 
 async function submit(tx, wallet, debug = true) {
   const txResult = await client.submitAndWait(tx, {autofill: true, wallet})
@@ -33,7 +33,10 @@ async function main() {
   await client.connect()
   console.log("connected")
 
-  const interval = setInterval(() => {if (client.isConnected()) client.request({command: 'ledger_accept'})},1000)
+  let interval
+  if (client.url.includes("localhost")) {
+    interval = setInterval(() => {if (client.isConnected()) client.request({command: 'ledger_accept'})},1000)
+  }
 
   const wallets = []
   for (let i = 0; i < 5; i++) {
@@ -49,7 +52,9 @@ async function main() {
   fs.writeFileSync(filePath, JSON.stringify(wallets, null, 2))
   console.log(`Saved ${wallets.length} wallets to wallets.json`)
 
-  clearInterval(interval)
+  if (interval)
+    clearInterval(interval)
+  
   await client.disconnect()
 }
 

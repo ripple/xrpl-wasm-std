@@ -19,10 +19,8 @@ async function submit(tx, wallet, debug = true) {
 
 async function test(sourceWallet, destWallet, offerSequence) {
   try {
-    console.log("Connecting to the WASM Devnet...")
+    console.log("Connecting...")
     await client.connect()
-
-    await client.request({command: 'ledger_accept'})
 
     console.log("\nTransaction Details:")
     console.log(`Account (Finishing Escrow): ${sourceWallet.address}`)

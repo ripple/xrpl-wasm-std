@@ -39,7 +39,6 @@ async function submit(tx, wallet, debug = true) {
 async function deploy(sourceWallet, destWallet, wasmSource) {
   await client.connect()
   console.log("connected")
-  await client.request({command: 'ledger_accept'})
 
   const finish = getFinishFunctionFromFile(wasmSource)
 

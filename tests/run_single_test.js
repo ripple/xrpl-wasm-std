@@ -7,9 +7,11 @@ const client = new xrpl.Client("ws://127.0.0.1:6006")
 async function main() {
     await client.connect()
     console.log("connected")
-    await client.request({command: 'ledger_accept'})
 
-    const interval = setInterval(() => {if (client.isConnected()) client.request({command: 'ledger_accept'})},1000)
+    let interval
+    if (client.url.includes("localhost")) {
+        interval = setInterval(() => {if (client.isConnected()) client.request({command: 'ledger_accept'})},1000)
+    }
 
     const walletsPath = path.join(__dirname, 'wallets.json')
     const walletsData = JSON.parse(fs.readFileSync(walletsPath, 'utf8'))
@@ -40,7 +42,8 @@ async function main() {
     // Run the test with wallets[0] and wallets[1]
     await test(wallets[0], wallets[1], sequence)
 
-    clearInterval(interval)
+    if (interval)
+        clearInterval(interval)
     await client.disconnect()
 }
 
