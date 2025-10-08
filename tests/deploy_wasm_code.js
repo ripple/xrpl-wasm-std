@@ -69,6 +69,8 @@ async function deploy(sourceWallet, destWallet, wasmSource) {
   if (response1.result.meta.TransactionResult !== "tesSUCCESS") process.exit(1)
   const sequence = response1.result.tx_json.Sequence
 
+  await new Promise(r => setTimeout(r, 10*1000))
+
   await client.disconnect()
 
   return sequence
