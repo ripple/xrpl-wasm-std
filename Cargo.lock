@@ -149,7 +149,6 @@ name = "xrpl-address-macro"
 version = "0.1.0"
 dependencies = [
  "bs58",
- "proc-macro2",
  "quote",
  "sha2",
  "syn",
@@ -158,3 +157,6 @@ dependencies = [
 [[package]]
 name = "xrpl-wasm-std"
 version = "0.5.1-devnet5"
+dependencies = [
+ "xrpl-address-macro",
+]
