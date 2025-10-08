@@ -9,7 +9,7 @@ async function main() {
     console.log("connected")
 
     let interval
-    if (client.url.includes("localhost")) {
+    if (client.url.includes("localhost") || client.url.includes("127.0.0.1")) {
         interval = setInterval(() => {if (client.isConnected()) client.request({command: 'ledger_accept'})},1000)
     }
 
