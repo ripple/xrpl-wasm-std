@@ -135,9 +135,9 @@ jobs:
           path: |
             tests/node_modules
             */*/node_modules
-          key: ${{ runner.os }}-deps-24-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-24-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-deps-24-
+            ${{ runner.os }}-node-24-
 
       - name: Install Node dependencies
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
