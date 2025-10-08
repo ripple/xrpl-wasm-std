@@ -54,7 +54,7 @@ async function main() {
 
   if (interval)
     clearInterval(interval)
-  
+
   await client.disconnect()
 }
 
