@@ -48,7 +48,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
     const tx = {
       TransactionType: 'EscrowFinish',
       Account: notary.address,
-      Owner: notary.address,
+      Owner: sourceWallet.address,
       OfferSequence: parseInt(offerSequence),
       ComputationAllowance: 1000000,
     }
