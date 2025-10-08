@@ -133,8 +133,7 @@ jobs:
         with:
           # caching node_modules
           path: |
-            tests/node_modules
-            */*/node_modules
+            node_modules
           key: ${{ runner.os }}-node-24-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-24-
