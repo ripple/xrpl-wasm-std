@@ -331,7 +331,15 @@ pub extern "C" fn finish() -> i32 {
 
 ### Using classic (r...) addresses
 
-Contracts compare 20-byte AccountID values. If you have a classic XRPL address (r...) during development, use the `xrpl-address-macro` crate with the `r_address!` macro to convert it to a `[u8; 20]` constant at compile time. See `examples/notary` for an example of how to use this macro for address comparison inside the WASM.
+Contracts compare 20-byte AccountID values. If you have a classic XRPL address (r...) during development, use the `r_address!` macro to convert it to a `[u8; 20]` constant at compile time:
+
+```rust
+use xrpl_wasm_std::r_address;
+
+const NOTARY: [u8; 20] = r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");
+```
+
+The macro runs at compile time and only accepts string literals (not runtime values). No base58 decoding code is included in the final WASM binary. See `examples/notary` for a complete example.
 
 ### Build and run your contract
 

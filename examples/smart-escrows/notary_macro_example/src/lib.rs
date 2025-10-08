@@ -3,11 +3,11 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_address_macro::r_address;
 use xrpl_wasm_std::core::current_tx::escrow_finish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::host::trace::trace_num;
 use xrpl_wasm_std::host::{Result::Err, Result::Ok};
+use xrpl_wasm_std::r_address;
 
 // The r_address! macro converts the address at compile time to a [u8; 20] array.
 // This means zero runtime overhead - the final WASM binary contains only the raw bytes.

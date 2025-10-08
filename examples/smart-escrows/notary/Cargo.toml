@@ -12,4 +12,3 @@ crate-type = ["cdylib"]
 
 [dependencies]
 xrpl-wasm-std = { path = "../../../xrpl-wasm-std" }
-xrpl-address-macro = { path = "../../../xrpl-address-macro" }
