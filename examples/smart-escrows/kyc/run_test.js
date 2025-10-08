@@ -18,7 +18,6 @@ async function submit(tx, wallet, debug = true) {
 }
 
 async function test(sourceWallet, destWallet, offerSequence) {
-  let interval
   try {
     console.log("Connecting to the WASM Devnet...")
     await client.connect()
@@ -51,14 +50,14 @@ async function test(sourceWallet, destWallet, offerSequence) {
 
     const credTx = {
       TransactionType: 'CredentialCreate',
-      Account: account,
-      Subject: account,
+      Account: destWallet.address,
+      Subject: destWallet.address,
       CredentialType: xrpl.convertStringToHex('termsandconditions'),
       URI: xrpl.convertStringToHex("https://example.com/terms"),
     }
 
     console.log("Submitting CredentialCreate transaction...")
-    const credResponse = await submit(credTx, sourceWallet)
+    const credResponse = await submit(credTx, destWallet)
 
     if (credResponse.result.meta.TransactionResult === "tesSUCCESS") {
       console.log("Credential created successfully!")
@@ -87,6 +86,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
 
   } catch (error) {
     console.error("Error:", error.message)
+    console.log(error)
     process.exit(1)
   } finally {
     await client.disconnect()

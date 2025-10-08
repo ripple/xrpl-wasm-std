@@ -20,20 +20,15 @@ echo "🔧 Running end-to-end tests..."
 # scripts/build.sh release
 
 echo "🧪 Running integration tests..."
-# node tests/setup_ledger.js
-# find examples -name "Cargo.toml" -type f | while read -r cargo_file; do
-#     dir=$(dirname "$cargo_file")
-#     contract_name=$(basename "$dir")
-#     wasm_file_release="examples/target/wasm32v1-none/release/${contract_name}.wasm"
-#     echo "🔧 Running integration test for $contract_name in $dir"
-#     node tests/run_test.js "$dir" "$wasm_file_release"
-# done
-
-cargo_file="examples/smart-escrows/kyc/Cargo.toml"
-dir=$(dirname "$cargo_file")
-contract_name=$(basename "$dir")
-wasm_file_release="examples/target/wasm32v1-none/release/${contract_name}.wasm"
-echo "🔧 Running integration test for $contract_name in $dir"
-node ./tests/run_single_test.js "$dir" "$wasm_file_release"
+node tests/setup_ledger.js
+find examples -name "Cargo.toml" -type f | while read -r cargo_file; do
+    dir=$(dirname "$cargo_file")
+    contract_name=$(basename "$dir")
+    wasm_file_release="examples/target/wasm32v1-none/release/${contract_name}.wasm"
+    if [[ -f "$dir/run_test.js" ]]; then
+        echo "🔧 Running integration test for $contract_name in $dir"
+        node ./tests/run_single_test.js "$dir" "$wasm_file_release"
+    fi
+done
 
 echo "✅ End-to-end tests completed successfully!"
