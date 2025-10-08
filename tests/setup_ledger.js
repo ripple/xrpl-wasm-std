@@ -4,7 +4,7 @@ const path = require('path')
 
 const client = process.argv.length > 2 ? new xrpl.Client(process.argv[2]) : new xrpl.Client("ws://127.0.0.1:6006")
 
-async function submit(tx, wallet, debug = true) {
+async function submit(tx, wallet, debug = false) {
   const txResult = await client.submitAndWait(tx, {autofill: true, wallet})
   console.log("SUBMITTED " + tx.TransactionType)
 
