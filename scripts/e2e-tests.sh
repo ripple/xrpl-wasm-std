@@ -2,9 +2,6 @@
 # End-to-end tests script
 # Mirrors the e2e-tests job from GitHub Actions
 
-exit 0
-# TODO: fix the script and re-enable the tests
-
 set -euo pipefail
 
 # Change to the repository root directory (where this script's grandparent directory is located)
@@ -23,12 +20,23 @@ scripts/build.sh
 scripts/build.sh release
 
 echo "🧪 Running integration tests..."
-find examples -name "Cargo.toml" -type f | while read -r cargo_file; do
+cd tests
+if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
+    node setup_ledger.js "wss://wasm.devnet.rippletest.net:51233"
+else
+    node setup_ledger.js
+fi
+find ../examples -name "Cargo.toml" -type f | while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
-    if [ -d "$dir/fixtures" ]; then
+    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+    if [[ -f "$dir/run_test.js" ]]; then
         echo "🔧 Running integration test for $contract_name in $dir"
-        cargo run --package wasm-host-simulator --bin wasm-host-simulator -- -p "$contract_name" --dir $dir || exit 1
+        if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
+            node ./run_single_test.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
+        else
+            node ./run_single_test.js "$dir" "$wasm_file_release"
+        fi
     fi
 done
 

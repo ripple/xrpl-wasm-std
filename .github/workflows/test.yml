@@ -9,6 +9,7 @@ on:
 # Make sure CI fails on all warnings, including Clippy lints
 env:
   RUSTFLAGS: "-Dwarnings"
+  CI: true
 
 jobs:
   pre-commit:
@@ -108,7 +109,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Cache dependencies
+      - name: Use Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+
+      - name: Cache cargo dependencies
         uses: actions/cache@v4
         with:
           path: |
@@ -118,6 +124,26 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache Node dependencies
+        id: cache-nodemodules
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-node-modules
+        with:
+          # caching node_modules
+          path: |
+            node_modules
+          key: ${{ runner.os }}-node-24-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-24-
+
+      - name: Install Node dependencies
+        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
+        run: |
+          cd tests
+          npm ci
+          cp -r node_modules ../node_modules
 
       - name: Run end-to-end tests
         run: ./scripts/e2e-tests.sh
