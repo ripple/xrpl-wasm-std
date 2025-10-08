@@ -20,7 +20,11 @@ scripts/build.sh
 scripts/build.sh release
 
 echo "🧪 Running integration tests..."
-node tests/setup_ledger.js
+if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
+    node tests/setup_ledger.js "wss://wasm.devnet.rippletest.net:51233"
+else
+    node tests/setup_ledger.js
+fi
 find examples -name "Cargo.toml" -type f | while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
@@ -28,7 +32,7 @@ find examples -name "Cargo.toml" -type f | while read -r cargo_file; do
     if [[ -f "$dir/run_test.js" ]]; then
         echo "🔧 Running integration test for $contract_name in $dir"
         if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
-            node ./tests/run_single_test.js "$dir" "$wasm_file_release" "wasm.devnet.rippletest.net:51233"
+            node ./tests/run_single_test.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
         else
             node ./tests/run_single_test.js "$dir" "$wasm_file_release"
         fi

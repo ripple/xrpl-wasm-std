@@ -139,7 +139,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-deps-24-
 
-      - name: Install Dependencies
+      - name: Install Node dependencies
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         run: cd tests && npm ci
 

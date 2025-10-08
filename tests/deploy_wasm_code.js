@@ -2,7 +2,7 @@ const xrpl = require("xrpl")
 const fs = require('fs')
 const path = require('path')
 
-const client = new xrpl.Client("ws://127.0.0.1:6006")
+const client = process.argv.length > 4 ? new xrpl.Client(process.argv[4]) : new xrpl.Client("ws://127.0.0.1:6006")
 
 function getFinishFunctionFromFile(filePath) {
   if (!filePath) {
@@ -61,7 +61,7 @@ async function deploy(sourceWallet, destWallet, wasmSource) {
     Amount: "100000",
     Destination: destWallet.address,
     CancelAfter: close_time + 2000,
-    FinishAfter: close_time + 5,
+    FinishAfter: close_time + 10,
     FinishFunction: finish,
     Data: xrpl.xrpToDrops(70),
   }, sourceWallet)

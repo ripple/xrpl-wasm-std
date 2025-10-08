@@ -16,6 +16,11 @@ async function submit(tx, wallet, debug = true) {
 }
 
 async function fundWallet(wallet = undefined) {
+  if (!(client.url.includes("localhost") || client.url.includes("127.0.0.1"))) {
+    const walletToFund = wallet || xrpl.Wallet.generate()
+    const result = await client.fundWallet(walletToFund)
+    return result.wallet
+  }
   const master = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", { algorithm: xrpl.ECDSA.secp256k1 })
 
   const walletToFund = wallet || xrpl.Wallet.generate()
@@ -25,7 +30,7 @@ async function fundWallet(wallet = undefined) {
     Amount: xrpl.xrpToDrops(10000),
     Destination: walletToFund.address,
   }, master)
-  return { walletToFund }
+  return walletToFund
 }
 
 async function main() {
@@ -34,17 +39,17 @@ async function main() {
   console.log("connected")
 
   let interval
-  if (client.url.includes("localhost")) {
+  if (client.url.includes("localhost") || client.url.includes("127.0.0.1")) {
     interval = setInterval(() => {if (client.isConnected()) client.request({command: 'ledger_accept'})},1000)
   }
 
   const wallets = []
   for (let i = 0; i < 5; i++) {
-    const { walletToFund } = await fundWallet()
+    const wallet = await fundWallet()
     wallets.push({
-      address: walletToFund.address,
-      seed: walletToFund.seed,
-      publicKey: walletToFund.publicKey
+      address: wallet.address,
+      seed: wallet.seed,
+      publicKey: wallet.publicKey
     })
   }
 
