@@ -133,7 +133,7 @@ jobs:
         with:
           # caching node_modules
           path: |
-            node_modules
+            tests/node_modules
             */*/node_modules
           key: ${{ runner.os }}-deps-24-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
@@ -141,7 +141,7 @@ jobs:
 
       - name: Install Dependencies
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
-        run: npm ci
+        run: cd tests && npm ci
 
       - name: Run end-to-end tests
         run: ./scripts/e2e-tests.sh
