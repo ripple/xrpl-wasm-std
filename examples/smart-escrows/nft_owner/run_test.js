@@ -47,7 +47,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
         {
           Memo: {
             MemoType: xrpl.convertStringToHex("nft_id"),
-            MemoData: xrpl.convertStringToHex(nftId),
+            MemoData: nftId,
           }
         }
       ]
@@ -74,12 +74,14 @@ async function test(sourceWallet, destWallet, offerSequence) {
       console.error("\nFailed to create NFT offer:", offerResponse.result.meta.TransactionResult)
       process.exit(1)
     }
-    const nftOfferId = offerResponse.result.meta.AffectedNodes.find(node => node.CreatedNode && node.CreatedNode.LedgerEntryType === 'NFTokenOffer').CreatedNode.LedgerIndex
+    const nftOfferId = offerResponse.result.meta.AffectedNodes.find(
+      node => node.CreatedNode && node.CreatedNode.LedgerEntryType === 'NFTokenOffer'
+    ).CreatedNode.LedgerIndex
 
     const acceptOffer = {
       TransactionType: 'NFTokenAcceptOffer',
       Account: destWallet.address,
-      NFTokenOfferID: nftOfferId,
+      NFTokenSellOffer: nftOfferId,
     }
     const acceptResponse = await submit(acceptOffer, destWallet)
     if (acceptResponse.result.meta.TransactionResult !== "tesSUCCESS") {
@@ -88,10 +90,9 @@ async function test(sourceWallet, destWallet, offerSequence) {
     }
 
     // This EscrowFinish should succeed because the destinationWallet is now the owner of the NFT
-
     const tx = {
       TransactionType: 'EscrowFinish',
-      Account: notary.address,
+      Account: sourceWallet.address,
       Owner: sourceWallet.address,
       OfferSequence: parseInt(offerSequence),
       ComputationAllowance: 1000000,
@@ -99,14 +100,14 @@ async function test(sourceWallet, destWallet, offerSequence) {
         {
           Memo: {
             MemoType: xrpl.convertStringToHex("nft_id"),
-            MemoData: xrpl.convertStringToHex(nftId),
+            MemoData: nftId,
           }
         }
       ]
     }
 
     console.log("Submitting EscrowFinish transaction...")
-    const response = await submit(tx, notary)
+    const response = await submit(tx, sourceWallet)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error("\nFailed to finish escrow:", response.result.meta.TransactionResult)
@@ -119,7 +120,6 @@ async function test(sourceWallet, destWallet, offerSequence) {
     process.exit(1)
   } finally {
     await client.disconnect()
-    console.log("Disconnected")
   }
 }
 
