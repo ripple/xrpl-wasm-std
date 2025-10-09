@@ -26,18 +26,35 @@ if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
 else
     node setup_ledger.js
 fi
-find ../examples -name "Cargo.toml" -type f | while read -r cargo_file; do
+
+run_integration_test() {
+    local dir="$1"
+    local contract_name="$2"
+    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+
+    if [[ ! -f "$dir/run_test.js" ]]; then
+        echo "❌ Error: Test file run_test.js not found in $dir"
+        exit 1
+    fi
+    echo "🔧 Running integration test for $contract_name in $dir"
+    if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
+        node ./run_single_test.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
+    else
+        node ./run_single_test.js "$dir" "$wasm_file_release"
+    fi
+}
+
+if [[ $# -gt 0 ]]; then
+    test_name="$1"
+    test_dir="../examples/smart-escrows/$test_name"
+    run_integration_test "$test_dir" "$test_name"
+    exit 0
+fi
+
+find ../examples -mindepth 2 -name "Cargo.toml" -type f | while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
-    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
-    if [[ -f "$dir/run_test.js" ]]; then
-        echo "🔧 Running integration test for $contract_name in $dir"
-        if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
-            node ./run_single_test.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
-        else
-            node ./run_single_test.js "$dir" "$wasm_file_release"
-        fi
-    fi
+    run_integration_test "$dir" "$contract_name"
 done
 
 echo "✅ End-to-end tests completed successfully!"

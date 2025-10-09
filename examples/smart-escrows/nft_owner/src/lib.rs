@@ -9,7 +9,7 @@ use xrpl_wasm_std::core::ledger_objects::traits::CurrentEscrowFields;
 use xrpl_wasm_std::core::locator::Locator;
 use xrpl_wasm_std::host::Error::InternalError;
 use xrpl_wasm_std::host::get_tx_nested_field;
-use xrpl_wasm_std::host::trace::trace_num;
+use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 use xrpl_wasm_std::host::{Error, Result, Result::Err, Result::Ok};
 use xrpl_wasm_std::sfield;
 use xrpl_wasm_std::types::{ContractData, XRPL_CONTRACT_DATA_SIZE, XRPL_NFTID_SIZE};
@@ -55,6 +55,7 @@ pub extern "C" fn finish() -> i32 {
     };
 
     let nft: [u8; XRPL_NFTID_SIZE] = memo[0..32].try_into().unwrap();
+    let _ = trace_data("NFT ID from memo:", &nft, DataRepr::AsHex);
 
     let current_escrow = current_escrow::get_current_escrow();
     let destination = match current_escrow.get_destination() {
@@ -68,7 +69,7 @@ pub extern "C" fn finish() -> i32 {
     match get_nft(&destination, &nft) {
         Ok(_) => 1, // <-- Finish the escrow to indicate a successful outcome
         Err(e) => {
-            let _ = trace_num("Error getting first memo:", e.code() as i64);
+            let _ = trace_num("Error getting NFT:", e.code() as i64);
             e.code() // <-- Do not execute the escrow.
         }
     }

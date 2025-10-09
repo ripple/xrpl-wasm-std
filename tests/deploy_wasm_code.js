@@ -46,12 +46,6 @@ async function deploy(sourceWallet, destWallet, wasmSource) {
 
   const finish = getFinishFunctionFromFile(wasmSource)
 
-  console.log(`\nFunded accounts:`)
-  console.log(`Account 1 (Origin) - Address: ${sourceWallet.address}`)
-  console.log(`Account 1 (Origin) - Secret: ${sourceWallet.seed}`)
-  console.log(`Account 2 (Destination) - Address: ${destWallet.address}`)
-  console.log(`Account 2 (Destination) - Secret: ${destWallet.seed}\n`)
-
   const close_time = (
     await client.request({
       command: "ledger",
@@ -66,7 +60,6 @@ async function deploy(sourceWallet, destWallet, wasmSource) {
       Amount: "100000",
       Destination: destWallet.address,
       CancelAfter: close_time + 2000,
-      FinishAfter: close_time + 10,
       FinishFunction: finish,
       Data: xrpl.xrpToDrops(70),
     },

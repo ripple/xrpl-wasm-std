@@ -7,6 +7,10 @@ function sleep(ms) {
 const url = process.argv.length > 4 ? process.argv[4] : "ws://127.0.0.1:6006"
 const client = new xrpl.Client(url)
 
+const notary = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
+  algorithm: xrpl.ECDSA.secp256k1,
+})
+
 async function submit(tx, wallet, debug = false) {
   const result = await client.submitAndWait(tx, { autofill: true, wallet })
   console.log("SUBMITTED " + tx.TransactionType)
@@ -28,42 +32,24 @@ async function test(sourceWallet, destWallet, offerSequence) {
     }
 
     // Submitting EscrowFinish transaction...
-    // This should fail since the credential hasn't been created yet
+    // This should fail since the notary isn't sending this transaction
     const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
-      console.log("\nEscrow finished successfully?????")
+      console.log("\nEscrow finished successfully????")
       process.exit(1)
-    }
-
-    const credTx = {
-      TransactionType: "CredentialCreate",
-      Account: destWallet.address,
-      Subject: destWallet.address,
-      CredentialType: xrpl.convertStringToHex("termsandconditions"),
-      URI: xrpl.convertStringToHex("https://example.com/terms"),
-    }
-
-    // Submitting CredentialCreate transaction...
-    const credResponse = await submit(credTx, destWallet)
-
-    if (credResponse.result.meta.TransactionResult !== "tesSUCCESS") {
-      console.error(
-        "\nFailed to create credential:",
-        credResponse.result.meta.TransactionResult,
-      )
     }
 
     const tx = {
       TransactionType: "EscrowFinish",
-      Account: sourceWallet.address,
+      Account: notary.address,
       Owner: sourceWallet.address,
       OfferSequence: parseInt(offerSequence),
       ComputationAllowance: 1000000,
     }
 
     // Submitting EscrowFinish transaction...
-    const response = await submit(tx, sourceWallet)
+    const response = await submit(tx, notary)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(

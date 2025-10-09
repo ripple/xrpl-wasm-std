@@ -5,7 +5,6 @@ members = [
     "smart-escrows/ledger_sqn",
     "smart-escrows/nft_owner",
     "smart-escrows/notary",
-    "smart-escrows/notary_macro_example",
     "smart-escrows/oracle",
 ]
 

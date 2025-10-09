@@ -9,10 +9,10 @@ use xrpl_wasm_std::core::types::keylets::oracle_keylet;
 use xrpl_wasm_std::host::error_codes::match_result_code;
 use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 use xrpl_wasm_std::host::{Result, Result::Err, Result::Ok};
+use xrpl_wasm_std::r_address;
 use xrpl_wasm_std::{host, sfield};
 
-const ORACLE_OWNER: AccountID =
-    AccountID(*b"\xd5\xb9\x84VP\x9f \xb5'\x9d\x1eJ.\xe8\xb2\xaa\x82\xaec\xe3");
+const ORACLE_OWNER: AccountID = AccountID(r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"));
 const ORACLE_DOCUMENT_ID: i32 = 1;
 
 // TODO: Update this function to handle errors and return a Result<u64> instead.
