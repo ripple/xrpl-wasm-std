@@ -55,15 +55,12 @@ async function deploy(sourceWallet, destWallet, wasmSource) {
     Amount: "100000",
     Destination: destWallet.address,
     CancelAfter: close_time + 2000,
-    FinishAfter: close_time + 10,
     FinishFunction: finish,
     Data: xrpl.xrpToDrops(70),
   }, sourceWallet)
 
   if (response1.result.meta.TransactionResult !== "tesSUCCESS") process.exit(1)
   const sequence = response1.result.tx_json.Sequence
-
-  await new Promise(r => setTimeout(r, 10*1000))
 
   await client.disconnect()
 
