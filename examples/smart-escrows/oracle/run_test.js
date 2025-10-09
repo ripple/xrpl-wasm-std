@@ -65,6 +65,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
       ComputationAllowance: 1000000,
     }
 
+    // This EscrowCreate should fail since the oracle must show the price as <= 1 USD/XRP
     const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {

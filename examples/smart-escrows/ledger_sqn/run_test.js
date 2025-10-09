@@ -13,8 +13,11 @@ async function submit(tx, wallet, debug = false) {
 
 async function test(sourceWallet, _destWallet, offerSequence) {
   try {
-    console.log("Connecting...")
     await client.connect()
+
+    // This is a bit of a dummy example and test
+    // The Smart Escrow just checks whether the ledger sequence is greater than 5
+    // which is essentially guaranteed to already be true, even when running on standalone mode
 
     const txFail = {
       TransactionType: "EscrowFinish",
@@ -39,7 +42,6 @@ async function test(sourceWallet, _destWallet, offerSequence) {
     process.exit(1)
   } finally {
     await client.disconnect()
-    console.log("Disconnected")
   }
 }
 

@@ -114,7 +114,6 @@ async function test(sourceWallet, destWallet, offerSequence) {
       ],
     }
 
-    console.log("Submitting EscrowFinish transaction...")
     const response = await submit(tx, sourceWallet)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {

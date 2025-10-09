@@ -27,7 +27,8 @@ async function test(sourceWallet, destWallet, offerSequence) {
       ComputationAllowance: 1000000,
     }
 
-    // Submitting EscrowFinish transaction... (this should fail)
+    // Submitting EscrowFinish transaction...
+    // This should fail since the credential hasn't been created yet
     const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
@@ -43,12 +44,10 @@ async function test(sourceWallet, destWallet, offerSequence) {
       URI: xrpl.convertStringToHex("https://example.com/terms"),
     }
 
-    console.log("Submitting CredentialCreate transaction...")
+    // Submitting CredentialCreate transaction...
     const credResponse = await submit(credTx, destWallet)
 
-    if (credResponse.result.meta.TransactionResult === "tesSUCCESS") {
-      console.log("Credential created successfully!")
-    } else {
+    if (credResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
         "\nFailed to create credential:",
         credResponse.result.meta.TransactionResult,

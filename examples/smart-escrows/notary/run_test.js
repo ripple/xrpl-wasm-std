@@ -31,7 +31,8 @@ async function test(sourceWallet, destWallet, offerSequence) {
       ComputationAllowance: 1000000,
     }
 
-    console.log("Submitting EscrowFinish transaction... (this should fail)")
+    // Submitting EscrowFinish transaction...
+    // This should fail since the notary isn't sending this transaction
     const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
@@ -47,7 +48,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
       ComputationAllowance: 1000000,
     }
 
-    console.log("Submitting EscrowFinish transaction...")
+    // Submitting EscrowFinish transaction...
     const response = await submit(tx, notary)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
