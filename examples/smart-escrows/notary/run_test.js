@@ -21,13 +21,7 @@ async function submit(tx, wallet, debug = false) {
 
 async function test(sourceWallet, destWallet, offerSequence) {
   try {
-    console.log("Connecting...")
     await client.connect()
-
-    console.log("\nTransaction Details:")
-    console.log(`Account (Finishing Escrow): ${sourceWallet.address}`)
-    console.log(`Owner (Created Escrow): ${sourceWallet.address}`)
-    console.log(`Offer Sequence: ${offerSequence}\n`)
 
     const txFail = {
       TransactionType: 'EscrowFinish',
@@ -67,7 +61,6 @@ async function test(sourceWallet, destWallet, offerSequence) {
     process.exit(1)
   } finally {
     await client.disconnect()
-    console.log("Disconnected")
   }
 }
 

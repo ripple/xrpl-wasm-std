@@ -119,7 +119,6 @@ async function test(sourceWallet, destWallet, offerSequence) {
     process.exit(1)
   } finally {
     await client.disconnect()
-    console.log("Disconnected")
   }
 }
 

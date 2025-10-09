@@ -18,11 +18,6 @@ async function test(sourceWallet, _destWallet, offerSequence) {
     console.log("Connecting...")
     await client.connect()
 
-    console.log("\nTransaction Details:")
-    console.log(`Account (Finishing Escrow): ${sourceWallet.address}`)
-    console.log(`Owner (Created Escrow): ${sourceWallet.address}`)
-    console.log(`Offer Sequence: ${offerSequence}\n`)
-
     const txFail = {
       TransactionType: 'EscrowFinish',
       Account: sourceWallet.address,

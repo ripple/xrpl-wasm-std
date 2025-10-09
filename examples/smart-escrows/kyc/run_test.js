@@ -19,13 +19,7 @@ async function submit(tx, wallet, debug = false) {
 
 async function test(sourceWallet, destWallet, offerSequence) {
   try {
-    console.log("Connecting...")
     await client.connect()
-
-    console.log("\nTransaction Details:")
-    console.log(`Account (Finishing Escrow): ${sourceWallet.address}`)
-    console.log(`Owner (Created Escrow): ${sourceWallet.address}`)
-    console.log(`Offer Sequence: ${offerSequence}\n`)
 
     const txFail = {
       TransactionType: 'EscrowFinish',
@@ -35,7 +29,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
       ComputationAllowance: 1000000,
     }
 
-    console.log("Submitting EscrowFinish transaction... (this should fail)")
+    // Submitting EscrowFinish transaction... (this should fail)
     const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
@@ -68,12 +62,10 @@ async function test(sourceWallet, destWallet, offerSequence) {
       ComputationAllowance: 1000000,
     }
 
-    console.log("Submitting EscrowFinish transaction...")
+    // Submitting EscrowFinish transaction...
     const response = await submit(tx, sourceWallet)
 
-    if (response.result.meta.TransactionResult === "tesSUCCESS") {
-      console.log("\nEscrow finished successfully!")
-    } else {
+    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error("\nFailed to finish escrow:", response.result.meta.TransactionResult)
       process.exit(1)
     }
@@ -84,7 +76,6 @@ async function test(sourceWallet, destWallet, offerSequence) {
     process.exit(1)
   } finally {
     await client.disconnect()
-    console.log("Disconnected")
   }
 }
 
