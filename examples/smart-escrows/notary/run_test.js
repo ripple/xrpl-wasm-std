@@ -1,21 +1,21 @@
 const xrpl = require("xrpl")
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 const url = process.argv.length > 4 ? process.argv[4] : "ws://127.0.0.1:6006"
 const client = new xrpl.Client(url)
 
-const notary = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", { algorithm: xrpl.ECDSA.secp256k1 })
+const notary = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
+  algorithm: xrpl.ECDSA.secp256k1,
+})
 
 async function submit(tx, wallet, debug = false) {
-  const result = await client.submitAndWait(tx, {autofill: true, wallet})
+  const result = await client.submitAndWait(tx, { autofill: true, wallet })
   console.log("SUBMITTED " + tx.TransactionType)
-  if (debug)
-    console.log(result.result ?? result)
-  else
-    console.log("Result code: " + result.result?.meta?.TransactionResult)
+  if (debug) console.log(result.result ?? result)
+  else console.log("Result code: " + result.result?.meta?.TransactionResult)
   return result
 }
 
@@ -24,7 +24,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
     await client.connect()
 
     const txFail = {
-      TransactionType: 'EscrowFinish',
+      TransactionType: "EscrowFinish",
       Account: sourceWallet.address,
       Owner: sourceWallet.address,
       OfferSequence: parseInt(offerSequence),
@@ -40,7 +40,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
     }
 
     const tx = {
-      TransactionType: 'EscrowFinish',
+      TransactionType: "EscrowFinish",
       Account: notary.address,
       Owner: sourceWallet.address,
       OfferSequence: parseInt(offerSequence),
@@ -51,10 +51,12 @@ async function test(sourceWallet, destWallet, offerSequence) {
     const response = await submit(tx, notary)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
-      console.error("\nFailed to finish escrow:", response.result.meta.TransactionResult)
+      console.error(
+        "\nFailed to finish escrow:",
+        response.result.meta.TransactionResult,
+      )
       process.exit(1)
     }
-
   } catch (error) {
     console.error("Error:", error.message)
     console.log(error)

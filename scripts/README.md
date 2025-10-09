@@ -7,6 +7,7 @@ the CI environment.
 ## Quick Start
 
 1. **Setup your environment** (run once):
+
    ```shell
    ./scripts/setup.sh
    ```

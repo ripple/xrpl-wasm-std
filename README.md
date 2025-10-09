@@ -216,6 +216,7 @@ let len = get_tx_nested_field(&locator.buffer, &mut buffer)?;
 ```
 
 **Important**: For STArray navigation, omit the intermediate object wrapper:
+
 - ✅ `Memos → [0] → MemoType`
 - ❌ `Memos → [0] → Memo → MemoType`
 
@@ -416,18 +417,21 @@ pub extern "C" fn finish() -> i32 {
 ## Safety and Constraints
 
 ### Memory Safety
+
 - All buffers are stack-allocated with fixed sizes
 - No dynamic memory allocation
 - Bounds checking on all array access
 - Safe abstractions over raw pointers
 
 ### Execution Constraints
+
 - **Deterministic**: Same inputs must produce same outputs
 - **Read-only**: Only `update_data()` can modify state
 - **Resource-limited**: Bounded by computation allowance
 - **Isolated**: No network or file system access
 
 ### Security Considerations
+
 - Always validate input data
 - Handle all error cases explicitly
 - Avoid panics in production code
@@ -469,6 +473,7 @@ match get_account_balance(&account) {
 ## Best Practices
 
 ### 1. Minimize Host Function Calls
+
 ```rust,ignore
 // Bad: Multiple calls for same data
 let balance1 = get_account_balance(&account)?;
@@ -480,6 +485,7 @@ let balance = get_account_balance(&account)?;
 ```
 
 ### 2. Handle Optional Fields
+
 ```rust,ignore
 // Check if optional field exists
 match tx.get_source_tag()? {
@@ -489,6 +495,7 @@ match tx.get_source_tag()? {
 ```
 
 ### 3. Use Type-Safe APIs
+
 ```rust,ignore
 // Prefer high-level APIs
 let balance = get_account_balance(&account)?;
@@ -499,6 +506,7 @@ get_ledger_obj_field(slot, sfield::Balance, 0, &mut buffer)?;
 ```
 
 ### 4. Fail Safely
+
 ```rust,ignore
 // Return false on any error to keep escrow locked
 match risky_operation() {
@@ -508,6 +516,7 @@ match risky_operation() {
 ```
 
 ### 5. Test Thoroughly
+
 - Test with success and failure fixtures
 - Verify deterministic behavior
 - Check edge cases and error conditions
