@@ -27,14 +27,14 @@ jobs:
         # the `-Zunstable-options` flag is needed to use `--enable-index-page`
         # see https://github.com/rust-lang/cargo/issues/8229 for why `nightly` is needed
         run: |
-          cd xrpl-std
+          cd xrpl-wasm-std
           cargo doc --no-deps
 
       - name: Upload documentation files as artifact
         id: docs-artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: xrpl-std/target/doc
+          path: xrpl-wasm-std/target/doc
           retention-days: 10
 
   deploy-docs-pages:
