@@ -1,8 +1,7 @@
 # Hello World Escrow
 
 This WebAssembly module implements a simple escrow finish function that emits the text "Hello World" into the trace log
-and
-always returns 1. This example is useful for getting started with a new Smart Escrow.
+and always returns 1. This example is useful for getting started with a new Smart Escrow.
 
 ## Prerequisites
 
