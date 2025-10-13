@@ -1,15 +1,11 @@
 const xrpl = require("xrpl")
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+// function sleep(ms) {
+//   return new Promise((resolve) => setTimeout(resolve, ms))
+// }
 
 const url = process.argv.length > 4 ? process.argv[4] : "ws://127.0.0.1:6006"
 const client = new xrpl.Client(url)
-
-const notary = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
-  algorithm: xrpl.ECDSA.secp256k1,
-})
 
 async function submit(tx, wallet, debug = false) {
   const result = await client.submitAndWait(tx, { autofill: true, wallet })
@@ -23,7 +19,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
   try {
     await client.connect()
 
-    const txFail = {
+    const tx = {
       TransactionType: "EscrowFinish",
       Account: sourceWallet.address,
       Owner: sourceWallet.address,
@@ -32,7 +28,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
     }
 
     // Submitting EscrowFinish transaction...
-    const response = await submit(tx, notary)
+    const response = await submit(tx, sourceWallet)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
