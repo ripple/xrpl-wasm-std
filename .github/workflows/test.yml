@@ -140,10 +140,7 @@ jobs:
 
       - name: Install Node dependencies
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
-        run: |
-          cd tests
-          npm ci
-          cp -r node_modules ../node_modules
+        run: npm ci
 
       - name: Run end-to-end tests
         run: ./scripts/e2e-tests.sh
