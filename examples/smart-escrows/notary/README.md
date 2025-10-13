@@ -20,7 +20,6 @@ returns a non-zero error code from the host.
 - Dependencies installed in `reference/js`:
 
 ```shell
-cd reference/js
 npm install
 ```
 
