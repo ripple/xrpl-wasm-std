@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "smart-escrows/helloworld",
     "smart-escrows/kyc",
     "smart-escrows/ledger_sqn",
     "smart-escrows/nft_owner",
