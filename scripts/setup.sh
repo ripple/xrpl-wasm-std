@@ -46,7 +46,7 @@ fi
 echo "✅ Setup complete!"
 echo ""
 echo "Environment variables set:"
-echo "  RUSTFLAGS=$RUSTFLAGS"
+echo "  RUSTFLAGS=${RUSTFLAGS:-<not set>}"
 echo ""
 echo "Installed tools:"
 echo "  - Rust toolchain: $(rustc --version)"
