@@ -10,7 +10,6 @@ and always returns 1. This example is useful for getting started with a new Smar
 - Dependencies installed in `reference/js`:
 
 ```shell
-cd ../../../tests
 npm install
 ```
 
