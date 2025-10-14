@@ -11,8 +11,9 @@ cd "$REPO_ROOT"
 
 echo "🔍 Checking WASM contract exports..."
 # Check that all WASM examples export the required finish function
-find examples -type d -name "src" | while read -r src_dir; do
-    dir=$(dirname "$src_dir")
+check_src_dir_exports() {
+    local src_dir="$1"
+    local dir=$(dirname "$src_dir")
     echo "🔧 Checking exports in $dir"
     if [[ -f "$src_dir/lib.rs" ]]; then
         grep -q "finish() -> i32" "$src_dir/lib.rs" || {
@@ -23,6 +24,14 @@ find examples -type d -name "src" | while read -r src_dir; do
         echo "❌ Missing lib.rs in $src_dir"
         exit 1
     fi
+}
+
+find examples -type d -name "src" | while read -r src_dir; do
+    check_src_dir_exports "$src_dir"
+done
+
+find e2e-tests -type d -name "src" | while read -r src_dir; do
+    check_src_dir_exports "$src_dir"
 done
 
 echo "✅ WASM contract exports check passed!"

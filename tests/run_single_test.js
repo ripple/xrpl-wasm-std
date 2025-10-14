@@ -7,6 +7,14 @@ const client =
     ? new xrpl.Client(process.argv[4])
     : new xrpl.Client("ws://127.0.0.1:6006")
 
+async function submit(tx, wallet, debug = false) {
+  const result = await client.submitAndWait(tx, { autofill: true, wallet })
+  console.log("SUBMITTED " + tx.TransactionType)
+  if (debug) console.log(result.result ?? result)
+  else console.log("Result code: " + result.result?.meta?.TransactionResult)
+  return result
+}
+
 async function main() {
   await client.connect()
   console.log("connected")
@@ -38,7 +46,7 @@ async function main() {
 
   const { deploy } = require("./deploy_wasm_code.js")
 
-  const sequence = await deploy(wallets[0], wallets[1], wasmSource)
+  const offerSequence = await deploy(wallets[0], wallets[1], wasmSource)
 
   console.log(`Running test in directory: ${targetDir}`)
   const runTestPath = path.resolve(targetDir, "run_test.js")
@@ -46,8 +54,16 @@ async function main() {
 
   // Dynamically import the test function from the target directory
 
-  // Run the test with wallets[0] and wallets[1]
-  await test(wallets[0], wallets[1], sequence)
+  const testContext = {
+    client,
+    submit,
+    sourceWallet: wallets[0],
+    offerSequence,
+    destWallet: wallets[1],
+    allWallets: wallets,
+  }
+
+  await test(testContext)
 
   if (interval) clearInterval(interval)
   await client.disconnect()
