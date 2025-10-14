@@ -1,0 +1,12 @@
+[package]
+name = "host_functions_test"
+version = "0.5.1-devnet5"
+edition = "2024"
+description = "End-to-end test suite for all 26 WASM host functions across 7 categories with comprehensive error handling"
+license = "ISC"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+xrpl-wasm-std = { path = "../../../xrpl-wasm-std" }
