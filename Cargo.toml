@@ -5,7 +5,8 @@ members = [
     "xrpl-wasm-std/xrpl-address-macro",
 ]
 exclude = [
-    "examples"
+    "examples",
+    "e2e-tests",
 ]
 
 [profile.release]

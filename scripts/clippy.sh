@@ -23,4 +23,9 @@ cd examples
 cargo clippy --workspace --target wasm32v1-none --all-features -- -Dclippy::all
 cd ..
 
+echo "🔍 Running Clippy on E2E Tests Workspace..."
+cd e2e-tests
+cargo clippy --workspace --target wasm32v1-none --all-features -- -Dclippy::all
+cd ..
+
 echo "✅ Clippy linting passed!"
