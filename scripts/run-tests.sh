@@ -76,6 +76,11 @@ while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
     wasm_file_release="../e2e-tests/target/wasm32v1-none/release/${contract_name}.wasm"
+    # TODO: remove this when tests are written for all the e2e-tests
+    if [[ ! -f "$dir/run_test.js" ]]; then
+        echo "⚠️  Skipping $contract_name: run_test.js not found in $dir"
+        continue
+    fi
     (run_integration_test "$dir" "$contract_name" "$wasm_file_release")
     exit_code=$?
     if [[ $exit_code -ne 0 ]]; then
