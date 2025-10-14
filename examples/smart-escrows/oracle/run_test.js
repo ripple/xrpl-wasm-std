@@ -4,16 +4,8 @@ const oracleWallet = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
   algorithm: xrpl.ECDSA.secp256k1,
 })
 
-async function submit(client, tx, wallet, debug = false) {
-  const result = await client.submitAndWait(tx, { autofill: true, wallet })
-  console.log("SUBMITTED " + tx.TransactionType)
-  if (debug) console.log(result.result ?? result)
-  else console.log("Result code: " + result.result?.meta?.TransactionResult)
-  return result
-}
-
 async function test(testContext) {
-  const { client, sourceWallet, offerSequence } = testContext
+  const { client, submit, sourceWallet, offerSequence } = testContext
   try {
     const closeTime = (
       await client.request({
@@ -40,11 +32,7 @@ async function test(testContext) {
         },
       ],
     }
-    const oracleCreateResponse = await submit(
-      client,
-      oracleCreate,
-      oracleWallet,
-    )
+    const oracleCreateResponse = await submit(oracleCreate, oracleWallet)
     if (oracleCreateResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
         "\nFailed to create oracle:",
@@ -62,7 +50,7 @@ async function test(testContext) {
     }
 
     // This EscrowCreate should fail since the oracle must show the price as <= 1 USD/XRP
-    const responseFail = await submit(client, txFail, sourceWallet)
+    const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
       console.error("\nEscrow finished successfully????")
@@ -92,11 +80,7 @@ async function test(testContext) {
         },
       ],
     }
-    const oracleUpdateResponse = await submit(
-      client,
-      oracleUpdate,
-      oracleWallet,
-    )
+    const oracleUpdateResponse = await submit(oracleUpdate, oracleWallet)
     if (oracleUpdateResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
         "\nFailed to create oracle:",
@@ -113,7 +97,7 @@ async function test(testContext) {
       ComputationAllowance: 1000000,
     }
 
-    const response = await submit(client, tx, sourceWallet)
+    const response = await submit(tx, sourceWallet)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(

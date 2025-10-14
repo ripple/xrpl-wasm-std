@@ -4,18 +4,9 @@ const notary = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
   algorithm: xrpl.ECDSA.secp256k1,
 })
 
-async function submit(client, tx, wallet, debug = false) {
-  const result = await client.submitAndWait(tx, { autofill: true, wallet })
-  console.log("SUBMITTED " + tx.TransactionType)
-  if (debug) console.log(result.result ?? result)
-  else console.log("Result code: " + result.result?.meta?.TransactionResult)
-  return result
-}
-
 async function test(testContext) {
+  const { client, submit, sourceWallet, offerSequence } = testContext
   try {
-    const { client, sourceWallet, offerSequence } = testContext
-
     const txFail = {
       TransactionType: "EscrowFinish",
       Account: sourceWallet.address,
@@ -26,7 +17,7 @@ async function test(testContext) {
 
     // Submitting EscrowFinish transaction...
     // This should fail since the notary isn't sending this transaction
-    const responseFail = await submit(client, txFail, sourceWallet)
+    const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
       console.log("\nEscrow finished successfully????")
@@ -42,7 +33,7 @@ async function test(testContext) {
     }
 
     // Submitting EscrowFinish transaction...
-    const response = await submit(client, tx, notary)
+    const response = await submit(tx, notary)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(

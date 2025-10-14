@@ -1,17 +1,9 @@
 const xrpl = require("xrpl")
 
-async function submit(client, tx, wallet, debug = false) {
-  const result = await client.submitAndWait(tx, { autofill: true, wallet })
-  console.log("SUBMITTED " + tx.TransactionType)
-  if (debug) console.log(result.result ?? result)
-  else console.log("Result code: " + result.result?.meta?.TransactionResult)
-  return result
-}
-
 async function test(testContext) {
+  const { client, submit, sourceWallet, destWallet, offerSequence } =
+    testContext
   try {
-    const { client, sourceWallet, destWallet, offerSequence } = testContext
-
     // Mint NFT
     const nftMint = {
       TransactionType: "NFTokenMint",
@@ -20,7 +12,7 @@ async function test(testContext) {
       URI: xrpl.convertStringToHex("https://example.com/nft-metadata.json"),
       Flags: xrpl.NFTokenMintFlags.tfTransferable,
     }
-    const mintResponse = await submit(client, nftMint, sourceWallet)
+    const mintResponse = await submit(nftMint, sourceWallet)
     if (mintResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
         "\nFailed to mint NFT:",
@@ -47,7 +39,7 @@ async function test(testContext) {
       ],
     }
 
-    const responseFail = await submit(client, txFail, sourceWallet)
+    const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
       console.log("\nEscrow finished successfully????")
@@ -63,7 +55,7 @@ async function test(testContext) {
       Destination: destWallet.address,
       Flags: xrpl.NFTokenCreateOfferFlags.tfSellNFToken,
     }
-    const offerResponse = await submit(client, nftOffer, sourceWallet)
+    const offerResponse = await submit(nftOffer, sourceWallet)
     if (offerResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
         "\nFailed to create NFT offer:",
@@ -81,7 +73,7 @@ async function test(testContext) {
       Account: destWallet.address,
       NFTokenSellOffer: nftOfferId,
     }
-    const acceptResponse = await submit(client, acceptOffer, destWallet)
+    const acceptResponse = await submit(acceptOffer, destWallet)
     if (acceptResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
         "\nFailed to accept NFT offer:",
@@ -108,7 +100,7 @@ async function test(testContext) {
       ],
     }
 
-    const response = await submit(client, tx, sourceWallet)
+    const response = await submit(tx, sourceWallet)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(

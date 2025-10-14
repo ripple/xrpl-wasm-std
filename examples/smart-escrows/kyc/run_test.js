@@ -1,16 +1,8 @@
 const xrpl = require("xrpl")
 
-async function submit(client, tx, wallet, debug = false) {
-  const result = await client.submitAndWait(tx, { autofill: true, wallet })
-  console.log("SUBMITTED " + tx.TransactionType)
-  if (debug) console.log(result.result ?? result)
-  else console.log("Result code: " + result.result?.meta?.TransactionResult)
-  return result
-}
-
 async function test(testContext) {
   try {
-    const { client, sourceWallet, destWallet, offerSequence } = testContext
+    const { submit, sourceWallet, destWallet, offerSequence } = testContext
     const txFail = {
       TransactionType: "EscrowFinish",
       Account: sourceWallet.address,
@@ -21,7 +13,7 @@ async function test(testContext) {
 
     // Submitting EscrowFinish transaction...
     // This should fail since the credential hasn't been created yet
-    const responseFail = await submit(client, txFail, sourceWallet)
+    const responseFail = await submit(txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
       console.log("\nEscrow finished successfully?????")
@@ -37,7 +29,7 @@ async function test(testContext) {
     }
 
     // Submitting CredentialCreate transaction...
-    const credResponse = await submit(client, credTx, destWallet)
+    const credResponse = await submit(credTx, destWallet)
 
     if (credResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
@@ -55,7 +47,7 @@ async function test(testContext) {
     }
 
     // Submitting EscrowFinish transaction...
-    const response = await submit(client, tx, sourceWallet)
+    const response = await submit(tx, sourceWallet)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
