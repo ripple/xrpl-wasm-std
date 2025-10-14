@@ -1,9 +1,8 @@
 async function test(testContext) {
   try {
     const { submit, sourceWallet, offerSequence } = testContext
-    // This is a bit of a dummy example and test
-    // The Smart Escrow just checks whether the ledger sequence is greater than 5
-    // which is essentially guaranteed to already be true, even when running on standalone mode
+    // This escrow should always succeed
+    // If it fails, something in rippled is broken
 
     const txFail = {
       TransactionType: "EscrowFinish",
