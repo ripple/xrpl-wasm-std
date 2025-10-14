@@ -31,7 +31,7 @@ function getFinishFunctionFromFile(filePath) {
   }
 }
 
-async function submit(tx, wallet, debug = true) {
+async function submit(tx, wallet, debug = false) {
   const txResult = await client.submitAndWait(tx, { autofill: true, wallet })
   console.log("SUBMITTED " + tx.TransactionType)
 

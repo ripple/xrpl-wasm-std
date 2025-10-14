@@ -27,6 +27,8 @@ else
     node setup_ledger.js
 fi
 
+set +e
+
 run_integration_test() {
     local dir="$1"
     local contract_name="$2"
@@ -37,11 +39,15 @@ run_integration_test() {
         exit 1
     fi
     echo "🔧 Running integration test for $contract_name in $dir"
+    exit_code=0
     if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
         node ./run_single_test.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
+        exit_code=$?
     else
         node ./run_single_test.js "$dir" "$wasm_file_release"
+        exit_code=$?
     fi
+    exit $exit_code
 }
 
 if [[ $# -gt 0 ]]; then
@@ -49,23 +55,39 @@ if [[ $# -gt 0 ]]; then
     test_dir="../examples/smart-escrows/$test_name"
     wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
     run_integration_test "$test_dir" "$test_name" "$wasm_file_release"
-    exit 0
+    exit $?
 fi
+all_tests_passed=true
+failed_tests=()
 
-# find ../examples -mindepth 2 -name "Cargo.toml" -type f | while read -r cargo_file; do
-#     dir=$(dirname "$cargo_file")
-#     contract_name=$(basename "$dir")
-#     wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
-#     run_integration_test "$dir" "$contract_name" "$wasm_file_release"
-# done
+while read -r cargo_file; do
+    dir=$(dirname "$cargo_file")
+    contract_name=$(basename "$dir")
+    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+    (run_integration_test "$dir" "$contract_name" "$wasm_file_release")
+    exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        all_tests_passed=false
+        failed_tests+=("$contract_name")
+    fi
+done < <(find ../examples -mindepth 2 -name "Cargo.toml" -type f)
 
-find ../e2e-tests -mindepth 1 -name "Cargo.toml" -type f | while read -r cargo_file; do
+while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
     wasm_file_release="../e2e-tests/target/wasm32v1-none/release/${contract_name}.wasm"
-    if [[ -f "$dir/run_test.js" ]]; then
-        run_integration_test "$dir" "$contract_name" "$wasm_file_release"
+    (run_integration_test "$dir" "$contract_name" "$wasm_file_release")
+    exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        all_tests_passed=false
+        failed_tests+=("$contract_name")
     fi
-done
+done < <(find ../e2e-tests -mindepth 2 -name "Cargo.toml" -type f)
 
-echo "✅ End-to-end tests completed successfully!"
+if [[ "$all_tests_passed" == true ]]; then
+    echo "✅ All end-to-end tests passed!"
+else
+    echo "❌ Some end-to-end tests failed."
+    echo "Failed tests: ${failed_tests[*]}"
+    exit 1
+fi
