@@ -30,7 +30,7 @@ fi
 run_integration_test() {
     local dir="$1"
     local contract_name="$2"
-    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+    local wasm_file_release="$3"
 
     if [[ ! -f "$dir/run_test.js" ]]; then
         echo "❌ Error: Test file run_test.js not found in $dir"
@@ -47,14 +47,25 @@ run_integration_test() {
 if [[ $# -gt 0 ]]; then
     test_name="$1"
     test_dir="../examples/smart-escrows/$test_name"
-    run_integration_test "$test_dir" "$test_name"
+    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+    run_integration_test "$test_dir" "$test_name" "$wasm_file_release"
     exit 0
 fi
 
 find ../examples -mindepth 2 -name "Cargo.toml" -type f | while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
-    run_integration_test "$dir" "$contract_name"
+    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+    run_integration_test "$dir" "$contract_name" "$wasm_file_release"
+done
+
+find ../e2e-tests -mindepth 1 -name "Cargo.toml" -type f | while read -r cargo_file; do
+    dir=$(dirname "$cargo_file")
+    contract_name=$(basename "$dir")
+    wasm_file_release="../e2e-tests/target/wasm32v1-none/release/${contract_name}.wasm"
+    if [[ -f "$dir/run_test.js" ]]; then
+        run_integration_test "$dir" "$contract_name" "$wasm_file_release"
+    fi
 done
 
 echo "✅ End-to-end tests completed successfully!"
