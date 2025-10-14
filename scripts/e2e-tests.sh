@@ -27,6 +27,16 @@ else
     node setup_ledger.js
 fi
 
+# Install Node dependencies if needed (mirrors GitHub Actions)
+if [[ ! -d "node_modules" ]]; then
+    echo "📦 Installing Node dependencies..."
+    npm ci
+    # Copy to root for compatibility (mirrors GitHub Actions)
+    cp -r node_modules ../node_modules
+else
+    echo "✅ Node dependencies already installed"
+fi
+
 run_integration_test() {
     local dir="$1"
     local contract_name="$2"
@@ -51,7 +61,14 @@ if [[ $# -gt 0 ]]; then
     exit 0
 fi
 
-find ../examples -mindepth 2 -name "Cargo.toml" -type f | while read -r cargo_file; do
+# Collect all test directories into an array to avoid subshell issues
+test_dirs=()
+while IFS= read -r cargo_file; do
+    test_dirs+=("$cargo_file")
+done < <(find ../examples -mindepth 2 -name "Cargo.toml" -type f)
+
+# Run tests in the main shell so failures propagate correctly
+for cargo_file in "${test_dirs[@]}"; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
     run_integration_test "$dir" "$contract_name"
