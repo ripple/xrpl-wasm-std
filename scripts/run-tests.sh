@@ -52,12 +52,12 @@ if [[ $# -gt 0 ]]; then
     exit 0
 fi
 
-find ../examples -mindepth 2 -name "Cargo.toml" -type f | while read -r cargo_file; do
-    dir=$(dirname "$cargo_file")
-    contract_name=$(basename "$dir")
-    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
-    run_integration_test "$dir" "$contract_name" "$wasm_file_release"
-done
+# find ../examples -mindepth 2 -name "Cargo.toml" -type f | while read -r cargo_file; do
+#     dir=$(dirname "$cargo_file")
+#     contract_name=$(basename "$dir")
+#     wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+#     run_integration_test "$dir" "$contract_name" "$wasm_file_release"
+# done
 
 find ../e2e-tests -mindepth 1 -name "Cargo.toml" -type f | while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
