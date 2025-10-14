@@ -1,13 +1,10 @@
 const xrpl = require("xrpl")
 
-const url = process.argv.length > 4 ? process.argv[4] : "ws://127.0.0.1:6006"
-const client = new xrpl.Client(url)
-
 const oracleWallet = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
   algorithm: xrpl.ECDSA.secp256k1,
 })
 
-async function submit(tx, wallet, debug = false) {
+async function submit(client, tx, wallet, debug = false) {
   const result = await client.submitAndWait(tx, { autofill: true, wallet })
   console.log("SUBMITTED " + tx.TransactionType)
   if (debug) console.log(result.result ?? result)
@@ -15,9 +12,9 @@ async function submit(tx, wallet, debug = false) {
   return result
 }
 
-async function test(sourceWallet, destWallet, offerSequence) {
+async function test(client, escrow, _wallets) {
   try {
-    await client.connect()
+    const { sourceWallet, offerSequence } = escrow
 
     const closeTime = (
       await client.request({
@@ -44,7 +41,11 @@ async function test(sourceWallet, destWallet, offerSequence) {
         },
       ],
     }
-    const oracleCreateResponse = await submit(oracleCreate, oracleWallet)
+    const oracleCreateResponse = await submit(
+      client,
+      oracleCreate,
+      oracleWallet,
+    )
     if (oracleCreateResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
         "\nFailed to create oracle:",
@@ -62,7 +63,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
     }
 
     // This EscrowCreate should fail since the oracle must show the price as <= 1 USD/XRP
-    const responseFail = await submit(txFail, sourceWallet)
+    const responseFail = await submit(client, txFail, sourceWallet)
 
     if (responseFail.result.meta.TransactionResult !== "tecWASM_REJECTED") {
       console.error("\nEscrow finished successfully????")
@@ -92,7 +93,11 @@ async function test(sourceWallet, destWallet, offerSequence) {
         },
       ],
     }
-    const oracleUpdateResponse = await submit(oracleUpdate, oracleWallet)
+    const oracleUpdateResponse = await submit(
+      client,
+      oracleUpdate,
+      oracleWallet,
+    )
     if (oracleUpdateResponse.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(
         "\nFailed to create oracle:",
@@ -109,7 +114,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
       ComputationAllowance: 1000000,
     }
 
-    const response = await submit(tx, sourceWallet)
+    const response = await submit(client, tx, sourceWallet)
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       console.error(

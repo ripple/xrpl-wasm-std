@@ -38,7 +38,7 @@ async function main() {
 
   const { deploy } = require("./deploy_wasm_code.js")
 
-  const sequence = await deploy(wallets[0], wallets[1], wasmSource)
+  const offerSequence = await deploy(wallets[0], wallets[1], wasmSource)
 
   console.log(`Running test in directory: ${targetDir}`)
   const runTestPath = path.resolve(targetDir, "run_test.js")
@@ -46,8 +46,14 @@ async function main() {
 
   // Dynamically import the test function from the target directory
 
+  const escrow = {
+    sourceWallet: wallets[0],
+    offerSequence,
+    destWallet: wallets[1],
+  }
+
   // Run the test with wallets[0] and wallets[1]
-  await test(wallets[0], wallets[1], sequence)
+  await test(client, escrow, wallets)
 
   if (interval) clearInterval(interval)
   await client.disconnect()
