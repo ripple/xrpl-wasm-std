@@ -20,11 +20,10 @@ scripts/build.sh
 scripts/build.sh release
 
 echo "🧪 Running integration tests..."
-cd tests
 if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
-    node setup_ledger.js "wss://wasm.devnet.rippletest.net:51233"
+    node tests/setup_ledger.js "wss://wasm.devnet.rippletest.net:51233"
 else
-    node setup_ledger.js
+    node tests/setup_ledger.js
 fi
 
 set +e
@@ -41,19 +40,28 @@ run_integration_test() {
     echo "🔧 Running integration test for $contract_name in $dir"
     exit_code=0
     if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
-        node ./run_single_test.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
+        node tests/run_single_test.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
         exit_code=$?
     else
-        node ./run_single_test.js "$dir" "$wasm_file_release"
+        node tests/run_single_test.js "$dir" "$wasm_file_release"
         exit_code=$?
     fi
     exit $exit_code
 }
 
 if [[ $# -gt 0 ]]; then
-    test_name="$1"
-    test_dir="../examples/smart-escrows/$test_name"
-    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+    arg="$1"
+    test_dir="$(realpath "$arg")"
+    echo $test_dir
+    test_name=$(basename "$test_dir")
+    if [[ "$test_dir" == *"/examples/"* ]]; then
+        wasm_file_release="examples/target/wasm32v1-none/release/${test_name}.wasm"
+    elif [[ "$test_dir" == *"/e2e-tests/"* ]]; then
+        wasm_file_release="e2e-tests/target/wasm32v1-none/release/${test_name}.wasm"
+    else
+        echo "❌ Error: Unknown test directory: $test_dir"
+        exit 1
+    fi
     run_integration_test "$test_dir" "$test_name" "$wasm_file_release"
     exit $?
 fi
@@ -63,19 +71,19 @@ failed_tests=()
 while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
-    wasm_file_release="../examples/target/wasm32v1-none/release/${contract_name}.wasm"
+    wasm_file_release="examples/target/wasm32v1-none/release/${contract_name}.wasm"
     (run_integration_test "$dir" "$contract_name" "$wasm_file_release")
     exit_code=$?
     if [[ $exit_code -ne 0 ]]; then
         all_tests_passed=false
         failed_tests+=("$contract_name")
     fi
-done < <(find ../examples -mindepth 2 -name "Cargo.toml" -type f)
+done < <(find examples -mindepth 2 -name "Cargo.toml" -type f)
 
 while read -r cargo_file; do
     dir=$(dirname "$cargo_file")
     contract_name=$(basename "$dir")
-    wasm_file_release="../e2e-tests/target/wasm32v1-none/release/${contract_name}.wasm"
+    wasm_file_release="e2e-tests/target/wasm32v1-none/release/${contract_name}.wasm"
     # TODO: remove this when tests are written for all the e2e-tests
     if [[ ! -f "$dir/run_test.js" ]]; then
         echo "⚠️  Skipping $contract_name: run_test.js not found in $dir"
@@ -87,7 +95,7 @@ while read -r cargo_file; do
         all_tests_passed=false
         failed_tests+=("$contract_name")
     fi
-done < <(find ../e2e-tests -mindepth 2 -name "Cargo.toml" -type f)
+done < <(find e2e-tests -mindepth 2 -name "Cargo.toml" -type f)
 
 if [[ "$all_tests_passed" == true ]]; then
     echo "✅ All end-to-end tests passed!"
