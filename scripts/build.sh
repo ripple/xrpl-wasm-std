@@ -42,4 +42,17 @@ else
 fi
 cd ..
 
+echo "🏗️  Building End-to-End Tests Workspace..."
+cd e2e-tests
+echo "🔧 Building e2e-tests workspace for WASM"
+if [[ -n "$RELEASE_MODE" ]]; then
+    # Only build release if specifically requested
+    cargo build --workspace --target wasm32v1-none $RELEASE_MODE
+else
+    # Build both debug and release when no specific mode is requested
+    cargo build --workspace --target wasm32v1-none
+    cargo build --workspace --target wasm32v1-none --release
+fi
+cd ..
+
 echo "✅ Build completed successfully!"

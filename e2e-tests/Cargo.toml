@@ -1,12 +1,13 @@
 [workspace]
 resolver = "2"
 members = [
-    "xrpl-wasm-std",
-    "xrpl-wasm-std/xrpl-address-macro",
-]
-exclude = [
-    "examples",
-    "e2e-tests",
+    "decoder_tests",
+    "float_tests",
+    "host_functions_test",
+    "keylet_exists",
+    "trace_escrow_account",
+    "trace_escrow_finish",
+    "trace_escrow_ledger_object",
 ]
 
 [profile.release]

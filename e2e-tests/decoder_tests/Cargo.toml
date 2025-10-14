@@ -1,0 +1,12 @@
+[package]
+name = "decoder_tests"
+version = "0.5.1-devnet5"
+edition = "2024"
+description = "End-to-end test suite for WASM host decoder functionality and ledger object field access validation"
+license = "ISC"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+xrpl-wasm-std = { path = "../../xrpl-wasm-std" }

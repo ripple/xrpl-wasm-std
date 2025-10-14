@@ -13,5 +13,7 @@ echo "🔧 Running Rust formatting check..."
 
 echo "📝 Checking formatting for entire workspace..."
 cargo fmt --all -- --check
+(cd examples && cargo fmt --all -- --check)
+(cd e2e-tests && cargo fmt --all -- --check)
 
 echo "✅ Formatting check passed!"
