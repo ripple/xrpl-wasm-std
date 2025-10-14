@@ -1,5 +1,3 @@
-const xrpl = require("xrpl")
-
 async function test(testContext) {
   try {
     const { submit, sourceWallet, offerSequence } = testContext
