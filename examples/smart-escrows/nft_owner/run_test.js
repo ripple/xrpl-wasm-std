@@ -1,9 +1,5 @@
 const xrpl = require("xrpl")
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 const url = process.argv.length > 4 ? process.argv[4] : "ws://127.0.0.1:6006"
 const client = new xrpl.Client(url)
 
