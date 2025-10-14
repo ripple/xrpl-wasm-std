@@ -8,9 +8,9 @@ async function submit(client, tx, wallet, debug = false) {
   return result
 }
 
-async function test(client, testContext) {
+async function test(testContext) {
   try {
-    const { sourceWallet, destWallet, offerSequence } = testContext
+    const { client, sourceWallet, destWallet, offerSequence } = testContext
     const txFail = {
       TransactionType: "EscrowFinish",
       Account: sourceWallet.address,

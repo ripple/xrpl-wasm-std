@@ -12,10 +12,9 @@ async function submit(client, tx, wallet, debug = false) {
   return result
 }
 
-async function test(client, testContext) {
+async function test(testContext) {
+  const { client, sourceWallet, offerSequence } = testContext
   try {
-    const { sourceWallet, offerSequence } = testContext
-
     const closeTime = (
       await client.request({
         command: "ledger",
@@ -126,9 +125,8 @@ async function test(client, testContext) {
   } catch (error) {
     console.error("Error:", error.message)
     console.log(error)
-    process.exit(1)
-  } finally {
     await client.disconnect()
+    process.exit(1)
   }
 }
 

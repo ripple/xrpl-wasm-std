@@ -47,13 +47,14 @@ async function main() {
   // Dynamically import the test function from the target directory
 
   const testContext = {
+    client,
     sourceWallet: wallets[0],
     offerSequence,
     destWallet: wallets[1],
     allWallets: wallets,
   }
 
-  await test(client, testContext)
+  await test(testContext)
 
   if (interval) clearInterval(interval)
   await client.disconnect()
