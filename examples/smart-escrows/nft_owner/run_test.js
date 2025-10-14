@@ -1,24 +1,9 @@
 const xrpl = require("xrpl")
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-const url = process.argv.length > 4 ? process.argv[4] : "ws://127.0.0.1:6006"
-const client = new xrpl.Client(url)
-
-async function submit(tx, wallet, debug = false) {
-  const result = await client.submitAndWait(tx, { autofill: true, wallet })
-  console.log("SUBMITTED " + tx.TransactionType)
-  if (debug) console.log(result.result ?? result)
-  else console.log("Result code: " + result.result?.meta?.TransactionResult)
-  return result
-}
-
-async function test(sourceWallet, destWallet, offerSequence) {
+async function test(testContext) {
+  const { client, submit, sourceWallet, destWallet, offerSequence } =
+    testContext
   try {
-    await client.connect()
-
     // Mint NFT
     const nftMint = {
       TransactionType: "NFTokenMint",
@@ -94,6 +79,7 @@ async function test(sourceWallet, destWallet, offerSequence) {
         "\nFailed to accept NFT offer:",
         acceptResponse.result.meta.TransactionResult,
       )
+      await client.disconnect()
       process.exit(1)
     }
 
@@ -121,14 +107,14 @@ async function test(sourceWallet, destWallet, offerSequence) {
         "\nFailed to finish escrow:",
         response.result.meta.TransactionResult,
       )
+      await client.disconnect()
       process.exit(1)
     }
   } catch (error) {
     console.error("Error:", error.message)
     console.log(error)
-    process.exit(1)
-  } finally {
     await client.disconnect()
+    process.exit(1)
   }
 }
 

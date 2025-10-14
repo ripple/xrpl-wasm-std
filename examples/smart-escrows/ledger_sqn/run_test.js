@@ -1,20 +1,6 @@
-const xrpl = require("xrpl")
-
-const url = process.argv.length > 4 ? process.argv[4] : "ws://127.0.0.1:6006"
-const client = new xrpl.Client(url)
-
-async function submit(tx, wallet, debug = false) {
-  const result = await client.submitAndWait(tx, { autofill: true, wallet })
-  console.log("SUBMITTED " + tx.TransactionType)
-  if (debug) console.log(result.result ?? result)
-  else console.log("Result code: " + result.result?.meta?.TransactionResult)
-  return result
-}
-
-async function test(sourceWallet, _destWallet, offerSequence) {
+async function test(testContext) {
   try {
-    await client.connect()
-
+    const { submit, sourceWallet, offerSequence } = testContext
     // This is a bit of a dummy example and test
     // The Smart Escrow just checks whether the ledger sequence is greater than 5
     // which is essentially guaranteed to already be true, even when running on standalone mode
@@ -39,9 +25,8 @@ async function test(sourceWallet, _destWallet, offerSequence) {
   } catch (error) {
     console.error("Error:", error.message)
     console.log(error)
-    process.exit(1)
-  } finally {
     await client.disconnect()
+    process.exit(1)
   }
 }
 
