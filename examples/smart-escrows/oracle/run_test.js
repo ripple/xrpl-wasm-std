@@ -12,9 +12,9 @@ async function submit(client, tx, wallet, debug = false) {
   return result
 }
 
-async function test(client, escrow, _wallets) {
+async function test(client, testContext) {
   try {
-    const { sourceWallet, offerSequence } = escrow
+    const { sourceWallet, offerSequence } = testContext
 
     const closeTime = (
       await client.request({

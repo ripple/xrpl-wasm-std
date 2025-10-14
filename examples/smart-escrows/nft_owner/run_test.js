@@ -8,9 +8,9 @@ async function submit(client, tx, wallet, debug = false) {
   return result
 }
 
-async function test(client, escrow, _wallets) {
+async function test(client, testContext) {
   try {
-    const { sourceWallet, destWallet, offerSequence } = escrow
+    const { sourceWallet, destWallet, offerSequence } = testContext
 
     // Mint NFT
     const nftMint = {
