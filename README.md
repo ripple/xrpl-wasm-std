@@ -228,7 +228,7 @@ Generate unique identifiers for ledger objects:
 use xrpl_wasm_std::core::types::keylets::*;
 
 // Account keylet
-let account_key = ACCOUNT_KEYLET(&account_id)?;
+let account_key = account_keylet(&account_id)?;
 
 // Escrow keylet
 let escrow_key = escrow_keylet(&owner, sequence)?;
