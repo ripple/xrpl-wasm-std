@@ -1,0 +1,12 @@
+[package]
+name = "helloworld"
+version = "1.0.0"
+edition = "2024"
+description = "A Smart Escrow that simply emits 'Hello World' into the trace log and then releases the escrow."
+license = "ISC"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+xrpl-wasm-std = { path = "../../../xrpl-wasm-std" }
