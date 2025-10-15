@@ -14,8 +14,7 @@ npm install
 
 ## Step-by-step: Use on WASM Devnet
 
-This guide uses the public Devnet WASM endpoint at `wss://wasm.devnet.rippletest.net:51233` and the helper scripts in
-`reference/js`.
+This guide uses the public Devnet WASM endpoint at `wss://wasm.devnet.rippletest.net:51233`.
 
 ### 2. Build the WASM
 
@@ -29,7 +28,7 @@ Artifact:
 examples/smart-escrows/helloworld/target/wasm32v1-none/release/helloworld.wasm
 ```
 
-### 3. Deploy WASM to Devnet
+### 3. Deploy WASM to Devnet & Execute
 
 Use the helper to deploy an escrow that references your compiled `FinishFunction` (Note: the following example attempts
 to run the script from this project's root folder).
@@ -47,5 +46,4 @@ This will:
 - Print the transaction result, including `tx_json.Sequence`
 - Finish the escrow, executing the `helloworld` WASM.
 
-Expected result: `tesSUCCESS` and “Escrow finished successfully!”. If you try to finish from a different account, you
-should get `tecNO_PERMISSION` due to the notary check.
+Expected result: `tesSUCCESS` and “Escrow finished successfully!”.
