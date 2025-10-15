@@ -3,7 +3,7 @@ async function test(testContext) {
 
   const offerSequence = await deploy(sourceWallet, destWallet, finish)
 
-  const txFail = {
+  const tx = {
     TransactionType: "EscrowFinish",
     Account: sourceWallet.address,
     Owner: sourceWallet.address,
@@ -11,7 +11,7 @@ async function test(testContext) {
     ComputationAllowance: 1000000,
   }
 
-  const responseFail = await submit(txFail, sourceWallet)
+  const responseFail = await submit(tx, sourceWallet)
 
   if (responseFail.result.meta.TransactionResult !== "tesSUCCESS") {
     console.error(
