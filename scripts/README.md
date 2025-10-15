@@ -36,7 +36,7 @@ You can also run individual test suites:
 - **`clippy.sh`** - Run Clippy linting on both native and WASM workspaces
 - **`fmt.sh`** - Check Rust code formatting
 - **`run-markdown.sh`** - Execute bash code blocks in Markdown files
-- **`e2e-tests.sh`** - Run end-to-end integration tests
+- **`run-tests.sh`** - Run integration tests for examples and end-to-end tests
 - **`host-function-audit.sh`** - Audit host functions against XRPLd (requires Node.js)
 
 ## Usage Examples
@@ -57,8 +57,8 @@ You can also run individual test suites:
 # Run only clippy checks
 ./scripts/clippy.sh
 
-# Run only end-to-end tests
-./scripts/e2e-tests.sh
+# Run only integration tests
+./scripts/run-tests.sh
 ```
 
 ## Environment Variables
@@ -97,7 +97,7 @@ setup.sh (run first)
 ├── build.sh
 ├── check-wasm-exports.sh
 ├── clippy.sh
-├── e2e-tests.sh
+├── run-tests.sh
     └── ../build.sh (dependency)
 ├── fmt.sh
 ├── host-function-audit.sh (requires Node.js)

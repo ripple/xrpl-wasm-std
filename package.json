@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "XRPL WASM standard library",
   "scripts": {
-    "test": "./scripts/e2e-tests.sh"
+    "test": "./scripts/run-tests.sh"
   },
   "dependencies": {
     "xrpl": "^4.5.0-smartescrow.2"

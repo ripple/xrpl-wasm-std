@@ -44,7 +44,7 @@ run_script "/host-function-audit.sh"
 run_script "/check-wasm-exports.sh"
 run_script "/build-and-test.sh"
 run_script "/run-markdown.sh"
-run_script "/e2e-tests.sh"
+run_script "/run-tests.sh"
 
 # Calculate and display total time
 end_time=$(date +%s)
