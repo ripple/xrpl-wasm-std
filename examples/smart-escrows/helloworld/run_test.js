@@ -11,12 +11,12 @@ async function test(testContext) {
     ComputationAllowance: 1000000,
   }
 
-  const responseFail = await submit(tx, sourceWallet)
+  const response = await submit(tx, sourceWallet)
 
-  if (responseFail.result.meta.TransactionResult !== "tesSUCCESS") {
+  if (response.result.meta.TransactionResult !== "tesSUCCESS") {
     console.error(
       "\nFailed to finish escrow:",
-      responseFail.result.meta.TransactionResult,
+      response.result.meta.TransactionResult,
     )
     process.exit(1)
   }
