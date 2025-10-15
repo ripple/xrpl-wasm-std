@@ -40,11 +40,9 @@ async function submit(tx, wallet, debug = false) {
   return txResult
 }
 
-async function deploy(sourceWallet, destWallet, wasmSource) {
+async function deploy(sourceWallet, destWallet, finish, data = null) {
   await client.connect()
   console.log("connected")
-
-  const finish = getFinishFunctionFromFile(wasmSource)
 
   const close_time = (
     await client.request({
@@ -61,7 +59,7 @@ async function deploy(sourceWallet, destWallet, wasmSource) {
       Destination: destWallet.address,
       CancelAfter: close_time + 2000,
       FinishFunction: finish,
-      Data: xrpl.xrpToDrops(70),
+      Data: data,
     },
     sourceWallet,
   )
