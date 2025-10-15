@@ -31,7 +31,7 @@ examples/smart-escrows/helloworld/target/wasm32v1-none/release/helloworld.wasm
 ### 3. Deploy WASM to Devnet & Execute
 
 Use the helper to deploy an escrow that references your compiled `FinishFunction` (Note: the following example attempts
-to run the script from this project's root folder).
+to run the script from this project's root folder). 
 
 ```shell
 cd ../../..
