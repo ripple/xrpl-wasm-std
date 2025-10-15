@@ -1,5 +1,5 @@
 async function test(testContext) {
-  const {deploy, finish, submit, sourceWallet, destWallet} = testContext
+  const { deploy, finish, submit, sourceWallet, destWallet } = testContext
 
   const offerSequence = await deploy(sourceWallet, destWallet, finish)
 
@@ -22,4 +22,4 @@ async function test(testContext) {
   }
 }
 
-module.exports = {test}
+module.exports = { test }
