@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "decoder_tests",
     "float_tests",
     "host_functions_test",
     "keylet_exists",

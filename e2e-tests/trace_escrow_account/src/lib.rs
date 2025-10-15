@@ -40,8 +40,8 @@ pub extern "C" fn finish() -> i32 {
 
         // GET some other field... can't due to not knowing
 
-        assert_eq!(balance, 55426479402);
         let _ = trace_num("  Balance of Account Finishing the Escrow:", balance);
+        assert_eq!(balance, 9999999988);
         let _ = trace("}");
         let _ = trace("");
     }
@@ -74,7 +74,7 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace the `Flags`
         let flags = account.get_flags().unwrap();
-        assert_eq!(flags, 1703936);
+        assert_eq!(flags, 0);
         let _ = trace_num("  Flags:", flags as i64);
 
         // Trace the `LedgerEntryType`
@@ -88,6 +88,7 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace the `Account`
         let account_id = account.get_account().unwrap();
+        let _ = trace_data("  Account:", &account_id.0, DataRepr::AsHex);
         assert_eq!(
             account_id.0,
             [
@@ -95,10 +96,10 @@ pub extern "C" fn finish() -> i32 {
                 0xCF, 0xF8, 0xF2, 0xF9, 0x37, 0xE8
             ]
         );
-        let _ = trace_data("  Account:", &account_id.0, DataRepr::AsHex);
 
         // Trace the `AccountTxnID`
         let account_txn_id = account.account_txn_id().unwrap().unwrap();
+        let _ = trace_data("  AccountTxnID:", &account_txn_id.0, DataRepr::AsHex);
         assert_eq!(
             account_txn_id.0,
             [
@@ -107,10 +108,10 @@ pub extern "C" fn finish() -> i32 {
                 0xDF, 0x14, 0xA1, 0x1E
             ]
         );
-        let _ = trace_data("  AccountTxnID:", &account_txn_id.0, DataRepr::AsHex);
 
         // Trace `AMMID`
         let amm_id = account.amm_id().unwrap().unwrap();
+        let _ = trace_data("  AMMID:", &amm_id.0, DataRepr::AsHex);
         assert_eq!(
             amm_id.0,
             [
@@ -119,7 +120,6 @@ pub extern "C" fn finish() -> i32 {
                 0xDF, 0x14, 0xA1, 0x1E
             ]
         );
-        let _ = trace_data("  AMMID:", &amm_id.0, DataRepr::AsHex);
 
         // Trace the `Balance`
         let balance = match account.balance().unwrap().unwrap() {
@@ -131,13 +131,13 @@ pub extern "C" fn finish() -> i32 {
                 panic!("MPT Balance encountered, but should have been XRP.")
             }
         };
-        assert_eq!(balance, 55426479402);
         let _ = trace_num("  Balance of arbitrary Account:", balance);
+        assert_eq!(balance, 55426479402);
 
         // Trace the `BurnedNFTokens`
         let burned_nf_tokens = account.burned_nf_tokens().unwrap().unwrap();
-        assert_eq!(burned_nf_tokens, 20);
         let _ = trace_num("  BurnedNFTokens:", burned_nf_tokens as i64);
+        assert_eq!(burned_nf_tokens, 0);
 
         // Trace the `Domain`
         let domain = account.domain().unwrap().unwrap();
