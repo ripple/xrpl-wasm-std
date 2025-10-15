@@ -5,8 +5,10 @@ const notary = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
 })
 
 async function test(testContext) {
-  const { client, submit, sourceWallet, offerSequence } = testContext
+  const { client, submit, sourceWallet, deploy, finish } = testContext
   try {
+    const offerSequence = await deploy(sourceWallet, destWallet, finish)
+
     const txFail = {
       TransactionType: "EscrowFinish",
       Account: sourceWallet.address,

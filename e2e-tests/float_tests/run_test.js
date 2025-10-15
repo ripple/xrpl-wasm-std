@@ -1,8 +1,10 @@
 async function test(testContext) {
   try {
-    const { submit, sourceWallet, offerSequence } = testContext
+    const { deploy, submit, sourceWallet, finish } = testContext
     // This escrow should always succeed
     // If it fails, something in rippled is broken
+
+    const offerSequence = await deploy(sourceWallet, sourceWallet, finish)
 
     const txFail = {
       TransactionType: "EscrowFinish",

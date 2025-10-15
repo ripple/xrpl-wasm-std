@@ -2,7 +2,10 @@ const xrpl = require("xrpl")
 
 async function test(testContext) {
   try {
-    const { submit, sourceWallet, destWallet, offerSequence } = testContext
+    const { deploy, finish, submit, sourceWallet, destWallet } = testContext
+
+    const offerSequence = await deploy(sourceWallet, destWallet, finish)
+
     const txFail = {
       TransactionType: "EscrowFinish",
       Account: sourceWallet.address,

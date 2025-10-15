@@ -5,8 +5,10 @@ const oracleWallet = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
 })
 
 async function test(testContext) {
-  const { client, submit, sourceWallet, offerSequence } = testContext
+  const { deploy, finish, client, submit, sourceWallet } = testContext
   try {
+    const offerSequence = await deploy(sourceWallet, destWallet, finish)
+
     const closeTime = (
       await client.request({
         command: "ledger",

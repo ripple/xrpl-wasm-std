@@ -1,9 +1,11 @@
 const xrpl = require("xrpl")
 
 async function test(testContext) {
-  const { client, submit, sourceWallet, destWallet, offerSequence } =
+  const { deploy, finish, client, submit, sourceWallet, destWallet } =
     testContext
   try {
+    const offerSequence = await deploy(sourceWallet, destWallet, finish)
+
     // Mint NFT
     const nftMint = {
       TransactionType: "NFTokenMint",

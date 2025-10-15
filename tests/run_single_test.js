@@ -15,6 +15,45 @@ async function submit(tx, wallet, debug = false) {
   return result
 }
 
+async function fundWallet(wallet = undefined) {
+  if (!(client.url.includes("localhost") || client.url.includes("127.0.0.1"))) {
+    const walletToFund = wallet || xrpl.Wallet.generate()
+    const result = await client.fundWallet(walletToFund)
+    return result.wallet
+  }
+  const master = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
+    algorithm: xrpl.ECDSA.secp256k1,
+  })
+
+  const walletToFund = wallet || xrpl.Wallet.generate()
+  await submit(
+    {
+      TransactionType: "Payment",
+      Account: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+      Amount: xrpl.xrpToDrops(10000),
+      Destination: walletToFund.address,
+    },
+    master,
+  )
+  return walletToFund
+}
+
+function getFinishFunctionFromFile(filePath) {
+  if (!filePath) {
+    console.error("Please provide a file path as a CLI argument.")
+    process.exit(1)
+  }
+
+  const absolutePath = path.resolve(filePath)
+  try {
+    const data = fs.readFileSync(absolutePath)
+    return data.toString("hex")
+  } catch (err) {
+    console.error(`Error reading file at ${absolutePath}:`, err.message)
+    process.exit(1)
+  }
+}
+
 async function main() {
   await client.connect()
   console.log("connected")
@@ -43,10 +82,9 @@ async function main() {
   }
   const targetDir = args[0]
   const wasmSource = args[1]
+  const finish = getFinishFunctionFromFile(wasmSource)
 
   const { deploy } = require("./deploy_wasm_code.js")
-
-  const offerSequence = await deploy(wallets[0], wallets[1], wasmSource)
 
   console.log(`Running test in directory: ${targetDir}`)
   const runTestPath = path.resolve(targetDir, "run_test.js")
@@ -58,9 +96,11 @@ async function main() {
     client,
     submit,
     sourceWallet: wallets[0],
-    offerSequence,
     destWallet: wallets[1],
     allWallets: wallets,
+    fundWallet,
+    deploy,
+    wasm: finish,
   }
 
   await test(testContext)

@@ -1,6 +1,9 @@
 async function test(testContext) {
   try {
-    const { submit, sourceWallet, offerSequence } = testContext
+    const { deploy, finish, submit, sourceWallet, destWallet } = testContext
+
+    const offerSequence = await deploy(sourceWallet, destWallet, finish)
+
     // This is a bit of a dummy example and test
     // The Smart Escrow just checks whether the ledger sequence is greater than 5
     // which is essentially guaranteed to already be true, even when running on standalone mode
@@ -25,8 +28,6 @@ async function test(testContext) {
   } catch (error) {
     console.error("Error:", error.message)
     console.log(error)
-    await client.disconnect()
-    process.exit(1)
   }
 }
 
