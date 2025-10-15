@@ -100,13 +100,17 @@ async function main() {
     allWallets: wallets,
     fundWallet,
     deploy,
-    wasm: finish,
+    finish,
   }
-
-  await test(testContext)
-
-  if (interval) clearInterval(interval)
-  await client.disconnect()
+  try {
+    await test(testContext)
+  } catch (error) {
+    console.error("Error:", error.message)
+    console.log(error)
+  } finally {
+    if (interval) clearInterval(interval)
+    await client.disconnect()
+  }
 }
 
 main().catch(console.error)

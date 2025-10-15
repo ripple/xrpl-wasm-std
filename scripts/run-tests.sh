@@ -52,7 +52,6 @@ run_integration_test() {
 if [[ $# -gt 0 ]]; then
     arg="$1"
     test_dir="$(realpath "$arg")"
-    echo $test_dir
     test_name=$(basename "$test_dir")
     if [[ "$test_dir" == *"/examples/"* ]]; then
         wasm_file_release="examples/target/wasm32v1-none/release/${test_name}.wasm"
