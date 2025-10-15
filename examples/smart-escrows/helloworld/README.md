@@ -7,7 +7,6 @@ and always returns 1. This example is useful for getting started with a new Smar
 
 - Rust toolchain with `wasm32v1-none` target
 - Node.js 18+
-- Dependencies installed in `reference/js`:
 
 ```shell
 npm install
@@ -46,26 +45,7 @@ This will:
 - Create and fund two wallets (Origin and Destination)
 - Create an EscrowCreate transaction with your compiled `FinishFunction`
 - Print the transaction result, including `tx_json.Sequence`
-
-Record the following from the output:
-
-- Origin (Owner) address: printed as “Account 1 - Address: ...”
-- OfferSequence: from the EscrowCreate `tx_json.Sequence`
-
-For convenience:
-
-```shell
-export OWNER_ADDRESS=<Account 1 Address printed by deploy script>
-export OFFER_SEQUENCE=<Sequence printed in tx_json>
-```
-
-### 4. Finish the escrow as the notary
-
-Submit `EscrowFinish` from the notary account you created in step 1:
-
-```shell
-node finish_escrow.js $OWNER_ADDRESS $OFFER_SEQUENCE
-```
+- Finish the escrow, executing the `helloworld` WASM.
 
 Expected result: `tesSUCCESS` and “Escrow finished successfully!”. If you try to finish from a different account, you
 should get `tecNO_PERMISSION` due to the notary check.
