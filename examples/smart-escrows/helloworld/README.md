@@ -37,10 +37,7 @@ to run the script from this project's root folder).
 
 ```shell
 cd ../../..
-node ./tests/run_single_test.js \
-  "./examples/smart-escrows/helloworld/" \
-  "./examples/target/wasm32v1-none/release/helloworld.wasm" \
-  "wss://wasm.devnet.rippletest.net:51233"
+CI=1 ./scripts/run-tests.sh examples/smart-escrows/helloworld
 ```
 
 This will:
