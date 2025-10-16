@@ -30,6 +30,7 @@ jobs:
 
       - name: Setup UI deployment directory
         run: |
+          ./scripts/build.sh release
           ./ui/embed-wasm.sh
           mkdir -p target/doc/ui
           cp -r ui/* target/doc/ui/
