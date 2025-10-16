@@ -3,11 +3,7 @@ async function test(testContext) {
 
   const offerSequence = await deploy(sourceWallet, destWallet, finish)
 
-  // This is a bit of a dummy example and test
-  // The Smart Escrow just checks whether the ledger sequence is greater than 5
-  // which is essentially guaranteed to already be true, even when running on standalone mode
-
-  const txFail = {
+  const tx = {
     TransactionType: "EscrowFinish",
     Account: sourceWallet.address,
     Owner: sourceWallet.address,
@@ -15,12 +11,12 @@ async function test(testContext) {
     ComputationAllowance: 1000000,
   }
 
-  const responseFail = await submit(txFail, sourceWallet)
+  const response = await submit(tx, sourceWallet)
 
-  if (responseFail.result.meta.TransactionResult !== "tesSUCCESS") {
+  if (response.result.meta.TransactionResult !== "tesSUCCESS") {
     console.error(
       "\nFailed to finish escrow:",
-      responseFail.result.meta.TransactionResult,
+      response.result.meta.TransactionResult,
     )
     process.exit(1)
   }
