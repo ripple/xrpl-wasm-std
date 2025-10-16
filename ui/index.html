@@ -251,6 +251,85 @@
                 No WASM loaded
               </div>
             </div>
+
+            <!-- Advanced Options for Deploy WASM -->
+            <div class="advanced-options" id="deployAdvancedOptions">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="toggleAdvancedOptions('deploy')"
+                style="
+                  width: 100%;
+                  margin-bottom: 10px;
+                  background: #f8f9fa;
+                  color: #333;
+                  border: 1px solid #ddd;
+                "
+              >
+                <span id="deployAdvancedToggleText">Show Advanced Options</span>
+                <span id="deployAdvancedToggleIcon">▼</span>
+              </button>
+              <div
+                id="deployAdvancedContent"
+                style="
+                  display: none;
+                  padding: 15px;
+                  border: 1px solid #ddd;
+                  border-radius: 5px;
+                  background: #f8f9fa;
+                "
+              >
+                <h4 style="margin-top: 0; font-size: 14px; color: #666">
+                  Additional Transaction Fields
+                </h4>
+                <div class="form-group">
+                  <label for="deployMemos">Memos (JSON array):</label>
+                  <textarea
+                    id="deployMemos"
+                    class="form-control"
+                    rows="2"
+                    placeholder='[{"Memo": {"MemoType": "text", "MemoData": "example"}}]'
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="deployCondition">Condition (hex):</label>
+                  <input
+                    type="text"
+                    id="deployCondition"
+                    class="form-control"
+                    placeholder="A0258020..."
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="deployData">Data (hex):</label>
+                  <input
+                    type="text"
+                    id="deployData"
+                    class="form-control"
+                    placeholder="Additional hex data for the escrow"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="deployDestinationTag">Destination Tag:</label>
+                  <input
+                    type="number"
+                    id="deployDestinationTag"
+                    class="form-control"
+                    placeholder="12345"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="deployCustomFields">Custom Fields (JSON):</label>
+                  <textarea
+                    id="deployCustomFields"
+                    class="form-control"
+                    rows="3"
+                    placeholder='{"CustomField": "value", "AnotherField": 123}'
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
             <button class="btn btn-success" onclick="deployCurrentWasm()">
               Deploy WASM as Smart Escrow
             </button>
@@ -291,6 +370,79 @@
                 readonly
               />
             </div>
+
+            <!-- Advanced Options for Finish Escrow -->
+            <div class="advanced-options" id="finishAdvancedOptions">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="toggleAdvancedOptions('finish')"
+                style="
+                  width: 100%;
+                  margin-bottom: 10px;
+                  background: #f8f9fa;
+                  color: #333;
+                  border: 1px solid #ddd;
+                "
+              >
+                <span id="finishAdvancedToggleText">Show Advanced Options</span>
+                <span id="finishAdvancedToggleIcon">▼</span>
+              </button>
+              <div
+                id="finishAdvancedContent"
+                style="
+                  display: none;
+                  padding: 15px;
+                  border: 1px solid #ddd;
+                  border-radius: 5px;
+                  background: #f8f9fa;
+                "
+              >
+                <h4 style="margin-top: 0; font-size: 14px; color: #666">
+                  Additional Transaction Fields
+                </h4>
+                <div class="form-group">
+                  <label for="finishMemos">Memos (JSON array):</label>
+                  <textarea
+                    id="finishMemos"
+                    class="form-control"
+                    rows="2"
+                    placeholder='[{"Memo": {"MemoType": "text", "MemoData": "example"}}]'
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="finishFulfillment">Fulfillment (hex):</label>
+                  <input
+                    type="text"
+                    id="finishFulfillment"
+                    class="form-control"
+                    placeholder="A0028000..."
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="finishComputationAllowance"
+                    >Computation Allowance:</label
+                  >
+                  <input
+                    type="number"
+                    id="finishComputationAllowance"
+                    class="form-control"
+                    placeholder="1000000"
+                    value="1000000"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="finishCustomFields">Custom Fields (JSON):</label>
+                  <textarea
+                    id="finishCustomFields"
+                    class="form-control"
+                    rows="3"
+                    placeholder='{"CustomField": "value", "AnotherField": 123}'
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
             <button class="btn btn-success" onclick="finishEscrow()">
               Finish Escrow
             </button>
@@ -359,10 +511,19 @@
       let ledgerInterval = null
 
       // Utility Functions
-      function log(message) {
+      function log(message, isHtml = false) {
         const logArea = document.getElementById("logArea")
         const timestamp = new Date().toLocaleTimeString()
-        logArea.textContent += `[${timestamp}] ${message}\n`
+
+        if (isHtml) {
+          // Create a new div for HTML content
+          const logEntry = document.createElement("div")
+          logEntry.innerHTML = `[${timestamp}] ${message}`
+          logArea.appendChild(logEntry)
+        } else {
+          logArea.textContent += `[${timestamp}] ${message}\n`
+        }
+
         logArea.scrollTop = logArea.scrollHeight
       }
 
@@ -394,7 +555,45 @@
       }
 
       function clearLogs() {
-        document.getElementById("logArea").textContent = ""
+        const logArea = document.getElementById("logArea")
+        logArea.textContent = ""
+        logArea.innerHTML = ""
+      }
+
+      function getExplorerUrl(hash) {
+        const selectedNetwork = document.querySelector(
+          'input[name="network"]:checked',
+        )?.value
+
+        if (
+          selectedNetwork &&
+          selectedNetwork.includes("wasm.devnet.rippletest.net")
+        ) {
+          return `http://custom.xrpl.org/wasm.devnet.rippletest.net/transactions/${hash}`
+        } else if (
+          selectedNetwork &&
+          (selectedNetwork.includes("localhost") ||
+            selectedNetwork.includes("127.0.0.1"))
+        ) {
+          return `http://custom.xrpl.org/localhost:6006/transactions/${hash}`
+        }
+
+        // Default to devnet explorer if network detection fails
+        return `http://custom.xrpl.org/wasm.devnet.rippletest.net/transactions/${hash}`
+      }
+
+      function logWithExplorer(message, hash = null) {
+        log(message)
+
+        if (hash) {
+          const explorerUrl = getExplorerUrl(hash)
+          if (explorerUrl) {
+            log(
+              `🔗 View in explorer: <a href="${explorerUrl}" target="_blank" style="color: #3498db; text-decoration: underline;">${explorerUrl}</a>`,
+              true,
+            )
+          }
+        }
       }
 
       function updateConnectionStatus(connected, network = "") {
@@ -417,6 +616,27 @@
           networkInfo.className = "status-indicator status-disconnected"
           connectBtn.style.display = "inline-block"
           disconnectBtn.style.display = "none"
+        }
+      }
+
+      // Advanced Options Management
+      function toggleAdvancedOptions(section) {
+        const content = document.getElementById(`${section}AdvancedContent`)
+        const toggleText = document.getElementById(
+          `${section}AdvancedToggleText`,
+        )
+        const toggleIcon = document.getElementById(
+          `${section}AdvancedToggleIcon`,
+        )
+
+        if (content.style.display === "none") {
+          content.style.display = "block"
+          toggleText.textContent = "Hide Advanced Options"
+          toggleIcon.textContent = "▲"
+        } else {
+          content.style.display = "none"
+          toggleText.textContent = "Show Advanced Options"
+          toggleIcon.textContent = "▼"
         }
       }
 
@@ -974,7 +1194,43 @@
             Account: sourceAccount.address,
             Owner: ownerAccount.address,
             OfferSequence: parseInt(sequence),
-            ComputationAllowance: 1000000,
+          }
+
+          // Get computation allowance from advanced options, or use default
+          const computationAllowance = document
+            .getElementById("finishComputationAllowance")
+            .value.trim()
+          tx.ComputationAllowance = computationAllowance
+            ? parseInt(computationAllowance)
+            : 1000000
+
+          // Add advanced options if provided
+          const memos = document.getElementById("finishMemos").value.trim()
+          if (memos) {
+            try {
+              tx.Memos = JSON.parse(memos)
+            } catch (e) {
+              log(`⚠️ Invalid Memos JSON format: ${e.message}`)
+            }
+          }
+
+          const fulfillment = document
+            .getElementById("finishFulfillment")
+            .value.trim()
+          if (fulfillment) {
+            tx.Fulfillment = fulfillment
+          }
+
+          const customFields = document
+            .getElementById("finishCustomFields")
+            .value.trim()
+          if (customFields) {
+            try {
+              const custom = JSON.parse(customFields)
+              Object.assign(tx, custom)
+            } catch (e) {
+              log(`⚠️ Invalid Custom Fields JSON format: ${e.message}`)
+            }
           }
 
           log(
@@ -987,7 +1243,10 @@
 
           if (result.result.meta.TransactionResult === "tesSUCCESS") {
             log(`✅ Escrow finished successfully!`)
-            log(`Transaction hash: ${result.result.hash}`)
+            logWithExplorer(
+              `Transaction hash: ${result.result.hash}`,
+              result.result.hash,
+            )
           } else {
             log(
               `❌ Escrow finish failed: ${result.result.meta.TransactionResult}`,
@@ -1029,7 +1288,10 @@
 
           if (result.result.meta.TransactionResult === "tesSUCCESS") {
             log(`✅ Transaction successful!`)
-            log(`Transaction hash: ${result.result.hash}`)
+            logWithExplorer(
+              `Transaction hash: ${result.result.hash}`,
+              result.result.hash,
+            )
           } else {
             log(
               `❌ Transaction failed: ${result.result.meta.TransactionResult}`,
@@ -1095,6 +1357,47 @@
             Data: xrpl.xrpToDrops(70),
           }
 
+          // Add advanced options if provided
+          const memos = document.getElementById("deployMemos").value.trim()
+          if (memos) {
+            try {
+              tx.Memos = JSON.parse(memos)
+            } catch (e) {
+              log(`⚠️ Invalid Memos JSON format: ${e.message}`)
+            }
+          }
+
+          const condition = document
+            .getElementById("deployCondition")
+            .value.trim()
+          if (condition) {
+            tx.Condition = condition
+          }
+
+          const data = document.getElementById("deployData").value.trim()
+          if (data) {
+            tx.Data = data
+          }
+
+          const destinationTag = document
+            .getElementById("deployDestinationTag")
+            .value.trim()
+          if (destinationTag) {
+            tx.DestinationTag = parseInt(destinationTag)
+          }
+
+          const customFields = document
+            .getElementById("deployCustomFields")
+            .value.trim()
+          if (customFields) {
+            try {
+              const custom = JSON.parse(customFields)
+              Object.assign(tx, custom)
+            } catch (e) {
+              log(`⚠️ Invalid Custom Fields JSON format: ${e.message}`)
+            }
+          }
+
           log(
             `🚀 Deploying WASM as Smart Escrow: ${amount} drops from ${sourceAccount.address} to ${destAccount.address}`,
           )
@@ -1109,7 +1412,10 @@
             log(
               `✅ Smart Escrow deployed successfully! Sequence: ${lastOfferSequence}`,
             )
-            log(`Transaction hash: ${result.result.hash}`)
+            logWithExplorer(
+              `Transaction hash: ${result.result.hash}`,
+              result.result.hash,
+            )
 
             // Store the successful escrow
             escrows.push({
