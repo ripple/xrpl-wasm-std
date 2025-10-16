@@ -1,0 +1,1388 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Escrow Testing UI</title>
+    <script src="https://unpkg.com/xrpl@4.5.0-smartescrow.2/build/xrpl-latest-min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .header h1 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-top: 15px;
+      }
+
+      .status-indicator {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .status-connected {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-disconnected {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .card h2 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #555;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e1e8ed;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      .btn {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+        margin-right: 10px;
+        margin-bottom: 10px;
+      }
+
+      .btn:hover {
+        background: #2980b9;
+      }
+
+      .btn-success {
+        background: #27ae60;
+      }
+
+      .btn-success:hover {
+        background: #229954;
+      }
+
+      .btn-warning {
+        background: #f39c12;
+      }
+
+      .btn-warning:hover {
+        background: #e67e22;
+      }
+
+      .btn-danger {
+        background: #e74c3c;
+      }
+
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+
+      .btn-small {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      .radio-group {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .radio-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .accounts-list,
+      .escrows-list {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .account-item,
+      .escrow-item {
+        border: 1px solid #e1e8ed;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        cursor: pointer;
+      }
+
+      .account-item.selected,
+      .escrow-item.selected {
+        border-color: #3498db;
+        background: #ebf3fd;
+      }
+
+      .account-address {
+        font-family: monospace;
+        font-size: 12px;
+        color: #666;
+        word-break: break-all;
+      }
+
+      .account-balance {
+        font-weight: 500;
+        color: #27ae60;
+      }
+
+      .log-area {
+        background: #2c3e50;
+        color: #ecf0f1;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 12px;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        margin-top: 15px;
+      }
+
+      .examples-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 2px solid #e1e8ed;
+        margin-bottom: 15px;
+      }
+
+      .tab {
+        padding: 10px 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+        border-bottom: 2px solid transparent;
+      }
+
+      .tab.active {
+        color: #3498db;
+        border-bottom-color: #3498db;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .container {
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Smart Escrow Testing UI</h1>
+        <p>Deploy and test XRPL Smart Escrows with ease</p>
+        <div class="status-bar">
+          <div
+            id="connectionStatus"
+            class="status-indicator status-disconnected"
+          >
+            Disconnected
+          </div>
+          <div id="networkInfo" class="status-indicator status-disconnected">
+            No Network
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Network Configuration -->
+        <div class="card">
+          <h2>Network Configuration</h2>
+          <div class="form-group">
+            <label>Select Network:</label>
+            <div class="radio-group">
+              <div class="radio-item">
+                <input
+                  type="radio"
+                  id="localNode"
+                  name="network"
+                  value="ws://127.0.0.1:6006"
+                  checked
+                />
+                <label for="localNode">Local Node</label>
+              </div>
+              <div class="radio-item">
+                <input
+                  type="radio"
+                  id="devnet"
+                  name="network"
+                  value="wss://wasm.devnet.rippletest.net:51233"
+                />
+                <label for="devnet">WASM Devnet</label>
+              </div>
+            </div>
+          </div>
+          <button id="connectBtn" class="btn" onclick="connectToNetwork()">
+            Connect
+          </button>
+          <button
+            id="disconnectBtn"
+            class="btn btn-warning"
+            onclick="disconnectFromNetwork()"
+            style="display: none"
+          >
+            Disconnect
+          </button>
+        </div>
+
+        <!-- WASM Code Management -->
+        <div class="card">
+          <h2>WASM Code Management</h2>
+          <div class="tabs">
+            <button class="tab active" onclick="switchTab('upload')">
+              Upload File
+            </button>
+            <button class="tab" onclick="switchTab('paste')">Paste Hex</button>
+            <button class="tab" onclick="switchTab('examples')">
+              Examples
+            </button>
+          </div>
+
+          <div id="upload-tab" class="tab-content active">
+            <div class="form-group">
+              <label for="wasmFile">Upload WASM File:</label>
+              <input
+                type="file"
+                id="wasmFile"
+                class="form-control"
+                accept=".wasm"
+                onchange="handleWasmFile()"
+              />
+            </div>
+          </div>
+
+          <div id="paste-tab" class="tab-content">
+            <div class="form-group">
+              <label for="wasmHex">WASM Hex Code:</label>
+              <textarea
+                id="wasmHex"
+                class="form-control"
+                rows="4"
+                placeholder="Paste hex-encoded WASM here..."
+              ></textarea>
+            </div>
+            <button class="btn btn-small" onclick="loadWasmFromHex()">
+              Load Hex
+            </button>
+          </div>
+
+          <div id="examples-tab" class="tab-content">
+            <div class="form-group">
+              <label>Pre-built Examples:</label>
+              <div class="examples-grid">
+                <button
+                  class="btn btn-small"
+                  onclick="loadExample('ledger_sqn')"
+                >
+                  Ledger SQN
+                </button>
+                <button class="btn btn-small" onclick="loadExample('notary')">
+                  Notary
+                </button>
+                <button class="btn btn-small" onclick="loadExample('kyc')">
+                  KYC
+                </button>
+                <button
+                  class="btn btn-small"
+                  onclick="loadExample('nft_owner')"
+                >
+                  NFT Owner
+                </button>
+                <button class="btn btn-small" onclick="loadExample('oracle')">
+                  Oracle
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Current WASM:</label>
+            <div
+              id="currentWasm"
+              style="font-size: 12px; color: #666; font-style: italic"
+            >
+              No WASM loaded
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Account Management -->
+        <div class="card">
+          <h2>Account Management</h2>
+          <div class="form-group">
+            <button
+              id="generateBtn"
+              class="btn btn-success"
+              onclick="generateAccount()"
+            >
+              Generate New Account
+            </button>
+            <button class="btn" onclick="loadWallets()">
+              Load Saved Wallets
+            </button>
+            <button
+              id="fundBtn"
+              class="btn btn-warning"
+              onclick="fundSelectedAccount()"
+            >
+              Fund Selected
+            </button>
+          </div>
+          <div
+            id="accountLoading"
+            class="account-loading"
+            style="display: none"
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px;
+                background: #f8f9fa;
+                border-radius: 5px;
+                margin-bottom: 10px;
+              "
+            >
+              <div class="spinner"></div>
+              <span id="loadingText">Generating account...</span>
+            </div>
+          </div>
+          <div class="accounts-list" id="accountsList">
+            <div style="text-align: center; color: #666; padding: 20px">
+              No accounts loaded. Generate or load accounts to get started.
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction Interface -->
+        <div class="card">
+          <h2>Transaction Interface</h2>
+          <div class="tabs">
+            <button class="tab active" onclick="switchTxTab('deploy-wasm')">
+              Deploy WASM
+            </button>
+            <button class="tab" onclick="switchTxTab('escrow-finish')">
+              Finish Escrow
+            </button>
+            <button class="tab" onclick="switchTxTab('custom')">
+              Custom TX
+            </button>
+          </div>
+
+          <div id="deploy-wasm-tab" class="tab-content active">
+            <div class="form-group">
+              <label for="escrowSourceAccount">Source Account (Owner):</label>
+              <select id="escrowSourceAccount" class="form-control">
+                <option value="">Select source account...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="escrowDestination">Destination Account:</label>
+              <select id="escrowDestination" class="form-control">
+                <option value="">Select destination account...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="escrowAmount">Escrow Amount (drops):</label>
+              <input
+                type="text"
+                id="escrowAmount"
+                class="form-control"
+                value="100000"
+              />
+            </div>
+            <div class="form-group">
+              <label>Current WASM:</label>
+              <div
+                id="deployWasmStatus"
+                style="font-size: 12px; color: #666; font-style: italic"
+              >
+                No WASM loaded
+              </div>
+            </div>
+            <button class="btn btn-success" onclick="deployCurrentWasm()">
+              Deploy WASM as Smart Escrow
+            </button>
+          </div>
+
+          <div id="escrow-finish-tab" class="tab-content">
+            <div class="form-group">
+              <label for="escrowSelect">Select Escrow:</label>
+              <select
+                id="escrowSelect"
+                class="form-control"
+                onchange="updateFinishFormFromEscrow()"
+              >
+                <option value="">Select an escrow to finish...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="finishSourceAccount"
+                >Source Account (Finisher):</label
+              >
+              <select id="finishSourceAccount" class="form-control">
+                <option value="">Select source account...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ownerAccount">Owner Account:</label>
+              <select id="ownerAccount" class="form-control">
+                <option value="">Select owner account...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="offerSequence">Offer Sequence:</label>
+              <input
+                type="text"
+                id="offerSequence"
+                class="form-control"
+                placeholder="Sequence will be filled when you select an escrow"
+                readonly
+              />
+            </div>
+            <button class="btn btn-success" onclick="finishEscrow()">
+              Finish Escrow
+            </button>
+          </div>
+
+          <div id="custom-tab" class="tab-content">
+            <div class="form-group">
+              <label for="customSourceAccount">Source Account:</label>
+              <select id="customSourceAccount" class="form-control">
+                <option value="">Select source account...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="customTx">Custom Transaction JSON:</label>
+              <textarea
+                id="customTx"
+                class="form-control"
+                rows="6"
+                placeholder='{"TransactionType": "Payment", "Amount": "1000000", "Destination": "rABC...", ...}'
+              ></textarea>
+            </div>
+            <button class="btn btn-success" onclick="submitCustomTransaction()">
+              Submit Transaction
+            </button>
+          </div>
+        </div>
+
+        <!-- Escrow Management -->
+        <div class="card">
+          <h2>Escrow Management</h2>
+          <div class="escrows-list" id="escrowsList">
+            <div style="text-align: center; color: #666; padding: 20px">
+              No escrows created. Deploy WASM to create escrows.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Smart Escrow Testing -->
+      <div class="card">
+        <h2>Smart Escrow Testing</h2>
+        <div style="margin-bottom: 15px">
+          <button class="btn btn-warning" onclick="runQuickTest()">
+            Run Quick Test
+          </button>
+          <button class="btn btn-danger" onclick="clearLogs()">
+            Clear Logs
+          </button>
+        </div>
+        <div class="log-area" id="logArea">
+          Ready to deploy and test Smart Escrows...\n
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global state
+      let client = null
+      let currentWasm = null
+      let accounts = []
+      let escrows = []
+      let selectedAccount = null
+      let lastOfferSequence = null
+      let ledgerInterval = null
+
+      // Utility Functions
+      function log(message) {
+        const logArea = document.getElementById("logArea")
+        const timestamp = new Date().toLocaleTimeString()
+        logArea.textContent += `[${timestamp}] ${message}\n`
+        logArea.scrollTop = logArea.scrollHeight
+      }
+
+      function clearLogs() {
+        document.getElementById("logArea").textContent = ""
+      }
+
+      function updateConnectionStatus(connected, network = "") {
+        const status = document.getElementById("connectionStatus")
+        const networkInfo = document.getElementById("networkInfo")
+        const connectBtn = document.getElementById("connectBtn")
+        const disconnectBtn = document.getElementById("disconnectBtn")
+
+        if (connected) {
+          status.textContent = "Connected"
+          status.className = "status-indicator status-connected"
+          networkInfo.textContent = network
+          networkInfo.className = "status-indicator status-connected"
+          connectBtn.style.display = "none"
+          disconnectBtn.style.display = "inline-block"
+        } else {
+          status.textContent = "Disconnected"
+          status.className = "status-indicator status-disconnected"
+          networkInfo.textContent = "No Network"
+          networkInfo.className = "status-indicator status-disconnected"
+          connectBtn.style.display = "inline-block"
+          disconnectBtn.style.display = "none"
+        }
+      }
+
+      // Tab Management
+      function switchTab(tabName) {
+        // Get the parent card to scope the tab switching
+        const parentCard = event.target.closest(".card")
+        parentCard
+          .querySelectorAll(".tab")
+          .forEach((tab) => tab.classList.remove("active"))
+        parentCard
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"))
+
+        event.target.classList.add("active")
+        document.getElementById(tabName + "-tab").classList.add("active")
+      }
+
+      function switchTxTab(tabName) {
+        // Get the parent card to scope the tab switching
+        const parentCard = event.target.closest(".card")
+        parentCard
+          .querySelectorAll(".tab")
+          .forEach((tab) => tab.classList.remove("active"))
+        parentCard
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"))
+
+        event.target.classList.add("active")
+        document.getElementById(tabName + "-tab").classList.add("active")
+      }
+
+      // Network Management
+      async function connectToNetwork() {
+        // Check if XRPL library is loaded
+        if (typeof xrpl === "undefined") {
+          log(
+            "❌ XRPL library is not loaded. Please refresh the page and wait for it to load.",
+          )
+          return
+        }
+
+        const selectedNetwork = document.querySelector(
+          'input[name="network"]:checked',
+        ).value
+
+        try {
+          if (client && client.isConnected()) {
+            await client.disconnect()
+          }
+
+          // Clear existing interval
+          if (ledgerInterval) {
+            clearInterval(ledgerInterval)
+            ledgerInterval = null
+          }
+
+          log(`Connecting to ${selectedNetwork}...`)
+          client = new xrpl.Client(selectedNetwork)
+
+          // Add connection event listeners
+          client.on("connected", () => {
+            updateConnectionStatus(true, selectedNetwork)
+            log(`Successfully connected to ${selectedNetwork}`)
+          })
+
+          client.on("disconnected", () => {
+            updateConnectionStatus(false)
+            log("Disconnected from network")
+          })
+
+          await client.connect()
+
+          // Start ledger acceptance for local nodes
+          if (
+            selectedNetwork.includes("localhost") ||
+            selectedNetwork.includes("127.0.0.1")
+          ) {
+            ledgerInterval = setInterval(() => {
+              if (client && client.isConnected()) {
+                client.request({ command: "ledger_accept" }).catch(() => {})
+              }
+            }, 1000)
+          }
+        } catch (error) {
+          log(`Failed to connect: ${error.message}`)
+          updateConnectionStatus(false)
+        }
+      }
+
+      async function disconnectFromNetwork() {
+        try {
+          if (ledgerInterval) {
+            clearInterval(ledgerInterval)
+            ledgerInterval = null
+          }
+
+          if (client && client.isConnected()) {
+            await client.disconnect()
+          }
+
+          updateConnectionStatus(false)
+          log("Disconnected from network")
+        } catch (error) {
+          log(`Error disconnecting: ${error.message}`)
+          updateConnectionStatus(false)
+        }
+      }
+
+      // WASM Management
+      function handleWasmFile() {
+        const file = document.getElementById("wasmFile").files[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = function (e) {
+          const arrayBuffer = e.target.result
+          const bytes = new Uint8Array(arrayBuffer)
+          currentWasm = Array.from(bytes)
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("")
+
+          const wasmInfo = `${file.name} (${Math.round(arrayBuffer.byteLength / 1024)}KB)`
+          document.getElementById("currentWasm").textContent = wasmInfo
+          document.getElementById("deployWasmStatus").textContent = wasmInfo
+          log(`Loaded WASM file: ${file.name}`)
+        }
+        reader.readAsArrayBuffer(file)
+      }
+
+      function loadWasmFromHex() {
+        const hex = document.getElementById("wasmHex").value.trim()
+        if (!hex) {
+          log("Please enter hex-encoded WASM data")
+          return
+        }
+
+        currentWasm = hex.replace(/\s/g, "")
+        const wasmInfo = `Hex data (${Math.round(currentWasm.length / 2 / 1024)}KB)`
+        document.getElementById("currentWasm").textContent = wasmInfo
+        document.getElementById("deployWasmStatus").textContent = wasmInfo
+        log("Loaded WASM from hex data")
+      }
+
+      // Embedded WASM examples as hex strings
+      // To update these, run: ./scripts/embed-wasm.sh
+      const EMBEDDED_WASM = {
+        ledger_sqn:
+          "0061736d01000000010f036000017f60037f7f7e017f60000002300208686f73745f6c69620e6765745f6c65646765725f73716e000008686f73745f6c69620974726163655f6e756d0001030302000205030100110619037f01418080c0000b7f00419a80c0000b7f0041a080c0000b072e04066d656d6f727902000666696e69736800020a5f5f646174615f656e6403010b5f5f686561705f6261736503020a4a024401017f02401080808080002200417f4a0d00418080c08000410b2000ac1081808080001a108380808000000b418b80c08000410f2000ad1081808080001a200041044b0b0300000b0b230100418080c0000b1a6572726f725f636f64653d4c65646765722053657175656e636500e901046e616d6500100f6c65646765725f73716e2e7761736d01af0104003b5f5a4e31337872706c5f7761736d5f73746434686f737431346765745f6c65646765725f73716e313768313965666462393930316236306539314501355f5a4e31337872706c5f7761736d5f73746434686f73743974726163655f6e756d3137683330333539393436336132326239376145020666696e69736803305f5a4e34636f72653970616e69636b696e673970616e69635f666d743137683466316135343338326265366435306645071201000f5f5f737461636b5f706f696e746572090a0100072e726f64617461004d0970726f64756365727302086c616e6775616765010452757374000c70726f6365737365642d6279010572757374631d312e38392e30202832393438333838336520323032352d30382d30342900220f7461726765745f6665617475726573012b0f6d757461626c652d676c6f62616c73",
+        notary:
+          "0061736d0100000001130360037f7f7f017f60037f7f7e017f6000017f022e0208686f73745f6c69620c6765745f74785f6669656c64000008686f73745f6c69620974726163655f6e756d0001030302020005030100110619037f01418080c0000b7f0041ac80c0000b7f0041b080c0000b072e04066d656d6f727902000666696e69736800020a5f5f646174615f656e6403010b5f5f686561705f6261736503020ab40202e60101027f23808080800041c0006b2200248080808000200041386a4100360200200041306a4200370300200042003703280240024041818020200041286a411410808080800022014114460d00419480c0800041182001417f2001417f481b2201ac1081808080001a0c010b200041066a20002d002a3a00002000200029002f3703182000200041286a410c6a29000037001d200041046a410c6a200029001d370000200020002f01283b01042000200028002b3600072000200029031837000b200041046a418080c0800041141083808080004521010b200041c0006a24808080800020010b4a01037f4100210302402002450d000240034020002d0000220420012d00002205470d01200041016a2100200141016a21012002417f6a2202450d020c000b0b200420056b21030b20030b0b350100418080c0000b2cb5f762798a53d543a014caf8b297cff8f2f937e84572726f7220696e204e6f7461727920636f6e747261637400b901046e616d65000c0b6e6f746172792e7761736d0183010400395f5a4e31337872706c5f7761736d5f73746434686f737431326765745f74785f6669656c64313768306464653735613637313739653134354501355f5a4e31337872706c5f7761736d5f73746434686f73743974726163655f6e756d3137683330333539393436336132326239376145020666696e69736803066d656d636d70071201000f5f5f737461636b5f706f696e746572090a0100072e726f64617461004d0970726f64756365727302086c616e6775616765010452757374000c70726f6365737365642d6279010572757374631d312e38392e30202832393438333838336520323032352d30382d30342900220f7461726765745f6665617475726573012b0f6d757461626c652d676c6f62616c73",
+        kyc: "0061736d0100000001280560037f7f7f017f60037f7f7e017f60087f7f7f7f7f7f7f7f017f60057f7f7f7f7f017f6000017f0288010508686f73745f6c69621c6765745f63757272656e745f6c65646765725f6f626a5f6669656c64000008686f73745f6c69620974726163655f6e756d000108686f73745f6c69621163726564656e7469616c5f6b65796c6574000208686f73745f6c6962057472616365000308686f73745f6c69621063616368655f6c65646765725f6f626a00000302010405030100110619037f01418080c0000b7f0041e080c0000b7f0041e080c0000b072e04066d656d6f727902000666696e69736800050a5f5f646174615f656e6403010b5f5f686561705f6261736503020ac00401bd0402047f027e2380808080004180016b2200248080808000200041f0006a22014100360200200041e8006a22024200370300200042003703600240024041838020200041e0006a411410808080800022034114460d0041c780c0800041192003417f2003417f481b2203ac1081808080001a0c010b2000410c6a41026a20002d00623a0000200020002900673703402000200041e0006a410c6a2900003700452000410c6a410c6a2000290045370000200020002f01603b010c2000200028006336000f20002000290340370013200041e0006a41186a420037030020014200370300200242003703002000420037036002402000410c6a41142000410c6a4114418080c080004112200041e0006a412010828080800022034120460d0041a880c08000411f2003417f2003417f481b2203ac1081808080001a0c010b200041c0006a41026a20002d00623a0000200041286a200041e0006a410f6a2900002204370300200041306a200041e0006a41176a2900002205370300200041206a41186a200041e0006a411f6a2d000022033a0000200041c0006a410f6a2004370000200041c0006a41176a2005370000200041c0006a411f6a20033a0000200020002f01603b0140200020002900672204370320200020002800633600432000200437004741012103419280c08000410b200041c0006a412041011083808080001a200041c0006a41204100108480808000220141004e0d00419d80c08000410b2001ac1081808080001a410021030b20004180016a24808080800020030b0b690100418080c0000b607465726d73616e64636f6e646974696f6e73637265645f6b65796c65744341434845204552524f524572726f722067657474696e672063726564656e7469616c206b65796c65744572726f722067657474696e672064657374696e6174696f6e00f002046e616d650009086b79632e7761736d01bd020600495f5a4e31337872706c5f7761736d5f73746434686f737432386765745f63757272656e745f6c65646765725f6f626a5f6669656c64313768383336306235316562343637313738384501355f5a4e31337872706c5f7761736d5f73746434686f73743974726163655f6e756d3137683330333539393436336132326239376145023e5f5a4e31337872706c5f7761736d5f73746434686f7374313763726564656e7469616c5f6b65796c6574313768316661393263633830666266383436374503315f5a4e31337872706c5f7761736d5f73746434686f73743574726163653137683433663361663638643835393438313645043d5f5a4e31337872706c5f7761736d5f73746434686f7374313663616368655f6c65646765725f6f626a3137686335646138313032633031326133306645050666696e697368071201000f5f5f737461636b5f706f696e746572090a0100072e726f64617461004d0970726f64756365727302086c616e6775616765010452757374000c70726f6365737365642d6279010572757374631d312e38392e30202832393438333838336520323032352d30382d30342900220f7461726765745f6665617475726573012b0f6d757461626c652d676c6f62616c73",
+        nft_owner:
+          "0061736d0100000001370860047f7f7f7f017f60037f7f7e017f60057f7f7f7f7f017f60037f7f7f017f60067f7f7f7f7f7f017f60017f0060027f7f006000017f0281010508686f73745f6c6962136765745f74785f6e65737465645f6669656c64000008686f73745f6c69620974726163655f6e756d000108686f73745f6c6962057472616365000208686f73745f6c69621c6765745f63757272656e745f6c65646765725f6f626a5f6669656c64000308686f73745f6c6962076765745f6e667400040307060506070303030405017001010105030100110619037f01418080c0000b7f0041e580c0000b7f0041f080c0000b073f05066d656d6f727902000e6765745f66697273745f6d656d6f00050666696e69736800070a5f5f646174615f656e6403010b5f5f686561705f6261736503020ac21106e00101037f23808080800041d0206b2201248080808000410021022001410c6a4100418020108a808080001a2001418c206a410041c400108a808080001a2001418c206a4189803c1086808080002001418c206a41001086808080002001418c206a418d801c108680808000024002402001418c206a20012802cc202001410c6a418020108080808000220341004a0d000240024020030d002000417f3602040c010b200020033602040b410121020c010b200041026a2001410c6a4180201089808080001a200041013a00010b200020023a0000200141d0206a2480808080000b6601027f23808080800041106b210202402000280240220341436a41bf7f490d002002200136020c410021010340200341c0004f0d01200020036a2002410c6a20016a2d00003a00002000200028024041016a2203360240200141016a22014104470d000b0b0b800401037f23808080800041d0c0006b220024808080800020004180206a1085808080000240024020002d0080204101470d0041cc80c0800041192000280284202201ac1081808080001a0c010b4100210120002d008120410171450d00200020004180206a41027241802010898080800022014188c0006a41186a200141186a29000037030020014188c0006a41106a200141106a29000037030020014188c0006a41086a200141086a2900003703002001200129000037038840418080c08000411120014188c0006a412041011082808080001a20014180206a41106a410036020020014180206a41086a4200370300200142003703802002404183802020014180206a411410838080800022024114460d0041a380c0800041292002417f2002417f481b2201ac1081808080001a0c010b200141acc0006a41026a20012d0082203a000020012001290087203703c040200120014180206a410c6a2900003700c540200141acc0006a410c6a20012900c540370000200120012f0180203b01ac4020012001280083203600af40200120012903c0403700b34020014180206a4100418020108a808080001a0240200141acc0006a411420014188c0006a412020014180206a41802010848080800022014101480d00410121010c010b419180c0800041122001ac1081808080001a0b200041d0c0006a24808080800020010bb907010c7f23808080800041106b210302400240200241104f0d00200021040c010b024020002000410020006b41037122056a22064f0d002005417f6a2107200021042001210802402005450d002005210920002104200121080340200420082d00003a0000200841016a2108200441016a21042009417f6a22090d000b0b20074107490d000340200420082d00003a0000200441016a200841016a2d00003a0000200441026a200841026a2d00003a0000200441036a200841036a2d00003a0000200441046a200841046a2d00003a0000200441056a200841056a2d00003a0000200441066a200841066a2d00003a0000200441076a200841076a2d00003a0000200841086a2108200441086a22042006470d000b0b2006200220056b2209417c7122076a210402400240200120056a220841037122010d00200620044f0d0120082101034020062001280200360200200141046a2101200641046a22062004490d000c020b0b410021022003410036020c2003410c6a20017221050240410420016b220a410171450d00200520082d00003a0000410121020b0240200a410271450d00200520026a200820026a2f01003b01000b200820016b21022001410374210b200328020c210502400240200641046a2004490d002006210c0c010b4100200b6b411871210d034020062005200b76200241046a22022802002205200d7472360200200641086a210a200641046a220c2106200a2004490d000b0b41002106200341003a0008200341003a00060240024020014101470d00200341086a210d410021014100210a4100210e0c010b200241056a2d0000210a2003200241046a2d000022013a0008200a410874210a4102210e200341066a210d0b02402008410171450d00200d200241046a200e6a2d00003a000020032d0006411074210620032d000821010b200c200a200672200141ff0171724100200b6b411871742005200b76723602000b20094103712102200820076a21010b02402004200420026a22064f0d002002417f6a2109024020024107712208450d000340200420012d00003a0000200141016a2101200441016a21042008417f6a22080d000b0b20094107490d000340200420012d00003a0000200441016a200141016a2d00003a0000200441026a200141026a2d00003a0000200441036a200141036a2d00003a0000200441046a200141046a2d00003a0000200441056a200141056a2d00003a0000200441066a200141066a2d00003a0000200441076a200141076a2d00003a0000200141086a2101200441086a22042006470d000b0b20000b0e002000200120021088808080000baa0301057f02400240200241104f0d00200021030c010b024020002000410020006b41037122046a22054f0d002004417f6a21062000210302402004450d0020042107200021030340200320013a0000200341016a21032007417f6a22070d000b0b20064107490d000340200320013a0000200341076a20013a0000200341066a20013a0000200341056a20013a0000200341046a20013a0000200341036a20013a0000200341026a20013a0000200341016a20013a0000200341086a22032005470d000b0b024020052005200220046b2202417c716a22034f0d00200141ff017141818284086c2107034020052007360200200541046a22052003490d000b0b200241037121020b02402003200320026a22074f0d002002417f6a2104024020024107712205450d000340200320013a0000200341016a21032005417f6a22050d000b0b20044107490d000340200320013a0000200341076a20013a0000200341066a20013a0000200341056a20013a0000200341046a20013a0000200341036a20013a0000200341026a20013a0000200341016a20013a0000200341086a22032007470d000b0b20000b0b6e0100418080c0000b654e46542049442066726f6d206d656d6f3a4572726f722067657474696e67204e46543a4572726f722067657474696e672063757272656e74206c65646765722064657374696e6174696f6e3a4572726f722067657474696e67206669727374206d656d6f3a008704046e616d65000f0e6e66745f6f776e65722e7761736d01ce030b00405f5a4e31337872706c5f7761736d5f73746434686f737431396765745f74785f6e65737465645f6669656c64313768353462666438326236636430356535654501355f5a4e31337872706c5f7761736d5f73746434686f73743974726163655f6e756d313768333033353939343633613232623937614502315f5a4e31337872706c5f7761736d5f73746434686f7374357472616365313768343366336166363864383539343831364503495f5a4e31337872706c5f7761736d5f73746434686f737432386765745f63757272656e745f6c65646765725f6f626a5f6669656c64313768383336306235316562343637313738384504335f5a4e31337872706c5f7761736d5f73746434686f7374376765745f6e66743137686230383134346163666532353763303545050e6765745f66697273745f6d656d6f06405f5a4e31337872706c5f7761736d5f73746434636f7265376c6f6361746f72374c6f6361746f72347061636b3137683533356261663364336630383530336245070666696e69736808355f5a4e3137636f6d70696c65725f6275696c74696e73336d656d366d656d637079313768353161336632613835643832393762374509066d656d6370790a066d656d736574071201000f5f5f737461636b5f706f696e746572090a0100072e726f64617461004d0970726f64756365727302086c616e6775616765010452757374000c70726f6365737365642d6279010572757374631d312e38392e30202832393438333838336520323032352d30382d30342900220f7461726765745f6665617475726573012b0f6d757461626c652d676c6f62616c73",
+        oracle:
+          "0061736d0100000001210560057f7f7f7f7f017f60037f7f7e017f60037f7f7f017f6000017f60027f7f000283010508686f73745f6c69620d6f7261636c655f6b65796c6574000008686f73745f6c6962057472616365000008686f73745f6c69620974726163655f6e756d000108686f73745f6c69621063616368655f6c65646765725f6f626a000208686f73745f6c69621b6765745f6c65646765725f6f626a5f6e65737465645f6669656c64000003040303040205030100110619037f01418080c0000b7f00418481c0000b7f00419081c0000b072e04066d656d6f727902000666696e69736800050a5f5f646174615f656e6403010b5f5f686561705f6261736503020a910803fb0303037f017e017f2380808080004190016b2200248080808000200041d8006a4200370300200041d0006a4200370300200041c0006a41086a42003703002000420037034002400240419980c0800041144101200041c0006a412010808080800022014120460d0041ad80c08000412b419980c08000411441011081808080001a41d880c08000412c42011082808080001a2001417f2001417f481b21020c010b200041026a20002d00423a0000200041206a41086a200041c0006a410f6a29000022033703002000410f6a2003370000200041176a200041c0006a41176a2900003700002000411f6a200041c0006a411f6a2d00003a0000200020002f01403b010020002000280043360003200020002900473700074100210220004120410010838080800022044100480d0041002101200041c0006a410041c4001087808080001a200041c0006a4198803c108680808000200041c0006a4100108680808000200041c0006a4197800c10868080800042002103200042003703880102402004200041c0006a20002802800120004188016a41081084808080002202417f4a0d00418080c0800041192002ac1082808080001a0c010b200020002903880137032003402003420886200041206a20016a310000842103200141016a22014108470d000b200342015621020b20004190016a24808080800020020b6601027f23808080800041106b210202402000280240220341436a41bf7f490d002002200136020c410021010340200341c0004f0d01200020036a2002410c6a20016a2d00003a00002000200028024041016a2203360240200141016a22014104470d000b0b0baa0301057f02400240200241104f0d00200021030c010b024020002000410020006b41037122046a22054f0d002004417f6a21062000210302402004450d0020042107200021030340200320013a0000200341016a21032007417f6a22070d000b0b20064107490d000340200320013a0000200341076a20013a0000200341066a20013a0000200341056a20013a0000200341046a20013a0000200341036a20013a0000200341026a20013a0000200341016a20013a0000200341086a22032005470d000b0b024020052005200220046b2202417c716a22034f0d00200141ff017141818284086c2107034020052007360200200541046a22052003490d000b0b200241037121020b02402003200320026a22074f0d002002417f6a2104024020024107712205450d000340200320013a0000200341016a21032005417f6a22050d000b0b20044107490d000340200320013a0000200341076a20013a0000200341066a20013a0000200341056a20013a0000200341046a20013a0000200341036a20013a0000200341026a20013a0000200341016a20013a0000200341086a22032007470d000b0b20000b0b8e010100418080c0000b84014572726f722067657474696e672061737365745f7072696365b5f762798a53d543a014caf8b297cff8f2f937e84661696c656420746f20676574206f7261636c655f6b65796c657420666f72206163636f756e745f69643d4661696c656420746f20676574206f7261636c655f6b65796c657420666f7220646f63756d656e745f69643d00b803046e616d65000c0b6f7261636c652e7761736d01820308003a5f5a4e31337872706c5f7761736d5f73746434686f737431336f7261636c655f6b65796c6574313768306539366561393563316361303666654501315f5a4e31337872706c5f7761736d5f73746434686f7374357472616365313768343366336166363864383539343831364502355f5a4e31337872706c5f7761736d5f73746434686f73743974726163655f6e756d3137683330333539393436336132326239376145033d5f5a4e31337872706c5f7761736d5f73746434686f7374313663616368655f6c65646765725f6f626a313768633564613831303263303132613330664504485f5a4e31337872706c5f7761736d5f73746434686f737432376765745f6c65646765725f6f626a5f6e65737465645f6669656c643137683566313562363539366363666136656445050666696e69736806405f5a4e31337872706c5f7761736d5f73746434636f7265376c6f6361746f72374c6f6361746f72347061636b313768353335626166336433663038353033624507066d656d736574071201000f5f5f737461636b5f706f696e746572090a0100072e726f64617461004d0970726f64756365727302086c616e6775616765010452757374000c70726f6365737365642d6279010572757374631d312e38392e30202832393438333838336520323032352d30382d30342900220f7461726765745f6665617475726573012b0f6d757461626c652d676c6f62616c73",
+      }
+
+      async function loadExample(exampleName) {
+        try {
+          log(`Loading example: ${exampleName}...`)
+
+          const wasmHex = EMBEDDED_WASM[exampleName]
+          if (wasmHex) {
+            currentWasm = wasmHex
+            const wasmInfo = `${exampleName} example (${Math.round(wasmHex.length / 2 / 1024)}KB)`
+            document.getElementById("currentWasm").textContent = wasmInfo
+            document.getElementById("deployWasmStatus").textContent = wasmInfo
+            log(`✅ Loaded ${exampleName} example from embedded WASM`)
+          } else {
+            log(`❌ ${exampleName} example not available`)
+            log(`💡 To add examples, run: ./scripts/embed-wasm.sh`)
+            log(`   This will update the UI with the latest built WASM files`)
+
+            currentWasm = null
+            const wasmInfo = `${exampleName} example (not embedded - run embed-wasm.sh)`
+            document.getElementById("currentWasm").textContent = wasmInfo
+            document.getElementById("deployWasmStatus").textContent = wasmInfo
+          }
+        } catch (error) {
+          log(`Failed to load example ${exampleName}: ${error.message}`)
+        }
+      }
+
+      // Account Management
+      async function generateAccount() {
+        if (!client || !client.isConnected()) {
+          log("Please connect to a network first")
+          return
+        }
+
+        // Show loading state
+        const generateBtn = document.getElementById("generateBtn")
+        const accountLoading = document.getElementById("accountLoading")
+        const loadingText = document.getElementById("loadingText")
+
+        generateBtn.disabled = true
+        generateBtn.textContent = "Generating..."
+        accountLoading.style.display = "block"
+        loadingText.textContent = "Generating new account..."
+
+        try {
+          log("Generating new account...")
+          const wallet = xrpl.Wallet.generate()
+
+          // Fund the wallet
+          loadingText.textContent = "Funding account..."
+          let fundedWallet
+          const network = document.querySelector(
+            'input[name="network"]:checked',
+          ).value
+
+          if (network.includes("localhost") || network.includes("127.0.0.1")) {
+            // Use master wallet for local funding
+            const master = xrpl.Wallet.fromSeed(
+              "snoPBrXtMeMyMHUVTgbuqAfg1SUTb",
+              {
+                algorithm: xrpl.ECDSA.secp256k1,
+              },
+            )
+
+            await client.submitAndWait(
+              {
+                TransactionType: "Payment",
+                Account: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+                Amount: xrpl.xrpToDrops(10000),
+                Destination: wallet.address,
+              },
+              { autofill: true, wallet: master },
+            )
+
+            fundedWallet = wallet
+          } else {
+            // Use fundWallet for testnets
+            const result = await client.fundWallet(wallet)
+            fundedWallet = result.wallet
+          }
+
+          accounts.push(fundedWallet)
+          await updateAccountsList()
+          log(`Generated and funded account: ${fundedWallet.address}`)
+        } catch (error) {
+          log(`Failed to generate account: ${error.message}`)
+        } finally {
+          // Hide loading state
+          generateBtn.disabled = false
+          generateBtn.textContent = "Generate New Account"
+          accountLoading.style.display = "none"
+        }
+      }
+
+      async function loadWallets() {
+        try {
+          log("Loading saved wallets is not implemented in browser environment")
+          log('Use "Generate New Account" to create accounts for testing')
+        } catch (error) {
+          log(`Failed to load wallets: ${error.message}`)
+        }
+      }
+
+      async function fundSelectedAccount() {
+        if (!selectedAccount || !client || !client.isConnected()) {
+          log("Please select an account and connect to network")
+          return
+        }
+
+        try {
+          log(`Funding account ${selectedAccount.address}...`)
+          const network = document.querySelector(
+            'input[name="network"]:checked',
+          ).value
+
+          if (network.includes("localhost") || network.includes("127.0.0.1")) {
+            const master = xrpl.Wallet.fromSeed(
+              "snoPBrXtMeMyMHUVTgbuqAfg1SUTb",
+              {
+                algorithm: xrpl.ECDSA.secp256k1,
+              },
+            )
+
+            await client.submitAndWait(
+              {
+                TransactionType: "Payment",
+                Account: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+                Amount: xrpl.xrpToDrops(1000),
+                Destination: selectedAccount.address,
+              },
+              { autofill: true, wallet: master },
+            )
+
+            log(`Funded account with 1000 XRP`)
+          } else {
+            await client.fundWallet(selectedAccount)
+            log(`Funded account via testnet faucet`)
+          }
+
+          await updateAccountsList()
+        } catch (error) {
+          log(`Failed to fund account: ${error.message}`)
+        }
+      }
+
+      async function updateAccountsList() {
+        const accountsList = document.getElementById("accountsList")
+
+        if (accounts.length === 0) {
+          accountsList.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        No accounts loaded. Generate or load accounts to get started.
+                    </div>
+                `
+          return
+        }
+
+        let html = ""
+        for (let i = 0; i < accounts.length; i++) {
+          const account = accounts[i]
+          let balance = "Unknown"
+
+          if (client && client.isConnected()) {
+            try {
+              const accountInfo = await client.request({
+                command: "account_info",
+                account: account.address,
+              })
+              balance = `${xrpl.dropsToXrp(accountInfo.result.account_data.Balance)} XRP`
+            } catch (e) {
+              balance = "Not funded"
+            }
+          }
+
+          html += `
+                    <div class="account-item ${selectedAccount === account ? "selected" : ""}" onclick="selectAccount(${i})">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Account ${i + 1}</strong>
+                                <div class="account-balance">${balance}</div>
+                            </div>
+                            <button class="btn btn-small" onclick="copyAddress('${account.address}'); event.stopPropagation();">Copy</button>
+                        </div>
+                        <div class="account-address">${account.address}</div>
+                    </div>
+                `
+        }
+
+        accountsList.innerHTML = html
+
+        // Update dropdowns
+        updateAccountDropdowns()
+        await updateEscrowsList()
+      }
+
+      function selectAccount(index) {
+        selectedAccount = accounts[index]
+        updateAccountsList()
+        log(`Selected account: ${selectedAccount.address}`)
+      }
+
+      function copyAddress(address) {
+        navigator.clipboard.writeText(address).then(() => {
+          log(`Copied address to clipboard: ${address}`)
+        })
+      }
+
+      function updateAccountDropdowns() {
+        const escrowSourceSelect = document.getElementById(
+          "escrowSourceAccount",
+        )
+        const destSelect = document.getElementById("escrowDestination")
+        const finishSourceSelect = document.getElementById(
+          "finishSourceAccount",
+        )
+        const ownerSelect = document.getElementById("ownerAccount")
+        const customSourceSelect = document.getElementById(
+          "customSourceAccount",
+        )
+
+        ;[
+          escrowSourceSelect,
+          destSelect,
+          finishSourceSelect,
+          ownerSelect,
+          customSourceSelect,
+        ].forEach((select) => {
+          if (select) {
+            select.innerHTML = '<option value="">Select account...</option>'
+            accounts.forEach((account, index) => {
+              select.innerHTML += `<option value="${index}">Account ${index + 1} - ${account.address.substring(0, 10)}...</option>`
+            })
+          }
+        })
+
+        // Update escrow dropdown
+        const escrowSelect = document.getElementById("escrowSelect")
+        if (escrowSelect) {
+          escrowSelect.innerHTML =
+            '<option value="">Select an escrow to finish...</option>'
+          escrows.forEach((escrow, index) => {
+            escrowSelect.innerHTML += `<option value="${index}">Escrow ${index + 1} (Seq: ${escrow.sequence}, ${escrow.amount} drops)</option>`
+          })
+        }
+      }
+
+      async function updateEscrowsList() {
+        const escrowsList = document.getElementById("escrowsList")
+
+        if (escrows.length === 0) {
+          escrowsList.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        No escrows created. Deploy WASM to create escrows.
+                    </div>
+                `
+          return
+        }
+
+        let html = ""
+        for (let i = 0; i < escrows.length; i++) {
+          const escrow = escrows[i]
+
+          html += `
+                    <div class="escrow-item" onclick="selectEscrow(${i})">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Escrow ${i + 1}</strong>
+                                <div style="font-size: 12px; color: #666;">Sequence: ${escrow.sequence}</div>
+                            </div>
+                            <div style="text-align: right; font-size: 12px;">
+                                <div><strong>${escrow.amount} drops</strong></div>
+                                <div style="color: #666;">${new Date(escrow.timestamp).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            <div>Owner: ${escrow.owner.substring(0, 15)}...</div>
+                            <div>Destination: ${escrow.destination.substring(0, 15)}...</div>
+                        </div>
+                    </div>
+                `
+        }
+
+        escrowsList.innerHTML = html
+      }
+
+      function selectEscrow(index) {
+        const escrowSelect = document.getElementById("escrowSelect")
+        if (escrowSelect) {
+          escrowSelect.value = index
+          updateFinishFormFromEscrow()
+        }
+
+        // Switch to finish escrow tab
+        const finishTab = document.querySelector(
+          "button[onclick=\"switchTxTab('escrow-finish')\"]",
+        )
+        if (finishTab) {
+          finishTab.click()
+        }
+      }
+
+      function updateFinishFormFromEscrow() {
+        const escrowSelect = document.getElementById("escrowSelect")
+        const selectedIndex = escrowSelect.value
+
+        if (selectedIndex === "" || !escrows[selectedIndex]) {
+          document.getElementById("finishSourceAccount").value = ""
+          document.getElementById("ownerAccount").value = ""
+          document.getElementById("offerSequence").value = ""
+          return
+        }
+
+        const escrow = escrows[selectedIndex]
+
+        // Find account indices for dropdowns
+        const ownerIndex = accounts.findIndex(
+          (acc) => acc.address === escrow.owner,
+        )
+        const destIndex = accounts.findIndex(
+          (acc) => acc.address === escrow.destination,
+        )
+
+        // Auto-fill the finish escrow form
+        if (destIndex !== -1) {
+          document.getElementById("finishSourceAccount").value = destIndex
+        }
+        if (ownerIndex !== -1) {
+          document.getElementById("ownerAccount").value = ownerIndex
+        }
+        document.getElementById("offerSequence").value = escrow.sequence
+
+        log(
+          `Selected escrow ${parseInt(selectedIndex) + 1} (sequence: ${escrow.sequence})`,
+        )
+      }
+
+      // Transaction Functions
+
+      async function finishEscrow() {
+        if (!client || !client.isConnected()) {
+          log("Please connect to network first")
+          return
+        }
+
+        const sourceIndex = document.getElementById("finishSourceAccount").value
+        const ownerIndex = document.getElementById("ownerAccount").value
+        const sequence = document.getElementById("offerSequence").value
+
+        if (!sourceIndex) {
+          log("Please select a source account")
+          return
+        }
+
+        if (!ownerIndex || !sequence) {
+          log("Please select owner account and enter offer sequence")
+          return
+        }
+
+        try {
+          const sourceAccount = accounts[parseInt(sourceIndex)]
+          const ownerAccount = accounts[parseInt(ownerIndex)]
+
+          const tx = {
+            TransactionType: "EscrowFinish",
+            Account: sourceAccount.address,
+            Owner: ownerAccount.address,
+            OfferSequence: parseInt(sequence),
+            ComputationAllowance: 1000000,
+          }
+
+          log(
+            `Finishing escrow with sequence: ${sequence} from ${sourceAccount.address}`,
+          )
+          const result = await client.submitAndWait(tx, {
+            autofill: true,
+            wallet: sourceAccount,
+          })
+
+          if (result.result.meta.TransactionResult === "tesSUCCESS") {
+            log(`✅ Escrow finished successfully!`)
+            log(`Transaction hash: ${result.result.hash}`)
+          } else {
+            log(
+              `❌ Escrow finish failed: ${result.result.meta.TransactionResult}`,
+            )
+          }
+
+          await updateAccountsList()
+        } catch (error) {
+          log(`Failed to finish escrow: ${error.message}`)
+        }
+      }
+
+      async function submitCustomTransaction() {
+        if (!client || !client.isConnected()) {
+          log("Please connect to network first")
+          return
+        }
+
+        const sourceIndex = document.getElementById("customSourceAccount").value
+        const txJson = document.getElementById("customTx").value
+
+        if (!sourceIndex) {
+          log("Please select a source account")
+          return
+        }
+
+        try {
+          const sourceAccount = accounts[parseInt(sourceIndex)]
+          const tx = JSON.parse(txJson)
+          tx.Account = sourceAccount.address // Ensure account is set
+
+          log(
+            `Submitting custom transaction: ${tx.TransactionType} from ${sourceAccount.address}`,
+          )
+          const result = await client.submitAndWait(tx, {
+            autofill: true,
+            wallet: sourceAccount,
+          })
+
+          if (result.result.meta.TransactionResult === "tesSUCCESS") {
+            log(`✅ Transaction successful!`)
+            log(`Transaction hash: ${result.result.hash}`)
+          } else {
+            log(
+              `❌ Transaction failed: ${result.result.meta.TransactionResult}`,
+            )
+          }
+
+          await updateAccountsList()
+        } catch (error) {
+          log(`Failed to submit transaction: ${error.message}`)
+        }
+      }
+
+      // Smart Escrow Testing
+      async function deployCurrentWasm() {
+        if (!currentWasm) {
+          log("Please load WASM code first")
+          return
+        }
+
+        if (!client || !client.isConnected()) {
+          log("Please connect to network first")
+          return
+        }
+
+        const sourceIndex = document.getElementById("escrowSourceAccount").value
+        const destIndex = document.getElementById("escrowDestination").value
+        const amount = document.getElementById("escrowAmount").value
+
+        if (!sourceIndex) {
+          log("Please select a source account")
+          return
+        }
+
+        if (!destIndex) {
+          log("Please select a destination account")
+          return
+        }
+
+        if (accounts.length < 1) {
+          log(
+            "Need at least 1 account for escrow testing. Generate more accounts.",
+          )
+          return
+        }
+
+        try {
+          const sourceAccount = accounts[parseInt(sourceIndex)]
+          const destAccount = accounts[parseInt(destIndex)]
+
+          const ledgerResponse = await client.request({
+            command: "ledger",
+            ledger_index: "validated",
+          })
+          const closeTime = ledgerResponse.result.ledger.close_time
+
+          const tx = {
+            TransactionType: "EscrowCreate",
+            Account: sourceAccount.address,
+            Amount: amount,
+            Destination: destAccount.address,
+            CancelAfter: closeTime + 2000,
+            FinishFunction: currentWasm,
+            Data: xrpl.xrpToDrops(70),
+          }
+
+          log(
+            `🚀 Deploying WASM as Smart Escrow: ${amount} drops from ${sourceAccount.address} to ${destAccount.address}`,
+          )
+          const result = await client.submitAndWait(tx, {
+            autofill: true,
+            wallet: sourceAccount,
+          })
+
+          if (result.result.meta.TransactionResult === "tesSUCCESS") {
+            lastOfferSequence = result.result.tx_json.Sequence
+            document.getElementById("offerSequence").value = lastOfferSequence
+            log(
+              `✅ Smart Escrow deployed successfully! Sequence: ${lastOfferSequence}`,
+            )
+            log(`Transaction hash: ${result.result.hash}`)
+
+            // Store the successful escrow
+            escrows.push({
+              sequence: lastOfferSequence,
+              owner: sourceAccount.address,
+              destination: destAccount.address,
+              amount: amount,
+              timestamp: Date.now(),
+              hash: result.result.hash,
+            })
+
+            // Update escrows list
+            await updateEscrowsList()
+
+            // Auto-fill the finish escrow form
+            document.getElementById("finishSourceAccount").value = destIndex
+            document.getElementById("ownerAccount").value = sourceIndex
+          } else {
+            log(
+              `❌ Smart Escrow deployment failed: ${result.result.meta.TransactionResult}`,
+            )
+          }
+
+          await updateAccountsList()
+        } catch (error) {
+          log(`Failed to deploy Smart Escrow: ${error.message}`)
+        }
+      }
+
+      async function runQuickTest() {
+        if (!lastOfferSequence) {
+          log("No escrow to test. Deploy WASM first.")
+          return
+        }
+
+        log("🧪 Running quick test on deployed escrow...")
+
+        // Wait a moment for the escrow to be available
+        setTimeout(async () => {
+          await finishEscrow()
+        }, 1000)
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        log("Smart Escrow Testing UI loaded")
+
+        // Check if XRPL library is available
+        if (typeof xrpl === "undefined") {
+          log("⚠️ XRPL library is loading...")
+          // Wait a bit for the library to load
+          setTimeout(() => {
+            if (typeof xrpl === "undefined") {
+              log("❌ XRPL library failed to load. Please refresh the page.")
+              log("Make sure you have an internet connection.")
+            } else {
+              log("✅ XRPL library loaded successfully")
+              log("Connect to a network and generate accounts to get started")
+            }
+          }, 2000)
+        } else {
+          log("✅ XRPL library loaded successfully")
+          log("Connect to a network and generate accounts to get started")
+        }
+      })
+    </script>
+  </body>
+</html>
