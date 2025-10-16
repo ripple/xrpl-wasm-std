@@ -30,16 +30,19 @@ To embed the latest built WASM files:
 ./ui/embed-wasm.sh
 ```
 
-This script will:
+This script will automatically:
 
-- Read WASM files from `examples/target/wasm32v1-none/release/`
-- Convert them to hex strings
-- Embed them directly in the UI
+- Scan `examples/target/wasm32v1-none/release/` for all `.wasm` files
+- Convert them to hex strings and embed them in the JavaScript
+- Generate example buttons dynamically with proper title case names
+- Update both the WASM data and UI buttons in `index.html`
+
+No manual maintenance required! Just build your WASM files and run the script.
 
 ## Deployment
 
 The UI is automatically deployed to GitHub Pages alongside the documentation at:
-`https://your-repo.github.io/ui/`
+`https://ripple.github.io/xrpl-wasm-std/ui/`
 
 ## Architecture
 
