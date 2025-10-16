@@ -22,12 +22,6 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-docs-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build UI
-        run: |
-          ls
-          ls -al ui
-          ./ui/embed_wasm.sh
-
       - name: Build documentation
         # the `--enable-index-page` flag creates an index.html file at the root of the docs
         # the `-Zunstable-options` flag is needed to use `--enable-index-page`
@@ -36,6 +30,7 @@ jobs:
 
       - name: Setup UI deployment directory
         run: |
+          ./ui/embed-wasm.sh
           mkdir -p target/doc/ui
           cp -r ui/* target/doc/ui/
 
