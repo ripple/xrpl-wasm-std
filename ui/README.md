@@ -46,13 +46,41 @@ The UI is automatically deployed to GitHub Pages alongside the documentation at:
 
 ## Architecture
 
-- **Single File**: Self-contained HTML with embedded CSS and JavaScript
+- **Modular Structure**: HTML, CSS, and JavaScript properly separated
 - **No Dependencies**: Uses CDN-hosted XRPL.js library
-- **Embedded WASM**: Pre-built examples are hex-encoded and embedded
-- **Local Storage**: Account and escrow data persists in memory only
+- **Dynamic WASM Loading**: Pre-built examples are automatically discovered and embedded
+- **Responsive Design**: Works on desktop and mobile devices
+- **Toast Notifications**: User-friendly feedback system
+- **In-Memory State**: Account and escrow data persists during session only
 
 ## File Structure
 
 - `index.html` - Main UI file
+- `styles.css` - Stylesheet for UI components and layout
 - `embed-wasm.sh` - Script to update embedded WASM examples
 - `README.md` - This documentation
+
+## Future Enhancements
+
+### Wallet Integration
+
+- Integrate with browser wallets (Crossmark, Gem Wallet, etc.)
+- Support hardware wallets for secure signing
+- Connect to mobile wallets
+
+### Improved Testing
+
+- Save and reload test configurations
+- Transaction history and results tracking
+- Pre-built test scenarios for common escrow types
+
+### WASM Development
+
+- Built-in code editor for writing Smart Escrow logic
+- WASM validation and error checking
+- Template library for common escrow patterns
+
+### User Experience
+
+- Better error messages and debugging info
+- Export test results and configurations
