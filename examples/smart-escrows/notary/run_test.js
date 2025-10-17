@@ -5,7 +5,7 @@ const notary = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
 })
 
 async function test(testContext) {
-  const { submit, sourceWallet, deploy, finish } = testContext
+  const { submit, sourceWallet, deploy, finish, destWallet } = testContext
 
   const offerSequence = await deploy(sourceWallet, destWallet, finish)
 
