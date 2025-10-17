@@ -9,17 +9,33 @@ pub mod host;
 pub mod sfield;
 pub mod types;
 
-/// Additional guides and how-tos
-// #[cfg(doc)]
-// pub mod guides {
-//     /// XRPL Field Access and Locators guide
-//     #[doc = include_str!("../../docs/FIELD_ACCESS.md")]
-//     pub mod field_access {}
+/// Additional guides and documentation
+#[cfg(doc)]
+pub mod guides {
+    /// Getting Started Guide - Complete setup and first contract tutorial
+    #[doc = include_str!("../../docs/getting-started.md")]
+    pub mod getting_started {}
 
-//     /// XRPL Float Operations (IOU format and math)
-//     #[doc = include_str!("../../docs/FLOAT_OPERATIONS.md")]
-//     pub mod float_operations {}
-// }
+    /// Complete API Reference - Detailed documentation of all APIs
+    #[doc = include_str!("../../docs/api-reference.md")]
+    pub mod api_reference {}
+
+    /// Smart Escrow Examples - Working examples and tutorials
+    #[doc = include_str!("../../docs/examples/README.md")]
+    pub mod examples {}
+
+    /// Building and Development Guide - Build system, optimization, CI/CD
+    #[doc = include_str!("../../docs/development/building.md")]
+    pub mod building {}
+
+    /// Testing Guide - Comprehensive testing strategies
+    #[doc = include_str!("../../docs/development/testing.md")]
+    pub mod testing {}
+
+    /// Contributing Guide - How to contribute to the project
+    #[doc = include_str!("../../docs/development/contributing.md")]
+    pub mod contributing {}
+}
 
 /// This function is called on panic but only in the WASM architecture. In non-WASM (e.g., in the
 /// Host Simulator) the standard lib is available, which includes a panic handler.

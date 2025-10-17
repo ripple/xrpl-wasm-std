@@ -186,7 +186,7 @@ pre-commit run --all-files
 
 ### 1. Project Structure
 
-```
+```text
 my-project/
 ├── Cargo.toml           # Package configuration
 ├── src/
@@ -431,3 +431,27 @@ fn test_helper() -> bool {
 - **[API Reference](../api-reference.md)** - Complete API documentation
 - **[Examples](../examples/README.md)** - Study working examples
 - **[Contributing Guide](contributing.md)** - How to contribute to the project
+
+## Documentation Website
+
+The documentation is automatically built and deployed to GitHub Pages. You can also build it locally:
+
+```shell
+# Build the complete documentation website
+cargo +nightly doc --no-deps --workspace
+
+# Open the generated documentation
+open target/doc/xrpl_wasm_std/index.html
+```
+
+The generated documentation includes:
+
+- **Main README** - Overview and quick start (at the crate level)
+- **API Documentation** - Generated from Rust code comments
+- **Guides Module** - All markdown documentation embedded as submodules:
+  - `guides::getting_started` - Setup and first contract tutorial
+  - `guides::api_reference` - Complete API documentation
+  - `guides::examples` - Smart escrow examples and tutorials
+  - `guides::building` - This build guide
+  - `guides::testing` - Testing strategies
+  - `guides::contributing` - Contribution guidelines
