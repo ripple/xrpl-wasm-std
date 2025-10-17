@@ -456,9 +456,6 @@
       <div class="card">
         <h2>Smart Escrow Testing</h2>
         <div class="quick-test-controls">
-          <button class="btn btn-warning" onclick="runQuickTest()">
-            Run Quick Test
-          </button>
           <button class="btn btn-danger" onclick="clearLogs()">
             Clear Logs
           </button>
@@ -519,6 +516,11 @@
             setTimeout(() => toast.remove(), 300)
           }
         }, 5000)
+      }
+
+      function logError(message, toastType = "error") {
+        log(message)
+        showToast(message, toastType)
       }
 
       function clearLogs() {
@@ -689,7 +691,7 @@
             }, 1000)
           }
         } catch (error) {
-          log(`Failed to connect: ${error.message}`)
+          logError(`Failed to connect: ${error.message}`)
           updateConnectionStatus(false)
         }
       }
@@ -740,7 +742,7 @@
       function loadWasmFromHex() {
         const hex = document.getElementById("wasmHex").value.trim()
         if (!hex) {
-          log("Please enter hex-encoded WASM data")
+          logError("Please enter hex-encoded WASM data", "warning")
           return
         }
 
@@ -825,15 +827,14 @@
             updateReadmeLinks(exampleName)
           }
         } catch (error) {
-          log(`Failed to load example ${exampleName}: ${error.message}`)
+          logError(`Failed to load example ${exampleName}: ${error.message}`)
         }
       }
 
       // Account Management
       async function generateAccount() {
         if (!client || !client.isConnected()) {
-          log("Please connect to a network first")
-          showToast("Please connect to a network first", "warning")
+          logError("Please connect to a network first", "warning")
           return
         }
 
@@ -889,8 +890,7 @@
           log(`Generated and funded account: ${fundedWallet.address}`)
           showToast("Account generated and funded successfully!", "success")
         } catch (error) {
-          log(`Failed to generate account: ${error.message}`)
-          showToast(`Failed to generate account: ${error.message}`, "error")
+          logError(`Failed to generate account: ${error.message}`)
         } finally {
           // Hide loading state
           generateBtn.disabled = false
@@ -901,11 +901,7 @@
 
       async function fundSelectedAccount() {
         if (!selectedAccount || !client || !client.isConnected()) {
-          log("Please select an account and connect to network")
-          showToast(
-            "Please select an account and connect to network",
-            "warning",
-          )
+          logError("Please select an account and connect to network", "warning")
           return
         }
 
@@ -949,8 +945,7 @@
           await updateAccountsList()
           showToast("Account funded successfully!", "success")
         } catch (error) {
-          log(`Failed to fund account: ${error.message}`)
-          showToast(`Failed to fund account: ${error.message}`, "error")
+          logError(`Failed to fund account: ${error.message}`)
         } finally {
           // Restore button state
           fundBtn.disabled = false
@@ -1175,7 +1170,7 @@
 
       async function finishEscrow() {
         if (!client || !client.isConnected()) {
-          log("Please connect to network first")
+          logError("Please connect to network first", "warning")
           return
         }
 
@@ -1184,12 +1179,15 @@
         const sequence = document.getElementById("offerSequence").value
 
         if (!sourceIndex) {
-          log("Please select a source account")
+          logError("Please select a source account", "warning")
           return
         }
 
         if (!ownerIndex || !sequence) {
-          log("Please select owner account and enter offer sequence")
+          logError(
+            "Please select owner account and enter offer sequence",
+            "warning",
+          )
           return
         }
 
@@ -1263,13 +1261,13 @@
 
           await updateAccountsList()
         } catch (error) {
-          log(`Failed to finish escrow: ${error.message}`)
+          logError(`Failed to finish escrow: ${error.message}`)
         }
       }
 
       async function submitCustomTransaction() {
         if (!client || !client.isConnected()) {
-          log("Please connect to network first")
+          logError("Please connect to network first", "warning")
           return
         }
 
@@ -1277,7 +1275,7 @@
         const txJson = document.getElementById("customTx").value
 
         if (!sourceIndex) {
-          log("Please select a source account")
+          logError("Please select a source account", "warning")
           return
         }
 
@@ -1308,19 +1306,19 @@
 
           await updateAccountsList()
         } catch (error) {
-          log(`Failed to submit transaction: ${error.message}`)
+          logError(`Failed to submit transaction: ${error.message}`)
         }
       }
 
       // Smart Escrow Testing
       async function deployCurrentWasm() {
         if (!currentWasm) {
-          log("Please load WASM code first")
+          logError("Please load WASM code first", "warning")
           return
         }
 
         if (!client || !client.isConnected()) {
-          log("Please connect to network first")
+          logError("Please connect to network first", "warning")
           return
         }
 
@@ -1329,18 +1327,19 @@
         const amount = document.getElementById("escrowAmount").value
 
         if (!sourceIndex) {
-          log("Please select a source account")
+          logError("Please select a source account", "warning")
           return
         }
 
         if (!destIndex) {
-          log("Please select a destination account")
+          logError("Please select a destination account", "warning")
           return
         }
 
         if (accounts.length < 1) {
-          log(
+          logError(
             "Need at least 1 account for escrow testing. Generate more accounts.",
+            "warning",
           )
           return
         }
@@ -1449,22 +1448,8 @@
 
           await updateAccountsList()
         } catch (error) {
-          log(`Failed to deploy Smart Escrow: ${error.message}`)
+          logError(`Failed to deploy Smart Escrow: ${error.message}`)
         }
-      }
-
-      async function runQuickTest() {
-        if (!lastOfferSequence) {
-          log("No escrow to test. Deploy WASM first.")
-          return
-        }
-
-        log("🧪 Running quick test on deployed escrow...")
-
-        // Wait a moment for the escrow to be available
-        setTimeout(async () => {
-          await finishEscrow()
-        }, 1000)
       }
 
       // Initialize
@@ -1477,8 +1462,9 @@
           // Wait a bit for the library to load
           setTimeout(() => {
             if (typeof xrpl === "undefined") {
-              log("❌ XRPL library failed to load. Please refresh the page.")
-              log("Make sure you have an internet connection.")
+              logError(
+                "❌ XRPL library failed to load. Please refresh the page. Make sure you have an internet connection.",
+              )
             } else {
               log("✅ XRPL library loaded successfully")
               log("Connect to a network and generate accounts to get started")
