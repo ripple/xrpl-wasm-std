@@ -5,7 +5,8 @@ const oracleWallet = xrpl.Wallet.fromSeed("snoPBrXtMeMyMHUVTgbuqAfg1SUTb", {
 })
 
 async function test(testContext) {
-  const { deploy, finish, client, submit, sourceWallet } = testContext
+  const { deploy, finish, client, submit, sourceWallet, destWallet } =
+    testContext
 
   const offerSequence = await deploy(sourceWallet, destWallet, finish)
 
