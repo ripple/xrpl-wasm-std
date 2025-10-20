@@ -1,6 +1,6 @@
 # Ledger Sequence Escrow
 
-This WebAssembly module implements a simple ledger sequence-based escrow finish condition. It checks whether the current ledger sequence number is greater than 5 before allowing the escrow to be finished.
+This WebAssembly module implements a simple ledger sequence-based escrow finish condition.
 
 ## How it works
 
