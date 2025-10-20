@@ -1,6 +1,6 @@
 # KYC Credential Escrow
 
-This WebAssembly module implements a KYC (Know Your Customer) credential-based escrow finish condition. It verifies that the escrow destination account has a valid "termsandconditions" credential before allowing the escrow to be finished.
+This WebAssembly module implements a KYC (Know Your Customer) credential-based escrow finish condition.
 
 ## How it works
 
