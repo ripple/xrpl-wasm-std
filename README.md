@@ -52,13 +52,18 @@ cargo build --target wasm32v1-none --release
 
 ## Documentation
 
-| Section                                                  | Description                                   |
-| -------------------------------------------------------- | --------------------------------------------- |
-| **[Getting Started](docs/getting-started.md)**           | Installation, first contract, core concepts   |
-| **[API Reference](docs/api-reference.md)**               | Complete API documentation and usage patterns |
-| **[Examples](docs/examples/README.md)**                  | Smart escrow examples and tutorials           |
-| **[Development](docs/development/building.md)**          | Building, testing, and CI setup               |
-| **[Rust API Docs](target/doc/xrpl_wasm_std/index.html)** | Generated API documentation (`cargo doc`)     |
+| Section                                                                   | Description                                     |
+| ------------------------------------------------------------------------- | ----------------------------------------------- |
+| **[Complete Developer Guide](target/doc/xrpl_wasm_std/guide/index.html)** | Comprehensive guide with working internal links |
+| **[Rust API Docs](target/doc/xrpl_wasm_std/index.html)**                  | Generated API documentation (`cargo doc`)       |
+
+The complete developer guide includes:
+
+- Getting Started - Installation, first contract, core concepts
+- API Reference - Complete API documentation and usage patterns
+- Examples - Smart escrow examples and tutorials
+- Development Guide - Building, testing, and CI setup
+- Contributing Guide - How to contribute to the project
 
 ## Key Features
 
@@ -94,7 +99,7 @@ Smart escrows run in a constrained WebAssembly environment:
 
 ## Contributing
 
-See [Development Guide](docs/development/building.md) for build setup and [Testing Guide](docs/development/testing.md) for running tests.
+See the [Complete Developer Guide](target/doc/xrpl_wasm_std/guide/index.html) for build setup, testing, and contribution guidelines.
 
 ## License
 
