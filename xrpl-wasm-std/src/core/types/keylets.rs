@@ -1,7 +1,7 @@
 use crate::core::types::account_id::AccountID;
-use crate::core::types::amount::asset::Asset;
-use crate::core::types::amount::currency::Currency;
-use crate::core::types::amount::mpt_id::MptId;
+use crate::core::types::asset::Asset;
+use crate::core::types::currency::Currency;
+use crate::core::types::mpt_id::MptId;
 use crate::host;
 use crate::host::Result;
 use crate::host::error_codes::match_result_code_with_expected_bytes;
@@ -86,8 +86,8 @@ pub fn account_keylet(account_id: &AccountID) -> Result<KeyletBytes> {
 ///
 /// ```rust
 /// use xrpl_wasm_std::core::types::account_id::AccountID;
-/// use xrpl_wasm_std::core::types::amount::asset::{Asset, XrpAsset, IouAsset};
-/// use xrpl_wasm_std::core::types::amount::currency::Currency;
+/// use xrpl_wasm_std::core::types::asset::{Asset, XrpAsset, IouAsset};
+/// use xrpl_wasm_std::core::types::currency::Currency;
 /// use xrpl_wasm_std::core::types::keylets::amm_keylet;
 /// use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -480,7 +480,7 @@ pub fn escrow_keylet(owner: &AccountID, seq: i32) -> Result<KeyletBytes> {
 ///
 /// ```rust
 /// use xrpl_wasm_std::core::types::account_id::AccountID;
-/// use xrpl_wasm_std::core::types::amount::currency::Currency;
+/// use xrpl_wasm_std::core::types::currency::Currency;
 /// use xrpl_wasm_std::core::types::keylets::line_keylet;
 /// use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -598,7 +598,7 @@ pub fn mpt_issuance_keylet(owner: &AccountID, seq: i32) -> Result<KeyletBytes> {
 ///
 /// ```rust
 /// use xrpl_wasm_std::core::types::account_id::AccountID;
-/// use xrpl_wasm_std::core::types::amount::mpt_id::MptId;
+/// use xrpl_wasm_std::core::types::mpt_id::MptId;
 /// use xrpl_wasm_std::core::types::keylets::mptoken_keylet;
 /// use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {

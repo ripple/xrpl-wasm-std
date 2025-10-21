@@ -43,7 +43,7 @@ use crate::core::current_tx::{
     get_hash_256_field_optional, get_public_key_field, get_u32_field, get_u32_field_optional,
 };
 use crate::core::types::account_id::AccountID;
-use crate::core::types::amount::token_amount::TokenAmount;
+use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
 use crate::core::types::crypto_condition::{Condition, Fulfillment};
 use crate::core::types::hash_256::Hash256;
@@ -130,7 +130,7 @@ pub trait TransactionCommonFields {
     ///
     /// Returns XRP amounts only (for now). Future versions may support other token types
     /// when the underlying amount handling is enhanced.
-    fn get_fee(&self) -> Result<TokenAmount> {
+    fn get_fee(&self) -> Result<Amount> {
         get_amount_field(sfield::Fee)
     }
 

@@ -1,6 +1,6 @@
 use crate::core::types::account_id::AccountID;
-use crate::core::types::amount::currency::Currency;
-use crate::core::types::amount::mpt_id::MptId;
+use crate::core::types::currency::Currency;
+use crate::core::types::mpt_id::MptId;
 
 /// Struct to represent an Asset of type XRP. Exists so that other structs can restrict type
 /// information to XRP in their declarations (this is not possible with just the `Asset` enum below).

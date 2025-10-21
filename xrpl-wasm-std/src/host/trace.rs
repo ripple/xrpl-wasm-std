@@ -1,7 +1,7 @@
 use crate::host::error_codes::match_result_code;
 
 use crate::core::types::account_id::AccountID;
-use crate::core::types::amount::token_amount::TokenAmount;
+use crate::core::types::amount::Amount;
 use crate::host;
 use crate::host::Result;
 use core::ptr;
@@ -107,9 +107,9 @@ pub fn trace_account(msg: &str, account_id: &AccountID) -> Result<i32> {
 }
 
 #[inline(always)]
-pub fn trace_amount(msg: &str, token_amount: &TokenAmount) -> Result<i32> {
-    // Convert TokenAmount to the STAmount format expected by the host trace function
-    let (amount_bytes, len) = token_amount.to_stamount_bytes();
+pub fn trace_amount(msg: &str, amount: &Amount) -> Result<i32> {
+    // Convert Amount to the STAmount format expected by the host trace function
+    let (amount_bytes, len) = amount.to_stamount_bytes();
 
     let result_code =
         unsafe { host::trace_amount(msg.as_ptr(), msg.len(), amount_bytes.as_ptr(), len) };
@@ -127,18 +127,18 @@ pub fn trace_float(msg: &str, f: &[u8; 8]) -> Result<i32> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::types::amount::token_amount::TokenAmount;
+    use crate::core::types::amount::Amount;
 
     #[test]
     fn test_trace_amount_xrp() {
-        // Create a test XRP TokenAmount
-        let token_amount = TokenAmount::XRP {
+        // Create a test XRP Amount
+        let amount = Amount::XRP {
             num_drops: 1_000_000,
         };
         let message = "Test XRP amount";
 
         // Call trace_amount function
-        let result = trace_amount(message, &token_amount);
+        let result = trace_amount(message, &amount);
 
         // Should return Ok
         assert!(result.is_ok());
@@ -146,9 +146,9 @@ mod tests {
 
     #[test]
     fn test_trace_amount_mpt() {
-        // Create a test MPT TokenAmount
+        // Create a test MPT Amount
         use crate::core::types::account_id::AccountID;
-        use crate::core::types::amount::mpt_id::MptId;
+        use crate::core::types::mpt_id::MptId;
 
         const VALUE: u64 = 500_000;
         const SEQUENCE_NUM: u32 = 12345;
@@ -156,7 +156,7 @@ mod tests {
 
         let issuer = AccountID::from(ISSUER_BYTES);
         let mpt_id = MptId::new(SEQUENCE_NUM, issuer);
-        let token_amount = TokenAmount::MPT {
+        let amount = Amount::MPT {
             num_units: VALUE,
             is_positive: true,
             mpt_id,
@@ -165,7 +165,7 @@ mod tests {
         let message = "Test MPT amount";
 
         // Call trace_amount function
-        let result = trace_amount(message, &token_amount);
+        let result = trace_amount(message, &amount);
 
         // Should return Ok
         assert!(result.is_ok());
@@ -173,10 +173,10 @@ mod tests {
 
     #[test]
     fn test_trace_amount_iou() {
-        // Create a test IOU TokenAmount
+        // Create a test IOU Amount
         use crate::core::types::account_id::AccountID;
-        use crate::core::types::amount::currency::Currency;
-        use crate::core::types::amount::opaque_float::OpaqueFloat;
+        use crate::core::types::currency::Currency;
+        use crate::core::types::opaque_float::OpaqueFloat;
 
         let currency_bytes = [2u8; 20];
         let issuer_bytes = [3u8; 20];
@@ -186,7 +186,7 @@ mod tests {
         let issuer = AccountID::from(issuer_bytes);
         let amount = OpaqueFloat(amount_bytes);
 
-        let token_amount = TokenAmount::IOU {
+        let amount = Amount::IOU {
             amount,
             issuer,
             currency,
@@ -195,7 +195,7 @@ mod tests {
         let message = "Test IOU amount";
 
         // Call trace_amount function
-        let result = trace_amount(message, &token_amount);
+        let result = trace_amount(message, &amount);
 
         // Should return Ok
         assert!(result.is_ok());
@@ -203,14 +203,14 @@ mod tests {
 
     #[test]
     fn test_trace_amount_negative_xrp() {
-        // Create a test negative XRP TokenAmount
-        let token_amount = TokenAmount::XRP {
+        // Create a test negative XRP Amount
+        let amount = Amount::XRP {
             num_drops: -1_000_000,
         };
         let message = "Test negative XRP amount";
 
         // Call trace_amount function
-        let result = trace_amount(message, &token_amount);
+        let result = trace_amount(message, &amount);
 
         // Should return Ok
         assert!(result.is_ok());
@@ -219,16 +219,16 @@ mod tests {
     #[test]
     fn test_trace_bytes_format() {
         // Test XRP format
-        let xrp_amount = TokenAmount::XRP {
+        let xrp_amount = Amount::XRP {
             num_drops: 1_000_000,
         };
         let (_bytes, len) = xrp_amount.to_stamount_bytes();
-        assert_eq!(len, 48); // All TokenAmount types should return 48 bytes
+        assert_eq!(len, 48); // All Amount types should return 48 bytes
 
         // Test specific fee amount (10 drops)
-        let fee_amount = TokenAmount::XRP { num_drops: 10 };
+        let fee_amount = Amount::XRP { num_drops: 10 };
         let (bytes, len) = fee_amount.to_stamount_bytes();
-        assert_eq!(len, 48); // All TokenAmount types should return 48 bytes
+        assert_eq!(len, 48); // All Amount types should return 48 bytes
 
         // Check the actual bytes for 10 drops
         // Expected: just the raw drop amount (10)
@@ -237,24 +237,24 @@ mod tests {
 
         // Test IOU format
         use crate::core::types::account_id::AccountID;
-        use crate::core::types::amount::currency::Currency;
-        use crate::core::types::amount::opaque_float::OpaqueFloat;
+        use crate::core::types::currency::Currency;
+        use crate::core::types::opaque_float::OpaqueFloat;
 
         let currency_bytes = [2u8; 20];
         let issuer_bytes = [3u8; 20];
         let amount_bytes = [0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x39];
 
-        let iou_amount = TokenAmount::IOU {
+        let iou_amount = Amount::IOU {
             amount: OpaqueFloat(amount_bytes),
             issuer: AccountID::from(issuer_bytes),
             currency: Currency::from(currency_bytes),
         };
         let (bytes, len) = iou_amount.to_stamount_bytes();
-        assert_eq!(len, 48); // All TokenAmount types should return 48 bytes
+        assert_eq!(len, 48); // All Amount types should return 48 bytes
         assert_eq!(&bytes[0..8], &amount_bytes); // Should match the opaque float bytes
 
         // Test MPT format
-        use crate::core::types::amount::mpt_id::MptId;
+        use crate::core::types::mpt_id::MptId;
 
         const VALUE: u64 = 500_000;
         const SEQUENCE_NUM: u32 = 12345;
@@ -262,13 +262,13 @@ mod tests {
 
         let issuer = AccountID::from(ISSUER_BYTES);
         let mpt_id = MptId::new(SEQUENCE_NUM, issuer);
-        let mpt_amount = TokenAmount::MPT {
+        let mpt_amount = Amount::MPT {
             num_units: VALUE,
             is_positive: true,
             mpt_id,
         };
         let (bytes, len) = mpt_amount.to_stamount_bytes();
-        assert_eq!(len, 48); // All TokenAmount types should return 48 bytes
+        assert_eq!(len, 48); // All Amount types should return 48 bytes
         assert_eq!(bytes[0], 0b_0110_0000); // Positive MPT prefix
         assert_eq!(&bytes[1..9], &VALUE.to_be_bytes()); // Amount bytes
     }
