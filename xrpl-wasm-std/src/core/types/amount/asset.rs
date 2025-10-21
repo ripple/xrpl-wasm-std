@@ -1,5 +1,5 @@
 use crate::core::types::account_id::AccountID;
-use crate::core::types::amount::currency_code::CurrencyCode;
+use crate::core::types::amount::currency::Currency;
 use crate::core::types::amount::mpt_id::MptId;
 
 /// Struct to represent an Asset of type XRP. Exists so that other structs can restrict type
@@ -13,18 +13,18 @@ pub struct XrpAsset {}
 #[repr(C)]
 pub struct IouAsset {
     issuer: AccountID,
-    currency_code: CurrencyCode,
+    currency: Currency,
     _bytes: [u8; 40],
 }
 
 impl IouAsset {
-    pub fn new(issuer: AccountID, currency_code: CurrencyCode) -> Self {
+    pub fn new(issuer: AccountID, currency: Currency) -> Self {
         let mut bytes = [0u8; 40];
-        bytes[..20].copy_from_slice(currency_code.as_bytes());
+        bytes[..20].copy_from_slice(currency.as_bytes());
         bytes[20..].copy_from_slice(&issuer.0);
         Self {
             issuer,
-            currency_code,
+            currency,
             _bytes: bytes,
         }
     }

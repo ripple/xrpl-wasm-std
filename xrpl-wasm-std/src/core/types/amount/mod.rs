@@ -31,7 +31,7 @@
 //! Always use the host float functions (float_add, float_multiply, etc.) in [`crate::host`].
 
 pub mod asset;
-pub mod currency_code;
+pub mod currency;
 pub mod mpt_id;
 pub mod opaque_float;
 pub mod token_amount;

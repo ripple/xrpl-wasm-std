@@ -9,7 +9,7 @@ use xrpl_wasm_std::core::ledger_objects::current_escrow::get_current_escrow;
 use xrpl_wasm_std::core::ledger_objects::ledger_object;
 use xrpl_wasm_std::core::ledger_objects::traits::CurrentEscrowFields;
 use xrpl_wasm_std::core::types::amount::asset::{Asset, IouAsset, XrpAsset};
-use xrpl_wasm_std::core::types::amount::currency_code::CurrencyCode;
+use xrpl_wasm_std::core::types::amount::currency::Currency;
 use xrpl_wasm_std::core::types::amount::mpt_id::MptId;
 use xrpl_wasm_std::core::types::keylets;
 use xrpl_wasm_std::host;
@@ -100,8 +100,8 @@ pub extern "C" fn finish() -> i32 {
     let account_keylet = keylets::account_keylet(&account);
     check_object_exists!(account_keylet, "Account", sfield::Account);
 
-    let currency_code: &[u8; 3] = b"USD";
-    let currency: CurrencyCode = CurrencyCode::from(*currency_code);
+    let currency: &[u8; 3] = b"USD";
+    let currency: Currency = Currency::from(*currency);
     let line_keylet = keylets::line_keylet(&account, &destination, &currency);
     check_object_exists!(line_keylet, "Trustline", sfield::Generic);
     seq += 1;

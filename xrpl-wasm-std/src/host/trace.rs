@@ -175,21 +175,21 @@ mod tests {
     fn test_trace_amount_iou() {
         // Create a test IOU TokenAmount
         use crate::core::types::account_id::AccountID;
-        use crate::core::types::amount::currency_code::CurrencyCode;
+        use crate::core::types::amount::currency::Currency;
         use crate::core::types::amount::opaque_float::OpaqueFloat;
 
         let currency_bytes = [2u8; 20];
         let issuer_bytes = [3u8; 20];
         let amount_bytes = [0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x39]; // Simple test float
 
-        let currency_code = CurrencyCode::from(currency_bytes);
+        let currency = Currency::from(currency_bytes);
         let issuer = AccountID::from(issuer_bytes);
         let amount = OpaqueFloat(amount_bytes);
 
         let token_amount = TokenAmount::IOU {
             amount,
             issuer,
-            currency_code,
+            currency,
         };
 
         let message = "Test IOU amount";
@@ -237,7 +237,7 @@ mod tests {
 
         // Test IOU format
         use crate::core::types::account_id::AccountID;
-        use crate::core::types::amount::currency_code::CurrencyCode;
+        use crate::core::types::amount::currency::Currency;
         use crate::core::types::amount::opaque_float::OpaqueFloat;
 
         let currency_bytes = [2u8; 20];
@@ -247,7 +247,7 @@ mod tests {
         let iou_amount = TokenAmount::IOU {
             amount: OpaqueFloat(amount_bytes),
             issuer: AccountID::from(issuer_bytes),
-            currency_code: CurrencyCode::from(currency_bytes),
+            currency: Currency::from(currency_bytes),
         };
         let (bytes, len) = iou_amount.to_stamount_bytes();
         assert_eq!(len, 48); // All TokenAmount types should return 48 bytes

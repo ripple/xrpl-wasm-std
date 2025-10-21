@@ -1,6 +1,6 @@
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::asset::Asset;
-use crate::core::types::amount::currency_code::CurrencyCode;
+use crate::core::types::amount::currency::Currency;
 use crate::core::types::amount::mpt_id::MptId;
 use crate::host;
 use crate::host::Result;
@@ -87,15 +87,15 @@ pub fn account_keylet(account_id: &AccountID) -> Result<KeyletBytes> {
 /// ```rust
 /// use xrpl_wasm_std::core::types::account_id::AccountID;
 /// use xrpl_wasm_std::core::types::amount::asset::{Asset, XrpAsset, IouAsset};
-/// use xrpl_wasm_std::core::types::amount::currency_code::CurrencyCode;
+/// use xrpl_wasm_std::core::types::amount::currency::Currency;
 /// use xrpl_wasm_std::core::types::keylets::amm_keylet;
 /// use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///  let asset1: Asset = Asset::XRP(XrpAsset {});
 ///  let issuer: AccountID =
 ///    AccountID::from(*b"\xd5\xb9\x84VP\x9f \xb5'\x9d\x1eJ.\xe8\xb2\xaa\x82\xaec\xe3");
-///  let currency_code = b"RLUSD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"; // RLUSD currency code
-///  let currency: CurrencyCode = CurrencyCode::from(*currency_code);
+///  let currency = b"RLUSD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"; // RLUSD currency code
+///  let currency: Currency = Currency::from(*currency);
 ///  let asset2 = Asset::IOU(IouAsset::new(issuer, currency));
 ///  match amm_keylet(&asset1, &asset2) {
 ///    xrpl_wasm_std::host::Result::Ok(keylet) => {
@@ -480,7 +480,7 @@ pub fn escrow_keylet(owner: &AccountID, seq: i32) -> Result<KeyletBytes> {
 ///
 /// ```rust
 /// use xrpl_wasm_std::core::types::account_id::AccountID;
-/// use xrpl_wasm_std::core::types::amount::currency_code::CurrencyCode;
+/// use xrpl_wasm_std::core::types::amount::currency::Currency;
 /// use xrpl_wasm_std::core::types::keylets::line_keylet;
 /// use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -488,8 +488,8 @@ pub fn escrow_keylet(owner: &AccountID, seq: i32) -> Result<KeyletBytes> {
 ///    AccountID::from(*b"\xd5\xb9\x84VP\x9f \xb5'\x9d\x1eJ.\xe8\xb2\xaa\x82\xaec\xe3");
 ///  let account2: AccountID =
 ///    AccountID::from(*b"\xd5\xb9\x84VP\x9f \xb5'\x9d\x1eJ.\xe8\xb2\xaa\x82\xaec\xe3");
-///  let currency_code = b"RLUSD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"; // RLUSD currency code
-///  let currency: CurrencyCode = CurrencyCode::from(*currency_code);
+///  let currency = b"RLUSD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"; // RLUSD currency code
+///  let currency: Currency = Currency::from(*currency);
 ///  match line_keylet(&account1, &account2, &currency) {
 ///    xrpl_wasm_std::host::Result::Ok(keylet) => {
 ///      let _ = trace_data("Generated keylet", &keylet, DataRepr::AsHex);
@@ -504,7 +504,7 @@ pub fn escrow_keylet(owner: &AccountID, seq: i32) -> Result<KeyletBytes> {
 pub fn line_keylet(
     account1: &AccountID,
     account2: &AccountID,
-    currency: &CurrencyCode,
+    currency: &Currency,
 ) -> Result<KeyletBytes> {
     create_keylet_from_host_call(|keylet_buffer_ptr, keylet_buffer_len| unsafe {
         host::line_keylet(

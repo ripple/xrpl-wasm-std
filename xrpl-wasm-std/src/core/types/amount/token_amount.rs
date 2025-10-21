@@ -1,5 +1,5 @@
 use crate::core::types::account_id::AccountID;
-use crate::core::types::amount::currency_code::CurrencyCode;
+use crate::core::types::amount::currency::Currency;
 use crate::core::types::amount::mpt_id::MptId;
 use crate::core::types::amount::opaque_float::OpaqueFloat;
 use crate::host;
@@ -89,7 +89,7 @@ pub enum TokenAmount {
         // amount: Amount::IOU,
         amount: OpaqueFloat, // TODO: Make a helper to detect sign from 2nd bit (trait?)
         issuer: AccountID,
-        currency_code: CurrencyCode,
+        currency: Currency,
     },
     MPT {
         // amount: MptAmount,
@@ -108,7 +108,7 @@ impl TokenAmount {
     /// The format follows the XRPL binary layout:
     /// - XRP: Raw drop amount (no flag bits) in first 8 bytes + 40 bytes padding
     /// - MPT: Flag byte (0b_0110_0000) in byte 0, raw amount in bytes 1-9, MptId in bytes 9-33 + 15 bytes padding
-    /// - IOU: OpaqueFloat in first 8 bytes, CurrencyCode in bytes 8-28, AccountID in bytes 28-48
+    /// - IOU: OpaqueFloat in first 8 bytes, Currency in bytes 8-28, AccountID in bytes 28-48
     ///
     /// Returns a tuple of (bytes, length) where length is always 48.
     pub fn to_stamount_bytes(&self) -> ([u8; TOKEN_AMOUNT_SIZE], usize) {
@@ -151,11 +151,11 @@ impl TokenAmount {
             TokenAmount::IOU {
                 amount,
                 issuer,
-                currency_code,
+                currency,
             } => {
                 // IOU format for tracing: opaque float + currency + issuer
                 bytes[0..8].copy_from_slice(&amount.0);
-                bytes[8..28].copy_from_slice(currency_code.as_bytes());
+                bytes[8..28].copy_from_slice(currency.as_bytes());
                 bytes[28..48].copy_from_slice(&issuer.0);
                 // No padding needed - uses all 48 bytes
             }
@@ -242,10 +242,10 @@ impl TokenAmount {
             // let mut amount_bytes = [0u8; 9];
             // amount_bytes.copy_from_slice(&bytes[0..9]);
 
-            // Parse the CurrencyCode from the next 20 bytes
-            let mut currency_code_bytes = [0u8; 20];
-            currency_code_bytes.copy_from_slice(&bytes[8..28]);
-            let currency_code = CurrencyCode::from(currency_code_bytes);
+            // Parse the Currency from the next 20 bytes
+            let mut currency_bytes = [0u8; 20];
+            currency_bytes.copy_from_slice(&bytes[8..28]);
+            let currency = Currency::from(currency_bytes);
 
             // Parse the AccountID from the last 20 bytes
             let mut issuer_bytes = [0u8; 20];
@@ -255,7 +255,7 @@ impl TokenAmount {
             let token_amount = TokenAmount::IOU {
                 amount: opaque_float,
                 issuer,
-                currency_code,
+                currency,
             };
 
             Ok(token_amount)
@@ -406,11 +406,11 @@ mod tests {
             TokenAmount::IOU {
                 amount,
                 issuer,
-                currency_code,
+                currency,
             } => {
                 assert_eq!(amount, OpaqueFloat(eight_input_bytes));
                 assert_eq!(issuer, AccountID::from(ISSUER_BYTES));
-                assert_eq!(currency_code, CurrencyCode::from(CURRENCY_BYTES));
+                assert_eq!(currency, Currency::from(CURRENCY_BYTES));
             }
             _ => panic!("Expected TokenAmount::IOU"),
         }
@@ -594,7 +594,7 @@ mod tests {
         let original = TokenAmount::IOU {
             amount: OpaqueFloat(opaque_float_bytes),
             issuer: AccountID::from(ISSUER_BYTES),
-            currency_code: CurrencyCode::from(CURRENCY_BYTES),
+            currency: Currency::from(CURRENCY_BYTES),
         };
 
         // Create the expected byte layout for IOU
@@ -612,7 +612,7 @@ mod tests {
         let (stamount_bytes, len) = original.to_stamount_bytes();
         assert_eq!(len, 48);
         assert_eq!(&stamount_bytes[0..8], &opaque_float_bytes); // OpaqueFloat
-        assert_eq!(&stamount_bytes[8..28], &CURRENCY_BYTES); // CurrencyCode
+        assert_eq!(&stamount_bytes[8..28], &CURRENCY_BYTES); // Currency
         assert_eq!(&stamount_bytes[28..48], &ISSUER_BYTES); // AccountID
         // No padding for IOU - uses all 48 bytes
     }
@@ -649,7 +649,7 @@ mod tests {
         let original = TokenAmount::IOU {
             amount: OpaqueFloat(opaque_float_bytes),
             issuer: AccountID::from(ISSUER_BYTES),
-            currency_code: CurrencyCode::from(CURRENCY_BYTES),
+            currency: Currency::from(CURRENCY_BYTES),
         };
 
         // Create the expected byte layout for negative IOU
@@ -666,7 +666,7 @@ mod tests {
         let (stamount_bytes, len) = original.to_stamount_bytes();
         assert_eq!(len, 48);
         assert_eq!(&stamount_bytes[0..8], &opaque_float_bytes); // OpaqueFloat
-        assert_eq!(&stamount_bytes[8..28], &CURRENCY_BYTES); // CurrencyCode
+        assert_eq!(&stamount_bytes[8..28], &CURRENCY_BYTES); // Currency
         assert_eq!(&stamount_bytes[28..48], &ISSUER_BYTES); // AccountID
         // No padding for IOU - uses all 48 bytes
     }

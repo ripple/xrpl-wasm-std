@@ -28,7 +28,7 @@ extern crate std;
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::currency_code::CurrencyCode;
+use xrpl_wasm_std::core::types::amount::currency::Currency;
 use xrpl_wasm_std::core::types::amount::mpt_id::MptId;
 use xrpl_wasm_std::core::types::amount::opaque_float::OpaqueFloat;
 use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
@@ -867,14 +867,14 @@ fn test_trace_amount_functions() -> i32 {
     let issuer_bytes = [3u8; 20]; // Test issuer
     let amount_bytes = [0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x39]; // Test float value
 
-    let currency_code = CurrencyCode::from(currency_bytes);
+    let currency = Currency::from(currency_bytes);
     let issuer = AccountID::from(issuer_bytes);
     let amount = OpaqueFloat(amount_bytes);
 
     let iou_amount = TokenAmount::IOU {
         amount,
         issuer,
-        currency_code,
+        currency,
     };
     let trace_result = trace_amount("Test IOU amount", &iou_amount);
     match trace_result {
