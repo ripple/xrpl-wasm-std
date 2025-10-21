@@ -52,10 +52,10 @@ cargo build --target wasm32v1-none --release
 
 ## Documentation
 
-| Section                                                                   | Description                                     |
-| ------------------------------------------------------------------------- | ----------------------------------------------- |
-| **[Complete Developer Guide](target/doc/xrpl_wasm_std/guide/index.html)** | Comprehensive guide with working internal links |
-| **[Rust API Docs](target/doc/xrpl_wasm_std/index.html)**                  | Generated API documentation (`cargo doc`)       |
+| Section                                                                     | Description                                     |
+| --------------------------------------------------------------------------- | ----------------------------------------------- |
+| **[Complete Developer Guide](./target/doc/xrpl_wasm_std/guide/index.html)** | Comprehensive guide with working internal links |
+| **[Rust API Docs](https://ripple.github.io/xrpl-wasm-std)**                 | Generated API documentation (`cargo doc`)       |
 
 The complete developer guide includes:
 
@@ -75,18 +75,16 @@ The complete developer guide includes:
 
 ## Examples Overview
 
-- **[hello_world](examples/smart-escrows/hello_world/)** - Basic escrow with logging
-- **[oracle](examples/smart-escrows/oracle/)** - Price-based release using oracle data
-- **[kyc](examples/smart-escrows/kyc/)** - Credential-based verification
-- **[notary](examples/smart-escrows/notary/)** - Multi-signature authorization
-- **[nft_owner](examples/smart-escrows/nft_owner/)** - NFT ownership verification
-- **[ledger_sqn](examples/smart-escrows/ledger_sqn/)** - Sequence-based release
+- **[hello_world](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/hello_world/)** - Basic escrow with logging
+- **[oracle](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/oracle/)** - Price-based release using oracle data
+- **[kyc](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/kyc/)** - Credential-based verification
+- **[notary](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/notary/)** - Multi-signature authorization
+- **[nft_owner](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/nft_owner/)** - NFT ownership verification
+- **[ledger_sqn](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/ledger_sqn/)** - Sequence-based release
 
-## Testing Tools
+## Testing UI
 
-- **[Testing UI](ui/)** - Web interface for contract testing
-- **[E2E Tests](e2e-tests/)** - Integration test suite
-- **[Scripts](scripts/)** - Local CI pipeline
+There is an interface available at https://ripple.github.io/xrpl-wasm-std/ui/ for local or Devnet testing.
 
 ## Safety and Constraints
 
@@ -99,7 +97,7 @@ Smart escrows run in a constrained WebAssembly environment:
 
 ## Contributing
 
-See the [Complete Developer Guide](target/doc/xrpl_wasm_std/guide/index.html) for build setup, testing, and contribution guidelines.
+See the [Complete Developer Guide](https://ripple.github.io/xrpl-wasm-std/xrpl_wasm_std/guide/index.html) for build setup, testing, and contribution guidelines.
 
 ## License
 
