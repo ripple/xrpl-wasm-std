@@ -63,7 +63,6 @@ The complete developer guide includes:
 - API Reference - Complete API documentation and usage patterns
 - Examples - Smart escrow examples and tutorials
 - Development Guide - Building, testing, and CI setup
-- Contributing Guide - How to contribute to the project
 
 ## Key Features
 
@@ -97,7 +96,15 @@ Smart escrows run in a constrained WebAssembly environment:
 
 ## Contributing
 
-See the [Complete Developer Guide](https://ripple.github.io/xrpl-wasm-std/xrpl_wasm_std/guide/index.html) for build setup, testing, and contribution guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines on:
+
+- Development setup and workflow
+- Code standards and style guidelines
+- Pull request process
+- Testing requirements
+- Release procedures
+
+We welcome contributions of all kinds!
 
 ## License
 

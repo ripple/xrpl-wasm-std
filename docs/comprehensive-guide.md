@@ -4,31 +4,59 @@ This comprehensive guide covers everything you need to develop smart escrows usi
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Your First Contract](#your-first-contract)
-  - [Core Concepts](#core-concepts)
-- [API Reference](#api-reference)
-  - [Transaction Access](#transaction-access)
-  - [Ledger Objects](#ledger-objects)
-  - [Type System](#type-system)
-  - [Host Functions](#host-functions)
-  - [Error Handling](#error-handling)
-- [Examples](#examples)
-  - [Hello World](#hello-world)
-  - [Oracle Example](#oracle-example)
-  - [KYC Example](#kyc-example)
-  - [Advanced Examples](#advanced-examples)
-- [Development Guide](#development-guide)
-  - [Build System](#build-system)
-  - [Testing](#testing)
-  - [Performance Optimization](#performance-optimization)
-  - [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-  - [Code Standards](#code-standards)
-  - [Pull Request Process](#pull-request-process)
-  - [Development Workflow](#development-workflow)
+- [XRPL WebAssembly Standard Library - Complete Guide](#xrpl-webassembly-standard-library---complete-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Your First Contract](#your-first-contract)
+    - [Core Concepts](#core-concepts)
+      - [Smart Escrow Basics](#smart-escrow-basics)
+      - [Contract Structure](#contract-structure)
+      - [Host Environment](#host-environment)
+  - [API Reference](#api-reference)
+    - [Transaction Access](#transaction-access)
+      - [EscrowFinish Transaction](#escrowfinish-transaction)
+      - [Field Access](#field-access)
+    - [Ledger Objects](#ledger-objects)
+      - [Account Information](#account-information)
+      - [Trust Lines](#trust-lines)
+      - [NFT Objects](#nft-objects)
+    - [Type System](#type-system)
+      - [Core Types](#core-types)
+      - [Keylet Generation](#keylet-generation)
+    - [Host Functions](#host-functions)
+      - [Ledger Access](#ledger-access)
+      - [Transaction Fields](#transaction-fields)
+      - [Utility Functions](#utility-functions)
+    - [Error Handling](#error-handling)
+  - [Examples](#examples)
+    - [Hello World](#hello-world)
+    - [Oracle Example](#oracle-example)
+    - [KYC Example](#kyc-example)
+    - [Advanced Examples](#advanced-examples)
+      - [Multi-Signature Notary](#multi-signature-notary)
+      - [NFT Ownership Verification](#nft-ownership-verification)
+      - [Time-Based Ledger Sequence](#time-based-ledger-sequence)
+  - [Development Guide](#development-guide)
+    - [Build System](#build-system)
+      - [Project Structure](#project-structure)
+      - [Build Configuration](#build-configuration)
+      - [Build Commands](#build-commands)
+    - [Testing](#testing)
+      - [Automated Testing](#automated-testing)
+      - [Manual Testing with UI](#manual-testing-with-ui)
+      - [Test Networks](#test-networks)
+      - [Custom Test Configuration](#custom-test-configuration)
+    - [Performance Optimization](#performance-optimization)
+      - [Binary Size Optimization](#binary-size-optimization)
+      - [Runtime Optimization](#runtime-optimization)
+    - [Troubleshooting](#troubleshooting)
+      - [Common Build Issues](#common-build-issues)
+      - [Common Runtime Issues](#common-runtime-issues)
+      - [Debugging Techniques](#debugging-techniques)
+  - [Additional Resources](#additional-resources)
+  - [Contributing](#contributing)
 
 ---
 
@@ -50,7 +78,7 @@ Before building smart escrows, ensure you have:
 ./scripts/setup.sh
 
 # Or install manually:
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# Follow the instructions at https://rust-lang.org/tools/install/
 rustup target add wasm32v1-none
 npm install
 ```
@@ -900,331 +928,7 @@ pub extern "C" fn finish() -> i32 {
 
 ---
 
-## Contributing
-
-### Code Standards
-
-#### Rust Code Style
-
-**Follow standard Rust conventions:**
-
-```rust
-// Use descriptive names
-fn verify_oracle_price_threshold(
-    oracle_account: &AccountID,
-    currency_pair: &str,
-    threshold: u64
-) -> WasmResult<bool> {
-    // Implementation
-}
-
-// Prefer explicit error handling
-match get_account_balance(&account) {
-    Ok(balance) => {
-        // Handle success case
-    },
-    Err(WasmError::ObjectNotFound) => {
-        // Handle specific error
-        return Ok(false);
-    },
-    Err(e) => return Err(e),
-}
-
-// Use meaningful constants
-const MIN_BALANCE_THRESHOLD: u64 = 10_000_000; // 10 XRP in drops
-const KYC_PROVIDER_ACCOUNT: AccountID = AccountID::from_raw([...]);
-```
-
-**Code organization:**
-
-```rust
-// Group imports logically
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::ledger_objects::{
-    account::{get_account_balance, get_account_info},
-    oracle::get_oracle_data,
-};
-use xrpl_wasm_std::types::{AccountID, WasmResult};
-
-// Use modules for complex contracts
-mod price_verification {
-    pub fn verify_price_condition(/* ... */) -> WasmResult<bool> {
-        // Price verification logic
-    }
-}
-
-mod credential_check {
-    pub fn verify_kyc_credential(/* ... */) -> WasmResult<bool> {
-        // KYC verification logic
-    }
-}
-```
-
-#### JavaScript Code Style
-
-**For test scripts and tools:**
-
-```javascript
-// Use modern JavaScript features
-const { WebSocket } = require("ws")
-const fs = require("fs").promises
-
-// Descriptive function names
-async function executeSmartEscrowTest(wasmPath, testConfig) {
-  // Test implementation
-}
-
-// Proper error handling
-try {
-  const result = await runTest()
-  console.log("Test passed:", result)
-} catch (error) {
-  console.error("Test failed:", error.message)
-  process.exit(1)
-}
-
-// Configuration objects
-const TEST_CONFIG = {
-  rippledEndpoint: "wss://wasm.devnet.rippletest.net:51233",
-  timeout: 30000,
-  retryAttempts: 3,
-}
-```
-
-#### Documentation Standards
-
-**README.md structure for examples:**
-
-```markdown
-# Example Name
-
-Brief description of what this example demonstrates.
-
-## Functionality
-
-- Key feature 1
-- Key feature 2
-- Key feature 3
-
-## Building
-
-\`\`\`shell
-cargo build --target wasm32v1-none --release
-\`\`\`
-
-## Testing
-
-\`\`\`shell
-./scripts/run-tests.sh examples/smart-escrows/example-name
-\`\`\`
-
-## Code Walkthrough
-
-### Core Logic
-
-Explain the main contract logic...
-
-### Error Handling
-
-Explain error handling approach...
-
-## Learning Objectives
-
-- Objective 1
-- Objective 2
-
-## Next Steps
-
-- Suggestion 1
-- Suggestion 2
-```
-
-### Pull Request Process
-
-#### 1. Development Setup
-
-```shell
-# Fork and clone repository
-git clone https://github.com/YOUR-USERNAME/xrpl-wasm-std.git
-cd xrpl-wasm-std
-
-# Set up development environment
-./scripts/setup.sh
-
-# Create feature branch
-git checkout -b feature/your-feature-name
-```
-
-#### 2. Making Changes
-
-```shell
-# Make your changes
-# Edit files, add features, fix bugs
-
-# Test your changes
-./scripts/run-all.sh
-
-# Ensure code quality
-./scripts/fmt.sh
-./scripts/clippy.sh
-```
-
-#### 3. Submitting PR
-
-```shell
-# Commit your changes
-git add .
-git commit -m "Add descriptive commit message
-
-- Change 1
-- Change 2
-- Change 3"
-
-# Push to your fork
-git push origin feature/your-feature-name
-
-# Create pull request on GitHub
-```
-
-#### 4. PR Requirements
-
-**All PRs must:**
-
-- Pass all existing tests
-- Include tests for new functionality
-- Follow code style guidelines
-- Update documentation as needed
-- Include clear commit messages
-
-**For new examples:**
-
-- Follow the example README template
-- Include comprehensive code comments
-- Add integration test (`run_test.js`)
-- Test on WASM devnet
-
-**For library changes:**
-
-- Update API documentation
-- Add unit tests where applicable
-- Consider backward compatibility
-- Update changelog
-
-### Development Workflow
-
-#### Local Testing Workflow
-
-```shell
-# 1. Setup and verify environment
-./scripts/setup.sh
-./scripts/run-tests.sh examples/smart-escrows/hello_world
-
-# 2. Development cycle
-while developing:
-    # Make changes
-    vim src/lib.rs
-
-    # Check formatting and linting
-    ./scripts/fmt.sh && ./scripts/clippy.sh
-
-    # Build
-    cargo build --target wasm32v1-none --release
-
-    # Test
-    ./scripts/run-tests.sh examples/your-project
-
-    # Debug if needed
-    ./ui/embed-wasm.sh && open ui/index.html
-
-# 3. Final verification
-./scripts/run-all.sh
-```
-
-#### Adding New Examples
-
-1. **Create example directory:**
-
-   ```shell
-   mkdir -p examples/smart-escrows/my-example
-   cd examples/smart-escrows/my-example
-   ```
-
-2. **Set up basic structure:**
-
-   ```shell
-   # Create Cargo.toml, src/lib.rs, README.md, run_test.js
-   # Use existing examples as templates
-   ```
-
-3. **Implement and test:**
-
-   ```shell
-   # Build and test iteratively
-   cargo build --target wasm32v1-none --release
-   node run_test.js
-   ```
-
-4. **Update documentation:**
-   ```shell
-   # Add to examples overview
-   # Update main README if significant
-   ```
-
-#### Continuous Integration
-
-**Local CI simulation:**
-
-```shell
-# Run the same checks as CI
-./scripts/run-all.sh
-
-# Individual CI steps
-./scripts/setup.sh
-./scripts/fmt.sh
-./scripts/clippy.sh
-./scripts/build-and-test.sh
-```
-
-**CI automatically runs:**
-
-- Code formatting check (`cargo fmt --check`)
-- Linting (`cargo clippy`)
-- Build all examples
-- Integration tests on WASM devnet
-- Documentation generation
-
-**Contributing to CI:**
-
-- CI scripts are in `.github/workflows/`
-- Local scripts mirror CI exactly
-- Test changes locally before pushing
-
-#### Release Process
-
-**For maintainers:**
-
-1. **Version bumping:**
-
-   ```shell
-   # Update version in Cargo.toml
-   # Update CHANGELOG.md
-   # Tag release
-   git tag v0.x.y
-   ```
-
-2. **Documentation updates:**
-
-   ```shell
-   # Ensure all docs are current
-   # Rebuild and deploy documentation
-   cargo +nightly doc --no-deps --workspace
-   ```
-
-3. **Testing:**
-   ```shell
-   # Full test suite on all supported networks
-   ./scripts/run-all.sh
-   ```
+## Additional Resources
 
 The XRPL WebAssembly Standard Library is designed to make smart escrow development accessible while maintaining the security and determinism required for production use on the XRPL network.
 
@@ -1234,3 +938,15 @@ For additional help:
 - Check the API documentation generated by `cargo doc`
 - Join the XRPL developer community
 - Submit issues or questions on GitHub
+
+## Contributing
+
+If you're interested in contributing to the XRPL WebAssembly Standard Library, please see our [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines on:
+
+- Development setup and workflow
+- Code standards and style guidelines
+- Pull request process
+- Testing requirements
+- Release procedures
+
+We welcome contributions of all kinds, from bug fixes and documentation improvements to new examples and library features!
