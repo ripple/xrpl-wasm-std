@@ -38,16 +38,9 @@ This comprehensive guide covers everything you need to develop smart escrows usi
       - [Multi-Signature Notary](#multi-signature-notary)
       - [NFT Ownership Verification](#nft-ownership-verification)
       - [Time-Based Ledger Sequence](#time-based-ledger-sequence)
-  - [Development Guide](#development-guide)
-    - [Build System](#build-system)
-      - [Project Structure](#project-structure)
-      - [Build Configuration](#build-configuration)
-      - [Build Commands](#build-commands)
-    - [Testing](#testing)
-      - [Automated Testing](#automated-testing)
-      - [Manual Testing with UI](#manual-testing-with-ui)
-      - [Test Networks](#test-networks)
-      - [Custom Test Configuration](#custom-test-configuration)
+  - [Testing and Debugging](#testing-and-debugging)
+    - [Test Networks](#test-networks)
+    - [Test Using the Web UI](#test-using-the-web-ui)
     - [Performance Optimization](#performance-optimization)
       - [Binary Size Optimization](#binary-size-optimization)
       - [Runtime Optimization](#runtime-optimization)
@@ -135,9 +128,6 @@ pub extern "C" fn finish() -> i32 {
 **Build and test:**
 
 ```shell
-# Create new project
-mkdir my-escrow && cd my-escrow
-
 # Add the contract code above to src/lib.rs
 # Configure Cargo.toml:
 
@@ -181,16 +171,16 @@ Every smart escrow must:
 1. **Export a `finish()` function** with signature `extern "C" fn finish() -> i32`
 2. **Return 1 to release** funds or **0 to keep locked**
 3. **Be deterministic** - same inputs always produce same outputs
-4. **Use `#![no_std]`** - no standard library available
+4. **Use `#![no_std]`** - no standard library available (use ours instead 😉)
 
 #### Host Environment
 
 Smart escrows run in a constrained WebAssembly environment:
 
-- **No heap allocation** - stack-based memory only
-- **No file system or network** access
-- **Limited execution time** and memory
-- **Read-only ledger access** (except for escrow state updates)
+- No heap allocation - stack-based memory only
+- No file system or network access
+- Limited execution time and memory
+- Read-only ledger access (except for escrow state updates)
 
 ---
 
@@ -453,37 +443,9 @@ fn process_escrow() -> WasmResult<i32> {
 
 ### Hello World
 
-The simplest possible smart escrow that demonstrates basic concepts:
+The simplest possible smart escrow that demonstrates basic concepts.
 
-**Location:** `examples/smart-escrows/hello_world/`
-
-```rust
-#![no_std]
-#![no_main]
-
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::host::trace::trace;
-
-#[no_mangle]
-pub extern "C" fn finish() -> i32 {
-    // Log execution (for debugging)
-    let _ = trace("Hello World smart escrow executing");
-
-    let tx = EscrowFinish;
-
-    // Get transaction details
-    match tx.get_account() {
-        Ok(account) => {
-            let _ = trace("Successfully retrieved account");
-            1 // Always release escrow
-        },
-        Err(_) => {
-            let _ = trace("Failed to retrieve account");
-            0 // Keep escrow locked
-        }
-    }
-}
-```
+**📁 View complete example:** [`examples/smart-escrows/hello_world/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/hello_world/)
 
 **Key learning points:**
 
@@ -492,51 +454,17 @@ pub extern "C" fn finish() -> i32 {
 - Simple error handling with pattern matching
 - Trace logging for debugging
 
+**Files:**
+
+- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/hello_world/src/lib.rs) - Main contract code
+- [`README.md`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/hello_world/README.md) - Detailed explanation
+- [`run_test.js`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/hello_world/run_test.js) - Integration test
+
 ### Oracle Example
 
-A price-based escrow that releases funds when an asset price meets conditions:
+A price-based escrow that releases funds when an asset price meets conditions.
 
-**Location:** `examples/smart-escrows/oracle/`
-
-```rust
-#![no_std]
-#![no_main]
-
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::ledger_objects::oracle::get_oracle_data;
-use xrpl_wasm_std::types::{AccountID, OracleID};
-
-#[no_mangle]
-pub extern "C" fn finish() -> i32 {
-    let tx = EscrowFinish;
-
-    // Get oracle account from transaction memo or hardcoded
-    let oracle_account = match get_oracle_account(&tx) {
-        Ok(acc) => acc,
-        Err(_) => return 0,
-    };
-
-    // Fetch current price from oracle
-    let oracle_id = OracleID::for_account(&oracle_account);
-    let current_price = match get_oracle_data(&oracle_id, "XRPUSD") {
-        Ok(price) => price,
-        Err(_) => return 0, // No price data available
-    };
-
-    // Release if XRP price > $0.50
-    if current_price > 50_000 { // Price in micro-dollars
-        1 // Release escrow
-    } else {
-        0 // Keep locked
-    }
-}
-
-fn get_oracle_account(tx: &EscrowFinish) -> Result<AccountID, ()> {
-    // Implementation depends on how oracle account is specified
-    // Could be in memo, destination tag, or hardcoded
-    Ok(AccountID::from([0u8; 20])) // Placeholder
-}
-```
+**📁 View complete example:** [`examples/smart-escrows/oracle/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/oracle/)
 
 **Key concepts demonstrated:**
 
@@ -545,68 +473,17 @@ fn get_oracle_account(tx: &EscrowFinish) -> Result<AccountID, ()> {
 - Error handling for missing oracle data
 - Real-world conditional logic
 
+**Files:**
+
+- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/oracle/src/lib.rs) - Oracle price checking logic
+- [`README.md`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/oracle/README.md) - Oracle integration guide
+- [`run_test.js`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/oracle/run_test.js) - Price simulation test
+
 ### KYC Example
 
-A compliance-focused escrow that requires credential verification:
+A compliance-focused escrow that requires credential verification.
 
-**Location:** `examples/smart-escrows/kyc/`
-
-```rust
-#![no_std]
-#![no_main]
-
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::ledger_objects::credential::{
-    get_credential, verify_credential_signature
-};
-use xrpl_wasm_std::types::{AccountID, CredentialID};
-
-// Trusted KYC provider account
-const KYC_PROVIDER: AccountID = AccountID::from_raw([
-    0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0,
-    0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0,
-    0x12, 0x34, 0x56, 0x78
-]);
-
-#[no_mangle]
-pub extern "C" fn finish() -> i32 {
-    let tx = EscrowFinish;
-
-    // Get the account attempting to finish escrow
-    let account = match tx.get_account() {
-        Ok(acc) => acc,
-        Err(_) => return 0,
-    };
-
-    // Check if account has valid KYC credential
-    match verify_kyc_credential(&account) {
-        Ok(true) => 1,  // KYC verified, release escrow
-        _ => 0,          // No valid KYC, keep locked
-    }
-}
-
-fn verify_kyc_credential(account: &AccountID) -> Result<bool, ()> {
-    // Look for KYC credential from trusted provider
-    let credential_id = CredentialID::for_subject_and_issuer(account, &KYC_PROVIDER);
-
-    let credential = match get_credential(&credential_id) {
-        Ok(cred) => cred,
-        Err(_) => return Ok(false), // No credential found
-    };
-
-    // Verify credential signature and expiration
-    let is_valid = verify_credential_signature(&credential, &KYC_PROVIDER)?;
-    let is_not_expired = check_credential_expiration(&credential)?;
-
-    Ok(is_valid && is_not_expired)
-}
-
-fn check_credential_expiration(credential: &Credential) -> Result<bool, ()> {
-    // Check if credential has expired
-    // Implementation depends on credential format
-    Ok(true) // Placeholder
-}
-```
+**📁 View complete example:** [`examples/smart-escrows/kyc/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/kyc/)
 
 **Key concepts demonstrated:**
 
@@ -616,11 +493,17 @@ fn check_credential_expiration(credential: &Credential) -> Result<bool, ()> {
 - Expiration checking
 - Compliance patterns
 
+**Files:**
+
+- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/kyc/src/lib.rs) - KYC credential verification
+- [`README.md`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/kyc/README.md) - Compliance implementation guide
+- [`run_test.js`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/kyc/run_test.js) - Credential verification test
+
 ### Advanced Examples
 
 #### Multi-Signature Notary
 
-**Location:** `examples/smart-escrows/notary/`
+**📁 [`examples/smart-escrows/notary/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/notary/)**
 
 - Requires multiple signature approvals
 - Implements threshold signing logic
@@ -628,7 +511,7 @@ fn check_credential_expiration(credential: &Credential) -> Result<bool, ()> {
 
 #### NFT Ownership Verification
 
-**Location:** `examples/smart-escrows/nft_owner/`
+**📁 [`examples/smart-escrows/nft_owner/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/nft_owner/)**
 
 - Releases funds based on NFT ownership
 - Shows how to query NFT ledger objects
@@ -636,91 +519,34 @@ fn check_credential_expiration(credential: &Credential) -> Result<bool, ()> {
 
 #### Time-Based Ledger Sequence
 
-**Location:** `examples/smart-escrows/ledger_sqn/`
+**📁 [`examples/smart-escrows/ledger_sqn/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/ledger_sqn/)**
 
 - Uses ledger sequence numbers for timing
 - Implements time-locked escrows
 - Shows sequence-based logic
 
----
+## Testing and Debugging
 
-## Development Guide
+### Test Networks
 
-### Build System
+| Network         | Endpoint                                 | Purpose             |
+| --------------- | ---------------------------------------- | ------------------- |
+| **WASM Devnet** | `wss://wasm.devnet.rippletest.net:51233` | Integration testing |
+| **Local Node**  | `ws://localhost:6006`                    | Local Development   |
 
-#### Project Structure
+Follow the instructions [here](https://xrpl.org/docs/infrastructure/installation/build-on-linux-mac-windows) with [this branch](https://github.com/XRPLF/rippled/tree/ripple/se/supported) if you would like to build and run rippled locally.
 
-```text
-my-escrow/
-├── Cargo.toml           # Package configuration
-├── src/
-│   └── lib.rs          # Main contract code
-├── README.md           # Documentation
-├── run_test.js         # Integration test
-└── target/
-    └── wasm32v1-none/
-        └── release/
-            └── my_escrow.wasm
-```
+### Test Using the Web UI
 
-#### Build Configuration
+**🌐 Open the web UI:** [https://ripple.github.io/xrpl-wasm-std/ui/](https://ripple.github.io/xrpl-wasm-std/ui/)
 
-**Essential `Cargo.toml` settings:**
+The web UI allows you to:
 
-```toml
-[package]
-name = "my-escrow"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-xrpl-wasm-std = { path = "../../../xrpl-wasm-std" }
-
-[lib]
-crate-type = ["cdylib"]  # Required for WASM library
-
-[profile.release]
-opt-level = "s"          # Optimize for size
-lto = true              # Link-time optimization
-panic = "abort"         # Reduce binary size
-codegen-units = 1       # Better optimization
-```
-
-#### Build Commands
-
-```shell
-# Debug build (larger, with debug info)
-cargo build --target wasm32v1-none
-
-# Release build (optimized for size)
-cargo build --target wasm32v1-none --release
-
-# Build all examples
-./scripts/build.sh
-
-# Build and test everything
-./scripts/build-and-test.sh
-```
-
-### Testing
-
-#### Automated Testing
-
-```shell
-# Run all tests (equivalent to CI)
-./scripts/run-all.sh
-
-# Run integration tests only
-./scripts/run-tests.sh
-
-# Test specific example
-./scripts/run-tests.sh examples/smart-escrows/oracle
-
-# Test with custom environment
-CI=1 RIPPLED_HOST=localhost ./scripts/run-tests.sh
-```
-
-#### Manual Testing with UI
+- Upload and test any WASM contract directly
+- Configure test transactions and ledger state
+- Execute contracts and see results with trace output
+- Test on different networks (Devnet, Testnet)
+- Debug without local setup
 
 1. **Build your contract:**
 
@@ -728,52 +554,15 @@ CI=1 RIPPLED_HOST=localhost ./scripts/run-tests.sh
    cargo build --target wasm32v1-none --release
    ```
 
-2. **Update the web UI:**
+2. **Upload your WASM file:**
+   - Open the testing interface in your browser
+   - Click "Choose File" and select your `.wasm` file from `target/wasm32v1-none/release/`
+   - The contract will be loaded automatically
 
-   ```shell
-   ./ui/embed-wasm.sh
-   ```
-
-3. **Open the testing interface:**
-   ```shell
-   open ui/index.html
-   ```
-
-The web UI allows you to:
-
-- Load different WASM contracts
-- Set up test transactions and ledger state
-- Execute contracts and see results
-- Debug trace output and errors
-
-#### Test Networks
-
-| Network         | Endpoint                                 | Purpose             |
-| --------------- | ---------------------------------------- | ------------------- |
-| **WASM Devnet** | `wss://wasm.devnet.rippletest.net:51233` | Integration testing |
-| **Local Node**  | `ws://localhost:6006`                    | Development         |
-| **Testnet**     | `wss://s.altnet.rippletest.net:51233`    | Staging             |
-
-#### Custom Test Configuration
-
-```javascript
-// run_test.js
-const { spawn } = require("child_process")
-
-// Configure test parameters
-const CONFIG = {
-  wasmPath: "./target/wasm32v1-none/release/my_escrow.wasm",
-  rippledHost: process.env.RIPPLED_HOST || "wasm.devnet.rippletest.net",
-  rippledPort: process.env.RIPPLED_PORT || "51233",
-  testAccount: "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
-  // Add custom test scenarios
-}
-
-// Run integration test
-async function runTest() {
-  // Test implementation
-}
-```
+3. **Test your contract:**
+   - Set up test scenarios using the interface
+   - Configure transaction data and ledger state
+   - Execute and see results with debug output
 
 ### Performance Optimization
 
@@ -894,36 +683,11 @@ pub extern "C" fn finish() -> i32 {
 **Inspect WASM binary:**
 
 ```shell
-# Check exports
-./scripts/check-wasm-exports.sh target/wasm32v1-none/release/my_escrow.wasm
-
 # Detailed binary analysis
 wasm-objdump -x target/wasm32v1-none/release/my_escrow.wasm
 
 # Size analysis
 wasm-objdump -h target/wasm32v1-none/release/my_escrow.wasm
-```
-
-**Test incrementally:**
-
-```rust
-// Start with minimal working contract
-#[no_mangle]
-pub extern "C" fn finish() -> i32 {
-    1  // Always release for testing
-}
-
-// Add functionality step by step
-#[no_mangle]
-pub extern "C" fn finish() -> i32 {
-    let tx = EscrowFinish;
-    match tx.get_account() {
-        Ok(_) => 1,
-        Err(_) => 0,
-    }
-}
-
-// Continue building complexity...
 ```
 
 ---
@@ -941,7 +705,7 @@ For additional help:
 
 ## Contributing
 
-If you're interested in contributing to the XRPL WebAssembly Standard Library, please see our [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines on:
+If you're interested in contributing to the XRPL WebAssembly Standard Library, please see our [CONTRIBUTING.md](https://github.com/ripple/xrpl-wasm-std/blob/main/CONTRIBUTING.md) for detailed guidelines on:
 
 - Development setup and workflow
 - Code standards and style guidelines

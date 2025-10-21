@@ -69,12 +69,12 @@
 **Web UI for manual testing:**
 
 ```shell
-# Build and embed your WASM contract
+# Build your WASM contract
 cargo build --target wasm32v1-none --release
-./ui/embed-wasm.sh
 
-# Open testing interface
-open ui/index.html
+# Upload to deployed testing interface
+# Open: https://ripple.github.io/xrpl-wasm-std/ui/
+# Click "Choose File" and select your .wasm file
 ```
 
 **Using trace statements for debugging:**
