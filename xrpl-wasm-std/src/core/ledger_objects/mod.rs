@@ -460,7 +460,7 @@ pub mod ledger_object {
 
         let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 8) };
 
-        match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
+        match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
     }
 
     #[inline]
