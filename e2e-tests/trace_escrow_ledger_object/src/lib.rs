@@ -78,7 +78,7 @@ pub extern "C" fn finish() -> i32 {
         }
 
         // Trace Field: Flags
-        let result = current_escrow.get_get_flags();
+        let result = current_escrow.get_flags();
         if let Ok(flags) = result {
             assert_eq!(flags, 0);
             let _ = trace_num("  Flags:", flags as i64);

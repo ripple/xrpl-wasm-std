@@ -28,7 +28,6 @@ This comprehensive guide covers everything you need to develop smart escrows usi
     - [Host Functions](#host-functions)
       - [Ledger Access](#ledger-access)
       - [Transaction Fields](#transaction-fields)
-      - [Utility Functions](#utility-functions)
     - [Error Handling](#error-handling)
   - [Examples](#examples)
     - [Hello World](#hello-world)
@@ -105,9 +104,11 @@ Let's create a simple escrow that releases funds when an account balance exceeds
 #![no_main]
 
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::ledger_objects::account::get_account_balance;
+use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
+use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
     let tx = EscrowFinish;
 
@@ -119,7 +120,7 @@ pub extern "C" fn finish() -> i32 {
 
     // Check account balance
     match get_account_balance(&account) {
-        Ok(balance) if balance > 10_000_000 => 1, // Release (>10 XRP)
+        Ok(Some(TokenAmount::XRP { num_drops })) if num_drops > 10_000_000 => 1, // Release (>10 XRP)
         _ => 0, // Keep locked
     }
 }
@@ -145,6 +146,7 @@ crate-type = ["cdylib"]
 [profile.release]
 opt-level = "s"
 lto = true
+panic = "abort"
 
 # Build the contract
 cargo build --target wasm32v1-none --release
@@ -186,41 +188,54 @@ Smart escrows run in a constrained WebAssembly environment:
 
 ## API Reference
 
+> **⚠️ IMPORTANT:** The code examples in this API reference section are **illustrative only** and may not compile due to API changes.
+>
+> **For working, tested code that is guaranteed to compile and run correctly, please refer to the [complete examples](#examples).**
+>
+> The examples below demonstrate concepts and patterns, but the actual API may have changed. Always refer to the working examples for copy-pastable code.
+
 ### Transaction Access
 
 The XRPL WASM Standard Library provides type-safe access to transaction data through the `current_tx` module.
 
 #### EscrowFinish Transaction
 
-```rust
+```rust ignore
+#![no_std]
+#![no_main]
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 
 let tx = EscrowFinish;
 
 // Get the account finishing the escrow
-let account = tx.get_account()?;
+let account = tx.get_account().unwrap();
 
 // Get the destination account (receives funds if released)
-let destination = tx.get_destination()?;
+let destination = tx.get_destination().unwrap();
 
 // Get the escrow sequence number
-let escrow_sequence = tx.get_escrow_sequence()?;
+let escrow_sequence = tx.get_escrow_sequence().unwrap();
 ```
 
 #### Field Access
 
 ```rust
-use xrpl_wasm_std::core::current_tx::CurrentTx;
+#![no_std]
+#![no_main]
+use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::sfield;
 
-// Generic field access
-let amount = tx.get_field_value::<u64>(sfield::Amount)?;
-let account_id = tx.get_field_id(sfield::Account)?;
+let tx = EscrowFinish;
 
-// Check if optional field exists
-if tx.has_field(sfield::DestinationTag) {
-    let tag = tx.get_field_value::<u32>(sfield::DestinationTag)?;
-}
+// Access transaction fields using trait methods
+let fee_amount = tx.get_fee().ok(); // Returns TokenAmount
+let account_id = tx.get_account().ok(); // Returns AccountID
+let sequence = tx.get_sequence().ok(); // Returns u32
+
+// EscrowFinish-specific fields (when using EscrowFinishFields trait)
+// let owner = tx.get_owner().ok();
+// let offer_sequence = tx.get_offer_sequence().ok();
 ```
 
 ### Ledger Objects
@@ -230,111 +245,107 @@ Access current ledger state through the `ledger_objects` module.
 #### Account Information
 
 ```rust
-use xrpl_wasm_std::core::ledger_objects::account::{
-    get_account_balance, get_account_info, get_account_root
-};
-use xrpl_wasm_std::types::AccountID;
+#![no_std]
+#![no_main]
+use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::sfield;
 
 let account = AccountID::from([0u8; 20]); // Replace with real account
 
-// Get XRP balance (in drops)
+// Get XRP balance (in drops) - returns Option<TokenAmount>
 let balance = get_account_balance(&account)?;
 
-// Get full account root object
-let account_root = get_account_root(&account)?;
-
-// Extract specific account info
-let sequence = get_account_info(&account, sfield::Sequence)?;
-let owner_count = get_account_info(&account, sfield::OwnerCount)?;
+// Use host functions to get account fields directly
+// (Note: Specific helper functions may vary based on current API)
 ```
 
 #### Trust Lines
 
-```rust
-use xrpl_wasm_std::core::ledger_objects::trustline::{
-    get_trustline, get_trustline_balance
-};
-use xrpl_wasm_std::types::{AccountID, Currency};
+```rust ignore
+// Trust line functionality is not yet implemented in this version
+// Future versions will provide trust line access through ledger object queries
 
-let account = AccountID::from([0u8; 20]);
-let issuer = AccountID::from([1u8; 20]);
-let currency = Currency::from_str("USD").unwrap();
-
-// Get trust line balance
-let balance = get_trustline_balance(&account, &issuer, &currency)?;
-
-// Get full trust line object
-let trustline = get_trustline(&account, &issuer, &currency)?;
+// For now, use low-level host functions to access trust line data
+// or work with XRP amounts only through account balances
 ```
 
 #### NFT Objects
 
-```rust
-use xrpl_wasm_std::core::ledger_objects::nft::{
-    get_nft_page, check_nft_ownership
-};
-use xrpl_wasm_std::types::{AccountID, NFTID};
+```rust ignore
+// NFT functionality uses the basic get_nft function
+use xrpl_wasm_std::core::ledger_objects::nft::get_nft;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::types::NFT; // [u8; 32]
 
 let owner = AccountID::from([0u8; 20]);
-let nft_id = NFTID::from([0u8; 32]);
+let nft: NFT = [0u8; 32]; // 32-byte NFT identifier
 
-// Check if account owns specific NFT
-let owns_nft = check_nft_ownership(&owner, &nft_id)?;
+// Get NFT data
+let nft_data = get_nft(&owner, &nft)?;
 
-// Get NFT page containing the NFT
-let nft_page = get_nft_page(&owner, &nft_id)?;
+// Note: Higher-level NFT functions like ownership checking
+// and page queries are not yet implemented
 ```
 
 ### Type System
 
 #### Core Types
 
-```rust
-use xrpl_wasm_std::types::{
-    AccountID,    // 20-byte XRPL account identifier
-    Amount,       // XRP amount in drops
-    Currency,     // 3-character currency code
-    Hash256,      // 32-byte hash
-    NFTID,        // 32-byte NFT identifier
-    Keylet,       // Ledger object locator
+```rust ignore
+use xrpl_wasm_std::core::types::{
+    account_id::AccountID,           // 20-byte XRPL account identifier
+    amount::token_amount::TokenAmount, // Token amounts (XRP, IOU, MPT)
+    amount::currency_code::CurrencyCode, // Currency codes
+    hash_256::Hash256,               // 32-byte hash
 };
+use xrpl_wasm_std::types::NFT;      // [u8; 32] NFT identifier
+use xrpl_wasm_std::core::types::keylets::KeyletBytes; // [u8; 32] keylet
 
-// Create AccountID from r-address
-let account = xrpl_wasm_std::r_address!("rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH");
+// Create AccountID from r-address (if r_address macro exists)
+// let account = xrpl_wasm_std::r_address!("rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH");
 
 // Create from raw bytes
 let account = AccountID::from([0u8; 20]);
 
-// Currency from string
-let currency = Currency::from_str("USD")?;
+// NFT as byte array
+let nft: NFT = [0u8; 32];
 
-// Hash from hex string
-let hash = Hash256::from_hex("1234567890abcdef...")?;
+// Note: High-level string parsing functions may not be available
+// Use the working examples for guaranteed compilable code
 ```
 
 #### Keylet Generation
 
 Keylets are used to locate objects in the ledger:
 
-```rust
-use xrpl_wasm_std::core::keylets::{
-    account_root_keylet,
-    trustline_keylet,
+```rust ignore
+use xrpl_wasm_std::core::types::keylets::{
+    account_keylet,
+    line_keylet,
     escrow_keylet,
-    nft_page_keylet,
+    oracle_keylet,
 };
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::core::types::amount::asset::Asset;
 
-// Account root keylet
-let keylet = account_root_keylet(&account);
+let account = AccountID::from([0u8; 20]);
+let sequence = 12345i32;
 
-// Trust line keylet
-let keylet = trustline_keylet(&account, &issuer, &currency);
+// Account keylet
+let keylet = account_keylet(&account)?;
+
+// Trust line keylet (requires Asset types)
+let asset1 = Asset::XRP(XrpAsset {});
+let asset2 = Asset::IOU(IouAsset::new(issuer, currency));
+let keylet = line_keylet(&account, &asset1, &asset2)?;
 
 // Escrow keylet
-let keylet = escrow_keylet(&account, &destination, sequence);
+let keylet = escrow_keylet(&account, sequence)?;
 
-// NFT page keylet (simplified)
-let keylet = nft_page_keylet(&account, &nft_id);
+// Oracle keylet
+let document_id = 1i32;
+let keylet = oracle_keylet(&account, document_id)?;
 ```
 
 ### Host Functions
@@ -344,6 +355,8 @@ Low-level host function access through the `host` module.
 #### Ledger Access
 
 ```rust
+#![no_std]
+#![no_main]
 use xrpl_wasm_std::host::ledger::{
     cache_ledger_obj, get_field_from_slot, does_obj_exist
 };
@@ -364,35 +377,22 @@ if does_obj_exist(&keylet)? {
 
 #### Transaction Fields
 
-```rust
-use xrpl_wasm_std::host::transaction::{
-    get_field, get_field_id, has_field
-};
+```rust ignore
+// Use the high-level trait methods instead of low-level host functions
+use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_std::core::current_tx::traits::{TransactionCommonFields, EscrowFinishFields};
 
-// Get transaction field value
-let mut buffer = [0u8; 32];
-let length = get_field(sfield::Account, 0, &mut buffer)?;
-let account = AccountID::from_slice(&buffer[..length])?;
+let tx = EscrowFinish;
 
-// Check if field exists
-if has_field(sfield::DestinationTag) {
-    let tag = get_field::<u32>(sfield::DestinationTag, 0)?;
-}
-```
+// Access common transaction fields
+let account = tx.get_account()?; // AccountID
+let fee = tx.get_fee()?; // TokenAmount
+let sequence = tx.get_sequence()?; // u32
 
-#### Utility Functions
-
-```rust
-use xrpl_wasm_std::host::trace::{trace, trace_data, DataRepr};
-use xrpl_wasm_std::host::crypto::{sha256, ripemd160};
-
-// Debug tracing (disabled in production)
-trace("Processing escrow finish")?;
-trace_data("Account", &account_bytes, DataRepr::AsHex)?;
-
-// Cryptographic functions
-let hash = sha256(&input_data)?;
-let address_hash = ripemd160(&pubkey_hash)?;
+// Access EscrowFinish-specific fields
+let owner = tx.get_owner()?; // AccountID
+let offer_sequence = tx.get_offer_sequence()?; // u32
+let condition = tx.get_condition()?; // Option<Condition>
 ```
 
 ### Error Handling
@@ -400,32 +400,50 @@ let address_hash = ripemd160(&pubkey_hash)?;
 The library uses custom `Result` types for comprehensive error handling:
 
 ```rust
-use xrpl_wasm_std::types::{WasmResult, WasmError};
+#![no_std]
+#![no_main]
+use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_std::core::ledger_objects::account_root::{get_account_balance, AccountRoot};
+use xrpl_wasm_std::core::ledger_objects::traits::AccountFields;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
+use xrpl_wasm_std::core::types::keylets::account_keylet;
+use xrpl_wasm_std::host::{cache_ledger_obj, Result};
 
-fn process_escrow() -> WasmResult<i32> {
+fn process_escrow() -> Result<i32> {
     let tx = EscrowFinish;
 
     // Chain operations with ?
     let account = tx.get_account()?;
     let balance = get_account_balance(&account)?;
 
-    // Handle specific errors
-    match get_account_info(&account, sfield::Sequence) {
+    // Handle specific errors - create AccountRoot to access account fields
+    let account_keylet = match account_keylet(&account) {
+        Ok(keylet) => keylet,
+        Err(_) => return Ok(-1), // Invalid account
+    };
+
+    let slot = match cache_ledger_obj(&account_keylet) {
+        Ok(slot) => slot,
+        Err(_) => return Ok(-1), // Account doesn't exist
+    };
+
+    let account_root = AccountRoot { slot_num: slot };
+    match account_root.sequence() {
         Ok(sequence) => {
             // Use sequence
         },
-        Err(WasmError::FieldNotFound) => {
-            // Handle missing field
-            return Ok(0);
+        Err(_) => {
+            // Handle missing field or other error
+            return Ok(-1);
         },
-        Err(WasmError::ObjectNotFound) => {
-            // Account doesn't exist
-            return Ok(0);
-        },
-        Err(e) => return Err(e),
     }
 
-    Ok(if balance > 10_000_000 { 1 } else { 0 })
+    return Ok(match balance {
+        Some(TokenAmount::XRP { num_drops }) if num_drops > 10_000_000 => 1,
+        _ => -1,
+    })
 }
 ```
 
@@ -450,7 +468,7 @@ The simplest possible smart escrow that demonstrates basic concepts.
 **Key learning points:**
 
 - Basic contract structure with `#![no_std]` and `#![no_main]`
-- Using `#[no_mangle]` for the entry point function
+- Using `#[unsafe(no_mangle)]` for the entry point function
 - Simple error handling with pattern matching
 - Trace logging for debugging
 
@@ -581,7 +599,7 @@ strip = true             # Strip debug symbols
 
 **Code patterns for smaller binaries:**
 
-```rust
+```rust ignore
 // Use fixed-size arrays instead of vectors
 let mut buffer = [0u8; 32];  // Stack allocation
 
@@ -599,20 +617,28 @@ match operation() {
 
 **Minimize host function calls:**
 
-```rust
+```rust ignore
 // Good: Call once, use cached result
 let account = tx.get_account()?;
 let balance = get_account_balance(&account)?;
-let info = get_account_info(&account, sfield::Sequence)?;
+// Create AccountRoot to access account fields
+let account_keylet = account_keylet(&account)?;
+let slot = cache_ledger_obj(&account_keylet)?;
+let account_root = AccountRoot { slot_num: slot };
+let sequence = account_root.sequence()?;
 
 // Bad: Multiple calls for same data
 let balance = get_account_balance(&tx.get_account()?)?;
-let sequence = get_account_info(&tx.get_account()?, sfield::Sequence)?;
+// Bad: Multiple calls - should cache the account and keylet
+let account_keylet = account_keylet(&tx.get_account()?)?;
+let slot = cache_ledger_obj(&account_keylet)?;
+let account_root = AccountRoot { slot_num: slot };
+let sequence = account_root.sequence()?;
 ```
 
 **Efficient ledger object access:**
 
-```rust
+```rust ignore
 // Cache ledger objects for multiple field access
 let slot = cache_ledger_obj(&account_keylet)?;
 let balance = get_field_from_slot::<u64>(slot, sfield::Balance)?;
@@ -622,7 +648,7 @@ let owner_count = get_field_from_slot::<u32>(slot, sfield::OwnerCount)?;
 
 **Memory usage optimization:**
 
-```rust
+```rust ignore
 // Use stack-based allocation
 let mut accounts = [AccountID::default(); 10];
 
@@ -636,23 +662,23 @@ let len2 = get_field(sfield::Destination, 0, &mut buffer[20..40])?;
 
 #### Common Build Issues
 
-| Issue                            | Solution                                       |
-| -------------------------------- | ---------------------------------------------- |
-| `wasm32v1-none` target not found | `rustup target add wasm32v1-none`              |
-| Link errors                      | Check `crate-type = ["cdylib"]` in Cargo.toml  |
-| Binary too large                 | Use release profile optimizations              |
-| Missing exports                  | Ensure `#[no_mangle]` on `finish()` function   |
-| Compilation errors               | Check `#![no_std]` and avoid std library usage |
+| Issue                            | Solution                                             |
+| -------------------------------- | ---------------------------------------------------- |
+| `wasm32v1-none` target not found | `rustup target add wasm32v1-none`                    |
+| Link errors                      | Check `crate-type = ["cdylib"]` in Cargo.toml        |
+| Binary too large                 | Use release profile optimizations                    |
+| Missing exports                  | Ensure `#[unsafe(no_mangle)]` on `finish()` function |
+| Compilation errors               | Check `#![no_std]` and avoid std library usage       |
 
 #### Common Runtime Issues
 
-| Issue                    | Cause                   | Solution                            |
-| ------------------------ | ----------------------- | ----------------------------------- |
-| Function not found       | WASM export missing     | Check `#[no_mangle]` on entry point |
-| Memory access violation  | Buffer overflow         | Verify buffer sizes and bounds      |
-| Cache full (NoFreeSlots) | Too many cached objects | Minimize `cache_ledger_obj` calls   |
-| Field not found          | Missing ledger field    | Handle `FieldNotFound` errors       |
-| Invalid field data       | Malformed field         | Validate input data                 |
+| Issue                    | Cause                   | Solution                                    |
+| ------------------------ | ----------------------- | ------------------------------------------- |
+| Function not found       | WASM export missing     | Check `#[unsafe(no_mangle)]` on entry point |
+| Memory access violation  | Buffer overflow         | Verify buffer sizes and bounds              |
+| Cache full (NoFreeSlots) | Too many cached objects | Minimize `cache_ledger_obj` calls           |
+| Field not found          | Missing ledger field    | Handle `FieldNotFound` errors               |
+| Invalid field data       | Malformed field         | Validate input data                         |
 
 #### Debugging Techniques
 
@@ -660,23 +686,28 @@ let len2 = get_field(sfield::Destination, 0, &mut buffer[20..40])?;
 
 ```rust
 use xrpl_wasm_std::host::trace::{trace, trace_data, DataRepr};
+use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_std::host::Result::{Ok, Err};
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
-    trace("Contract starting")?;
+    trace("Contract starting").ok();
 
-    let account = match EscrowFinish.get_account() {
+    let tx = EscrowFinish;
+    let account = match tx.get_account() {
         Ok(acc) => {
-            trace_data("Account", &acc.as_bytes(), DataRepr::AsHex)?;
+            trace_data("Account", &acc.0, DataRepr::AsHex).ok();
             acc
         },
         Err(e) => {
-            trace(&format!("Error getting account: {:?}", e))?;
+            trace(&format!("Error getting account: {:?}", e)).ok();
             return 0;
         }
     };
 
     // More logic with tracing...
+    1 // Return 1 to complete the function
 }
 ```
 

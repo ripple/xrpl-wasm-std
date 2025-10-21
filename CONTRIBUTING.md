@@ -84,7 +84,7 @@ These debugging statements will show up in the `debug.log` for rippled.
 ```rust
 use xrpl_wasm_std::host::trace::{trace, trace_data, DataRepr};
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
     trace("Contract starting").ok();
 

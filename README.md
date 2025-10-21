@@ -16,6 +16,7 @@ crate-type = ["cdylib"]
 [profile.release]
 opt-level = "s"
 lto = true
+panic = "abort"
 ```
 
 Create a simple escrow contract:
@@ -25,9 +26,12 @@ Create a simple escrow contract:
 #![no_main]
 
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::ledger_objects::account::get_account_balance;
+use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
+use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
+use xrpl_wasm_std::host::Result::{Ok, Err};
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
     let tx = EscrowFinish;
     let account = match tx.get_account() {
@@ -37,7 +41,7 @@ pub extern "C" fn finish() -> i32 {
 
     // Release escrow if balance > 10 XRP
     match get_account_balance(&account) {
-        Ok(balance) if balance > 10_000_000 => 1, // Release
+        Ok(Some(TokenAmount::XRP { num_drops })) if num_drops > 10_000_000 => 1, // Release
         _ => 0, // Keep locked
     }
 }
