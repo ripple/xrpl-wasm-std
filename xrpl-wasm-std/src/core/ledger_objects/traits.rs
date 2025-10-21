@@ -4,8 +4,8 @@ use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 use crate::core::types::crypto_condition::Condition;
+use crate::core::types::hash_128::Hash128;
 use crate::core::types::hash_256::Hash256;
-use crate::core::types::uint_128::UInt128;
 /// This module provides traits for interacting with XRP Ledger objects.
 ///
 /// It defines common interfaces for accessing and manipulating different types of ledger objects,
@@ -436,8 +436,8 @@ pub trait AccountFields: LedgerObjectCommonFields {
     }
 
     /// The MD5 hash of an email address. Clients can use this to look up an avatar through services such as Gravatar.
-    fn email_hash(&self) -> Result<Option<UInt128>> {
-        ledger_object::get_uint_128_field_optional(self.get_slot_num(), sfield::EmailHash)
+    fn email_hash(&self) -> Result<Option<Hash128>> {
+        ledger_object::get_hash_128_field_optional(self.get_slot_num(), sfield::EmailHash)
     }
 
     /// The account's Sequence Number at the time it minted its first non-fungible-token.

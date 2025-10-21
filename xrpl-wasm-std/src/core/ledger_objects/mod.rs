@@ -256,8 +256,8 @@ pub mod ledger_object {
     use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
     use crate::core::types::amount::Amount;
     use crate::core::types::blob::Blob;
+    use crate::core::types::hash_128::{HASH128_SIZE, Hash128};
     use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
-    use crate::core::types::uint_128::{UINT128_SIZE, UInt128};
     use crate::host::error_codes::{
         match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
         match_result_code_with_expected_bytes_optional,
@@ -464,23 +464,23 @@ pub mod ledger_object {
     }
 
     #[inline]
-    pub fn get_uint_128_field(register_num: i32, field_code: i32) -> Result<UInt128> {
-        to_non_optional(get_uint_128_field_optional(register_num, field_code))
+    pub fn get_hash_128_field(register_num: i32, field_code: i32) -> Result<Hash128> {
+        to_non_optional(get_hash_128_field_optional(register_num, field_code))
     }
 
     #[inline]
-    pub fn get_uint_128_field_optional(
+    pub fn get_hash_128_field_optional(
         register_num: i32,
         field_code: i32,
-    ) -> Result<Option<UInt128>> {
-        let mut buffer = [0u8; UINT128_SIZE]; // Enough to hold 128 bits (16 bytes)
+    ) -> Result<Option<Hash128>> {
+        let mut buffer = [0u8; HASH128_SIZE]; // Enough to hold 128 bits (16 bytes)
 
         let result_code = unsafe {
             get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
         };
 
-        match_result_code_with_expected_bytes(result_code, UINT128_SIZE, || {
-            Some(UInt128(buffer)) // <-- Move the buffer into a UInt128
+        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
+            Some(Hash128(buffer)) // <-- Move the buffer into a Hash128
         })
     }
 
