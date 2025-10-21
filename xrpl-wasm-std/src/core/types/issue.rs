@@ -2,22 +2,22 @@ use crate::core::types::account_id::AccountID;
 use crate::core::types::currency::Currency;
 use crate::core::types::mpt_id::MptId;
 
-/// Struct to represent an Asset of type XRP. Exists so that other structs can restrict type
-/// information to XRP in their declarations (this is not possible with just the `Asset` enum below).
+/// Struct to represent an Issue of type XRP. Exists so that other structs can restrict type
+/// information to XRP in their declarations (this is not possible with just the `Issue` enum below).
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
-pub struct XrpAsset {}
+pub struct XrpIssue {}
 
-/// Defines an asset for IOUs.
+/// Defines an issue for IOUs.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
-pub struct IouAsset {
+pub struct IouIssue {
     issuer: AccountID,
     currency: Currency,
     _bytes: [u8; 40],
 }
 
-impl IouAsset {
+impl IouIssue {
     pub fn new(issuer: AccountID, currency: Currency) -> Self {
         let mut bytes = [0u8; 40];
         bytes[..20].copy_from_slice(currency.as_bytes());
@@ -34,33 +34,33 @@ impl IouAsset {
     }
 }
 
-/// Struct to represent an Asset of type MPT. Exists so that other structs can restrict type
-/// information to XRP in their declarations (this is not possible with just the `Asset` enum below).
+/// Struct to represent an Issue of type MPT. Exists so that other structs can restrict type
+/// information to XRP in their declarations (this is not possible with just the `Issue` enum below).
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
-pub struct MptAsset {
+pub struct MptIssue {
     mpt_id: MptId,
 }
 
-/// Represents an asset without a value, such as reading `Asset1` and `Asset2` in AMM ledger
+/// Represents an issue without a value, such as reading `Asset1` and `Asset2` in AMM ledger
 /// objects.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
-pub enum Asset {
-    XRP(XrpAsset),
-    IOU(IouAsset),
-    MPT(MptAsset),
+pub enum Issue {
+    XRP(XrpIssue),
+    IOU(IouIssue),
+    MPT(MptIssue),
 }
 
-impl Asset {
+impl Issue {
     pub fn as_bytes(&self) -> &[u8] {
         match self {
-            Asset::XRP(_) => {
+            Issue::XRP(_) => {
                 static XRP_BUF: [u8; 20] = [0; 20];
                 &XRP_BUF
             }
-            Asset::IOU(iou) => iou.as_bytes(),
-            Asset::MPT(mpt) => mpt.mpt_id.as_bytes(),
+            Issue::IOU(iou) => iou.as_bytes(),
+            Issue::MPT(mpt) => mpt.mpt_id.as_bytes(),
         }
     }
 }

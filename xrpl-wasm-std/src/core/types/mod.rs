@@ -1,6 +1,5 @@
 pub mod account_id;
 pub mod amount;
-pub mod asset;
 pub mod blob;
 pub mod contract_data;
 pub mod credentials;
@@ -8,6 +7,7 @@ pub mod crypto_condition;
 pub mod currency;
 pub mod hash_128;
 pub mod hash_256;
+pub mod issue;
 pub mod keylets;
 pub mod mpt_id;
 pub mod opaque_float;
