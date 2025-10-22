@@ -15,22 +15,118 @@ use crate::host::error_codes::{
 };
 use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 
-/// Trait for types that can be retrieved from ledger object fields
+/// Trait for types that can be retrieved from ledger object fields.
+///
+/// This trait provides a unified interface for retrieving typed data from XRPL ledger objects,
+/// replacing the previous collection of type-specific functions with a generic, type-safe approach.
+///
+/// ## Supported Types
+///
+/// The following types implement this trait:
+/// - `u16` - 16-bit unsigned integers (2 bytes)
+/// - `u32` - 32-bit unsigned integers (4 bytes)
+/// - `u64` - 64-bit unsigned integers (8 bytes)
+/// - `AccountID` - 20-byte account identifiers
+/// - `Amount` - XRP amounts and token amounts (variable size, up to 48 bytes)
+/// - `Hash128` - 128-bit cryptographic hashes (16 bytes)
+/// - `Hash256` - 256-bit cryptographic hashes (32 bytes)
+/// - `Blob` - Variable-length binary data (up to 1024 bytes)
+///
+/// ## Usage Patterns
+///
+/// ```rust,no_run
+/// use xrpl_wasm_std::core::ledger_objects::{ledger_object, current_ledger_object};
+/// use xrpl_wasm_std::core::types::account_id::AccountID;
+/// use xrpl_wasm_std::sfield;
+/// # fn example() {
+/// # let slot = 0;
+/// // Get a required field from a specific ledger object
+/// let balance: u64 = ledger_object::get_field(slot, sfield::Balance).unwrap();
+/// let account: AccountID = ledger_object::get_field(slot, sfield::Account).unwrap();
+///
+/// // Get an optional field from the current ledger object
+/// let flags: Option<u32> = current_ledger_object::get_field_optional(sfield::Flags).unwrap();
+/// # }
+/// ```
+///
+/// ## Error Handling
+///
+/// - Required field methods return `Result<T>` and error if the field is missing
+/// - Optional field methods return `Result<Option<T>>` and return `None` if the field is missing
+/// - All methods return appropriate errors for buffer size mismatches or other retrieval failures
+///
+/// ## Safety Considerations
+///
+/// - All implementations use appropriately sized buffers for their data types
+/// - Buffer sizes are validated against expected field sizes where applicable
+/// - Unsafe operations are contained within the host function calls
 pub trait FieldGetter: Sized {
-    /// Get a required field from the current ledger object
+    /// Get a required field from the current ledger object.
+    ///
+    /// # Arguments
+    ///
+    /// * `field_code` - The field code identifying which field to retrieve
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result<Self>` where:
+    /// * `Ok(Self)` - The field value for the specified field
+    /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self>;
 
-    /// Get an optional field from the current ledger object
+    /// Get an optional field from the current ledger object.
+    ///
+    /// # Arguments
+    ///
+    /// * `field_code` - The field code identifying which field to retrieve
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result<Option<Self>>` where:
+    /// * `Ok(Some(Self))` - The field value for the specified field
+    /// * `Ok(None)` - If the field is not present
+    /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>>;
 
-    /// Get a required field from a specific ledger object
+    /// Get a required field from a specific ledger object.
+    ///
+    /// # Arguments
+    ///
+    /// * `register_num` - The register number holding the ledger object
+    /// * `field_code` - The field code identifying which field to retrieve
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result<Self>` where:
+    /// * `Ok(Self)` - The field value for the specified field
+    /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self>;
 
-    /// Get an optional field from a specific ledger object
+    /// Get an optional field from a specific ledger object.
+    ///
+    /// # Arguments
+    ///
+    /// * `register_num` - The register number holding the ledger object
+    /// * `field_code` - The field code identifying which field to retrieve
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result<Option<Self>>` where:
+    /// * `Ok(Some(Self))` - The field value for the specified field
+    /// * `Ok(None)` - If the field is not present in the ledger object
+    /// * `Err(Error)` - If the field retrieval operation failed
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>>;
 }
 
-// Implementation for u16
+/// Implementation of `FieldGetter` for 16-bit unsigned integers.
+///
+/// This implementation handles 2-byte integer fields in XRPL ledger objects.
+/// Common use cases include ledger entry types and small enumerated values.
+///
+/// # Buffer Management
+///
+/// Uses a 2-byte buffer and validates that exactly 2 bytes are returned
+/// from the host function to ensure data integrity.
 impl FieldGetter for u16 {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut value: u16 = 0;
@@ -61,7 +157,15 @@ impl FieldGetter for u16 {
     }
 }
 
-// Implementation for u32
+/// Implementation of `FieldGetter` for 32-bit unsigned integers.
+///
+/// This implementation handles 4-byte integer fields in XRPL ledger objects.
+/// Common use cases include sequence numbers, flags, timestamps, and various counters.
+///
+/// # Buffer Management
+///
+/// Uses a 4-byte buffer and validates that exactly 4 bytes are returned
+/// from the host function to ensure data integrity.
 impl FieldGetter for u32 {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut value: u32 = 0;
@@ -92,7 +196,16 @@ impl FieldGetter for u32 {
     }
 }
 
-// Implementation for u64
+/// Implementation of `FieldGetter` for 64-bit unsigned integers.
+///
+/// This implementation handles 8-byte integer fields in XRPL ledger objects.
+/// Common use cases include large numeric values, balances represented as integers,
+/// and 64-bit identifiers.
+///
+/// # Buffer Management
+///
+/// Uses an 8-byte buffer and validates that exactly 8 bytes are returned
+/// from the host function to ensure data integrity.
 impl FieldGetter for u64 {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut value: u64 = 0;
@@ -123,7 +236,17 @@ impl FieldGetter for u64 {
     }
 }
 
-// Implementation for AccountID
+/// Implementation of `FieldGetter` for XRPL account identifiers.
+///
+/// This implementation handles 20-byte account ID fields in XRPL ledger objects.
+/// Account IDs uniquely identify accounts on the XRPL network and are derived
+/// from public keys using cryptographic hashing.
+///
+/// # Buffer Management
+///
+/// Uses a 20-byte buffer (ACCOUNT_ID_SIZE) and validates that exactly 20 bytes
+/// are returned from the host function. The buffer is converted to an AccountID
+/// using the `From<[u8; 20]>` implementation.
 impl FieldGetter for AccountID {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
@@ -160,7 +283,17 @@ impl FieldGetter for AccountID {
     }
 }
 
-// Implementation for Amount
+/// Implementation of `FieldGetter` for XRPL amount values.
+///
+/// This implementation handles amount fields in XRPL ledger objects, which can represent
+/// either XRP amounts (8 bytes) or token amounts (up to 48 bytes including currency code
+/// and issuer information).
+///
+/// # Buffer Management
+///
+/// Uses a 48-byte buffer to accommodate the largest possible amount representation.
+/// The Amount type handles the parsing of different amount formats internally.
+/// No strict byte count validation is performed since amounts can vary in size.
 impl FieldGetter for Amount {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
@@ -197,7 +330,16 @@ impl FieldGetter for Amount {
     }
 }
 
-// Implementation for Hash128
+/// Implementation of `FieldGetter` for 128-bit cryptographic hashes.
+///
+/// This implementation handles 16-byte hash fields in XRPL ledger objects.
+/// Hash128 values are commonly used for shorter identifiers and checksums
+/// in XRPL, such as email hashes.
+///
+/// # Buffer Management
+///
+/// Uses a 16-byte buffer (HASH128_SIZE) and validates that exactly 16 bytes
+/// are returned from the host function to ensure data integrity.
 impl FieldGetter for Hash128 {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH128_SIZE];
@@ -234,7 +376,16 @@ impl FieldGetter for Hash128 {
     }
 }
 
-// Implementation for Hash256
+/// Implementation of `FieldGetter` for 256-bit cryptographic hashes.
+///
+/// This implementation handles 32-byte hash fields in XRPL ledger objects.
+/// Hash256 values are widely used throughout XRPL for transaction IDs,
+/// ledger indexes, object IDs, and various cryptographic operations.
+///
+/// # Buffer Management
+///
+/// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
+/// are returned from the host function to ensure data integrity.
 impl FieldGetter for Hash256 {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH256_SIZE];
@@ -271,7 +422,18 @@ impl FieldGetter for Hash256 {
     }
 }
 
-// Implementation for Blob
+/// Implementation of `FieldGetter` for variable-length binary data.
+///
+/// This implementation handles blob fields in XRPL ledger objects, which can contain
+/// arbitrary binary data such as memos, signatures, public keys, and other
+/// variable-length content.
+///
+/// # Buffer Management
+///
+/// Uses a 1024-byte buffer to accommodate most blob field sizes. The actual
+/// length of the data is determined by the return value from the host function
+/// and stored in the Blob's `len` field. No strict byte count validation is
+/// performed since blobs can vary significantly in size.
 impl FieldGetter for Blob {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; 1024];
