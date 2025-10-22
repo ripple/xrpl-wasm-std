@@ -28,10 +28,10 @@ extern crate std;
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::currency_code::CurrencyCode;
-use xrpl_wasm_std::core::types::amount::mpt_id::MptId;
-use xrpl_wasm_std::core::types::amount::opaque_float::OpaqueFloat;
-use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
+use xrpl_wasm_std::core::types::amount::Amount;
+use xrpl_wasm_std::core::types::currency::Currency;
+use xrpl_wasm_std::core::types::mpt_id::MptId;
+use xrpl_wasm_std::core::types::opaque_float::OpaqueFloat;
 use xrpl_wasm_std::host;
 use xrpl_wasm_std::host::trace::{
     DataRepr, trace, trace_account_buf, trace_amount, trace_data, trace_num,
@@ -750,7 +750,7 @@ fn test_utility_functions() -> i32 {
         }
     }
 
-    // Test 6.5: trace_amount() - Debug logging with TokenAmount
+    // Test 6.5: trace_amount() - Debug logging with Amount
     match test_trace_amount_functions() {
         0 => (),
         err => return err,
@@ -784,13 +784,13 @@ fn test_data_update_functions() -> i32 {
     1 // <-- Finish the escrow to indicate a successful outcome
 }
 
-/// Test trace_amount() function with different TokenAmount types
+/// Test trace_amount() function with different Amount types
 /// Tests the trace_amount host function with XRP, IOU, and MPT amounts
 fn test_trace_amount_functions() -> i32 {
     let _ = trace("--- Testing trace_amount() function ---");
 
     // Test 6.5.1: trace_amount() with XRP amount (positive)
-    let xrp_amount = TokenAmount::XRP {
+    let xrp_amount = Amount::XRP {
         num_drops: 1_000_000, // 1 XRP
     };
     let trace_result = trace_amount("Test XRP amount (1 XRP)", &xrp_amount);
@@ -805,7 +805,7 @@ fn test_trace_amount_functions() -> i32 {
     }
 
     // Test 6.5.2: trace_amount() with negative XRP amount
-    let negative_xrp_amount = TokenAmount::XRP {
+    let negative_xrp_amount = Amount::XRP {
         num_drops: -500_000, // -0.5 XRP
     };
     let trace_result = trace_amount("Test negative XRP amount (-0.5 XRP)", &negative_xrp_amount);
@@ -820,7 +820,7 @@ fn test_trace_amount_functions() -> i32 {
     }
 
     // Test 6.5.3: trace_amount() with zero XRP amount
-    let zero_xrp_amount = TokenAmount::XRP { num_drops: 0 };
+    let zero_xrp_amount = Amount::XRP { num_drops: 0 };
     let trace_result = trace_amount("Test zero XRP amount", &zero_xrp_amount);
     match trace_result {
         host::Result::Ok(_) => {
@@ -833,7 +833,7 @@ fn test_trace_amount_functions() -> i32 {
     }
 
     // Test 6.5.4: trace_amount() with small XRP amount (fee-like)
-    let fee_amount = TokenAmount::XRP { num_drops: 10 }; // 10 drops (typical fee)
+    let fee_amount = Amount::XRP { num_drops: 10 }; // 10 drops (typical fee)
     let trace_result = trace_amount("Test small XRP amount (10 drops)", &fee_amount);
     match trace_result {
         host::Result::Ok(_) => {
@@ -846,7 +846,7 @@ fn test_trace_amount_functions() -> i32 {
     }
 
     // Test 6.5.5: trace_amount() with large XRP amount
-    let large_xrp_amount = TokenAmount::XRP {
+    let large_xrp_amount = Amount::XRP {
         num_drops: 100_000_000_000, // 100,000 XRP
     };
     let trace_result = trace_amount("Test large XRP amount (100,000 XRP)", &large_xrp_amount);
@@ -867,14 +867,14 @@ fn test_trace_amount_functions() -> i32 {
     let issuer_bytes = [3u8; 20]; // Test issuer
     let amount_bytes = [0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x39]; // Test float value
 
-    let currency_code = CurrencyCode::from(currency_bytes);
+    let currency = Currency::from(currency_bytes);
     let issuer = AccountID::from(issuer_bytes);
     let amount = OpaqueFloat(amount_bytes);
 
-    let iou_amount = TokenAmount::IOU {
+    let iou_amount = Amount::IOU {
         amount,
         issuer,
-        currency_code,
+        currency,
     };
     let trace_result = trace_amount("Test IOU amount", &iou_amount);
     match trace_result {
@@ -894,7 +894,7 @@ fn test_trace_amount_functions() -> i32 {
 
     let mpt_issuer = AccountID::from(MPT_ISSUER_BYTES);
     let mpt_id = MptId::new(MPT_SEQUENCE_NUM, mpt_issuer);
-    let mpt_amount = TokenAmount::MPT {
+    let mpt_amount = Amount::MPT {
         num_units: MPT_VALUE,
         is_positive: true,
         mpt_id,
@@ -911,7 +911,7 @@ fn test_trace_amount_functions() -> i32 {
     }
 
     // Test 6.5.8: trace_amount() with MPT amount (negative)
-    let negative_mpt_amount = TokenAmount::MPT {
+    let negative_mpt_amount = Amount::MPT {
         num_units: MPT_VALUE,
         is_positive: false,
         mpt_id,
@@ -928,7 +928,7 @@ fn test_trace_amount_functions() -> i32 {
     }
 
     // Test 6.5.9: trace_amount() with zero MPT amount
-    let zero_mpt_amount = TokenAmount::MPT {
+    let zero_mpt_amount = Amount::MPT {
         num_units: 0,
         is_positive: true,
         mpt_id,

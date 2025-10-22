@@ -6,7 +6,7 @@ pub mod traits;
 
 pub mod current_ledger_object {
     use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-    use crate::core::types::amount::token_amount::TokenAmount;
+    use crate::core::types::amount::Amount;
     use crate::core::types::blob::Blob;
     use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
     use crate::host::error_codes::{
@@ -36,7 +36,7 @@ pub mod current_ledger_object {
         match_result_code_with_expected_bytes(result_code, buffer.len(), || buffer.into())
     }
 
-    /// Retrieves a `TokenAmount` field from the current ledger object.
+    /// Retrieves a `Amount` field from the current ledger object.
     ///
     /// # Arguments
     ///
@@ -44,11 +44,11 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
-    pub fn get_amount_field(field_code: i32) -> Result<TokenAmount> {
+    pub fn get_amount_field(field_code: i32) -> Result<Amount> {
         const BUFFER_SIZE: usize = 48usize;
 
         let mut buffer = [0u8; BUFFER_SIZE]; // Enough to hold an Amount
@@ -56,7 +56,7 @@ pub mod current_ledger_object {
         let result_code =
             unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
 
-        match_result_code(result_code, || TokenAmount::from(buffer))
+        match_result_code(result_code, || Amount::from(buffer))
     }
 
     /// Retrieves a `u16` field from the current ledger object.
@@ -67,7 +67,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -83,7 +83,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -104,7 +104,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -120,7 +120,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -141,7 +141,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -157,7 +157,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -178,7 +178,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -194,7 +194,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -217,7 +217,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -233,7 +233,7 @@ pub mod current_ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -254,10 +254,10 @@ pub mod current_ledger_object {
 
 pub mod ledger_object {
     use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-    use crate::core::types::amount::token_amount::TokenAmount;
+    use crate::core::types::amount::Amount;
     use crate::core::types::blob::Blob;
+    use crate::core::types::hash_128::{HASH128_SIZE, Hash128};
     use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
-    use crate::core::types::uint_128::{UINT128_SIZE, UInt128};
     use crate::host::error_codes::{
         match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
         match_result_code_with_expected_bytes_optional,
@@ -296,7 +296,7 @@ pub mod ledger_object {
         })
     }
 
-    /// Retrieves a `TokenAmount` field from a specified ledger object.
+    /// Retrieves a `Amount` field from a specified ledger object.
     ///
     /// This function retrieves a token amount field from a ledger object stored in a register.
     /// It wraps the optional variant and returns an error if the field is not present.
@@ -304,19 +304,19 @@ pub mod ledger_object {
     /// # Arguments
     ///
     /// * `register_num` - The register number holding the ledger object to look for data in
-    /// * `field_code` - The field code identifying which TokenAmount field to retrieve
+    /// * `field_code` - The field code identifying which Amount field to retrieve
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
-    /// * `Ok(TokenAmount)` - The token amount for the specified field, which can be XRP, IOU, or MPT
+    /// Returns a `Result<Amount>` where:
+    /// * `Ok(Amount)` - The token amount for the specified field, which can be XRP, IOU, or MPT
     /// * `Err(Error)` - If the field cannot be retrieved, is not present, or has an unexpected format
     #[inline]
-    pub fn get_amount_field(register_num: i32, field_code: i32) -> Result<TokenAmount> {
+    pub fn get_amount_field(register_num: i32, field_code: i32) -> Result<Amount> {
         to_non_optional(get_amount_field_optional(register_num, field_code))
     }
 
-    /// Retrieves an optionally present `TokenAmount` field from a specified ledger object.
+    /// Retrieves an optionally present `Amount` field from a specified ledger object.
     ///
     /// This function attempts to retrieve a token amount field from a ledger object stored in a register.
     /// Unlike the non-optional variant, this function returns `None` if the field is not present,
@@ -325,19 +325,16 @@ pub mod ledger_object {
     /// # Arguments
     ///
     /// * `register_num` - The register number holding the ledger object to look for data in
-    /// * `field_code` - The field code identifying which TokenAmount field to retrieve
+    /// * `field_code` - The field code identifying which Amount field to retrieve
     ///
     /// # Returns
     ///
-    /// Returns a `Result<Option<TokenAmount>>` where:
-    /// * `Ok(Some(TokenAmount))` - The token amount for the specified field, which can be XRP, IOU, or MPT
+    /// Returns a `Result<Option<Amount>>` where:
+    /// * `Ok(Some(Amount))` - The token amount for the specified field, which can be XRP, IOU, or MPT
     /// * `Ok(None)` - If the field is not present in the ledger object
     /// * `Err(Error)` - If the field retrieval operation failed or the data has an unexpected format
     #[inline]
-    pub fn get_amount_field_optional(
-        register_num: i32,
-        field_code: i32,
-    ) -> Result<Option<TokenAmount>> {
+    pub fn get_amount_field_optional(register_num: i32, field_code: i32) -> Result<Option<Amount>> {
         const BUFFER_SIZE: usize = 48usize;
 
         let mut buffer = [0u8; BUFFER_SIZE]; // Enough to hold an Amount
@@ -346,7 +343,7 @@ pub mod ledger_object {
             get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
         };
 
-        match_result_code_optional(result_code, || Some(TokenAmount::from(buffer)))
+        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
     }
 
     /// Retrieves a `u16` field from the specified ledger object.
@@ -358,7 +355,7 @@ pub mod ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -375,7 +372,7 @@ pub mod ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -397,7 +394,7 @@ pub mod ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -414,7 +411,7 @@ pub mod ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -436,7 +433,7 @@ pub mod ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -453,7 +450,7 @@ pub mod ledger_object {
     ///
     /// # Returns
     ///
-    /// Returns a `Result<TokenAmount>` where:
+    /// Returns a `Result<Amount>` where:
     /// * `Ok(AccountID)` - The account identifier for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
@@ -467,23 +464,23 @@ pub mod ledger_object {
     }
 
     #[inline]
-    pub fn get_uint_128_field(register_num: i32, field_code: i32) -> Result<UInt128> {
-        to_non_optional(get_uint_128_field_optional(register_num, field_code))
+    pub fn get_hash_128_field(register_num: i32, field_code: i32) -> Result<Hash128> {
+        to_non_optional(get_hash_128_field_optional(register_num, field_code))
     }
 
     #[inline]
-    pub fn get_uint_128_field_optional(
+    pub fn get_hash_128_field_optional(
         register_num: i32,
         field_code: i32,
-    ) -> Result<Option<UInt128>> {
-        let mut buffer = [0u8; UINT128_SIZE]; // Enough to hold 128 bits (16 bytes)
+    ) -> Result<Option<Hash128>> {
+        let mut buffer = [0u8; HASH128_SIZE]; // Enough to hold 128 bits (16 bytes)
 
         let result_code = unsafe {
             get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
         };
 
-        match_result_code_with_expected_bytes(result_code, UINT128_SIZE, || {
-            Some(UInt128(buffer)) // <-- Move the buffer into a UInt128
+        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
+            Some(Hash128(buffer)) // <-- Move the buffer into a Hash128
         })
     }
 
