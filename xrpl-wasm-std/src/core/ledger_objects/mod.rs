@@ -6,7 +6,7 @@ pub mod traits;
 
 pub mod current_ledger_object {
     use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-    use crate::core::types::amount::Amount;
+    use crate::core::types::amount::{AMOUNT_SIZE, Amount};
     use crate::core::types::blob::Blob;
     use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
     use crate::host::error_codes::{
@@ -49,12 +49,10 @@ pub mod current_ledger_object {
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
     pub fn get_amount_field(field_code: i32) -> Result<Amount> {
-        const BUFFER_SIZE: usize = 48usize;
-
-        let mut buffer = [0u8; BUFFER_SIZE]; // Enough to hold an Amount
+        let mut buffer = [0u8; AMOUNT_SIZE]; // Enough to hold an Amount
 
         let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), AMOUNT_SIZE) };
 
         match_result_code(result_code, || Amount::from(buffer))
     }
@@ -250,11 +248,180 @@ pub mod current_ledger_object {
             })
         })
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use crate::core::ledger_objects::ledger_object::get_amount_field_optional;
+
+        // Note: These tests verify the logic of the wrapper functions.
+        // The actual host function calls cannot be tested in unit tests as they require the WASM runtime environment.
+        // These tests verify constants, buffer sizes, and function signatures.
+
+        #[test]
+        fn test_get_account_id_field_signature() {
+            // Verify the function signature compiles correctly
+            // This function directly calls the host function, not an optional variant
+            let _: fn(i32) -> Result<AccountID> = get_account_id_field;
+        }
+
+        #[test]
+        fn test_get_amount_field_signature() {
+            // Verify the function signature compiles correctly
+            // This function directly calls the host function, not an optional variant
+            let _: fn(i32) -> Result<Amount> = get_amount_field;
+        }
+
+        #[test]
+        fn test_get_u16_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32) -> Result<u16> = get_u16_field;
+            let _: fn(i32) -> Result<Option<u16>> = get_u16_field_optional;
+        }
+
+        #[test]
+        fn test_get_u32_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32) -> Result<u32> = get_u32_field;
+            let _: fn(i32) -> Result<Option<u32>> = get_u32_field_optional;
+        }
+
+        #[test]
+        fn test_get_u64_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32) -> Result<u64> = get_u64_field;
+            let _: fn(i32) -> Result<Option<u64>> = get_u64_field_optional;
+        }
+
+        #[test]
+        fn test_get_hash_256_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32) -> Result<Hash256> = get_hash_256_field;
+            let _: fn(i32) -> Result<Option<Hash256>> = get_hash_256_field_optional;
+        }
+
+        #[test]
+        fn test_get_blob_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32) -> Result<Blob> = get_blob_field;
+            let _: fn(i32) -> Result<Option<Blob>> = get_blob_field_optional;
+        }
+
+        // Tests that actually call the functions with test host bindings
+        #[test]
+        fn test_get_account_id_field_call() {
+            // Call the function - test bindings will return buffer length (20)
+            let result = get_account_id_field(1);
+            assert!(result.is_ok());
+            let account_id = result.unwrap();
+            assert_eq!(account_id.0.len(), ACCOUNT_ID_SIZE);
+        }
+
+        #[test]
+        fn test_get_amount_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (48)
+            let result = get_amount_field_optional(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), Amount::XRP { num_drops: 0 });
+        }
+
+        #[test]
+        fn test_get_amount_field_call() {
+            // Call the function - test bindings will return buffer length (48)
+            let result = get_amount_field(1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), Amount::XRP { num_drops: 0 });
+        }
+
+        #[test]
+        fn test_get_u16_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (2)
+            let result = get_u16_field_optional(1);
+            assert!(result.is_ok());
+            assert!(result.unwrap().unwrap() == 0u16);
+        }
+
+        #[test]
+        fn test_get_u16_field_call() {
+            // Call the non-optional variant
+            let result = get_u16_field(1);
+            assert!(result.is_ok());
+            assert!(result.unwrap() == 0u16);
+        }
+
+        #[test]
+        fn test_get_u32_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (4)
+            let result = get_u32_field_optional(1);
+            assert!(result.is_ok());
+            assert!(result.unwrap().unwrap() == 0u32);
+        }
+
+        #[test]
+        fn test_get_u32_field_call() {
+            // Call the non-optional variant
+            let result = get_u32_field(1);
+            assert!(result.is_ok());
+            assert!(result.unwrap() == 0u32);
+        }
+
+        #[test]
+        fn test_get_u64_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (8)
+            let result = get_u64_field_optional(1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), 0u64);
+        }
+
+        #[test]
+        fn test_get_u64_field_call() {
+            // Call the non-optional variant
+            let result = get_u64_field(1);
+            assert!(result.is_ok());
+            assert!(result.unwrap() == 0u64);
+        }
+
+        #[test]
+        fn test_get_hash_256_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (32)
+            let result = get_hash_256_field_optional(1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), Hash256([0u8; 32]));
+        }
+
+        #[test]
+        fn test_get_hash_256_field_call() {
+            // Call the non-optional variant
+            let result = get_hash_256_field(1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), Hash256([0u8; 32]));
+        }
+
+        #[test]
+        fn test_get_blob_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (1024)
+            let result = get_blob_field_optional(1);
+            assert!(result.is_ok());
+            let blob_opt = result.unwrap();
+            assert!(blob_opt.is_some());
+            let blob = blob_opt.unwrap();
+            assert_eq!(blob.len, 1024);
+        }
+
+        #[test]
+        fn test_get_blob_field_call() {
+            // Call the non-optional variant
+            let result = get_blob_field(1);
+            assert!(result.is_ok());
+            let blob = result.unwrap();
+            assert_eq!(blob.len, 1024);
+        }
+    }
 }
 
 pub mod ledger_object {
     use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-    use crate::core::types::amount::Amount;
+    use crate::core::types::amount::{AMOUNT_SIZE, Amount};
     use crate::core::types::blob::Blob;
     use crate::core::types::hash_128::{HASH128_SIZE, Hash128};
     use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
@@ -335,12 +502,10 @@ pub mod ledger_object {
     /// * `Err(Error)` - If the field retrieval operation failed or the data has an unexpected format
     #[inline]
     pub fn get_amount_field_optional(register_num: i32, field_code: i32) -> Result<Option<Amount>> {
-        const BUFFER_SIZE: usize = 48usize;
-
-        let mut buffer = [0u8; BUFFER_SIZE]; // Enough to hold an Amount
+        let mut buffer = [0u8; AMOUNT_SIZE]; // Enough to hold an Amount
 
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), AMOUNT_SIZE)
         };
 
         match_result_code_optional(result_code, || Some(Amount::from(buffer)))
@@ -524,5 +689,203 @@ pub mod ledger_object {
                 len: result_code as usize,
             })
         })
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        // Note: These tests verify the logic of the wrapper functions.
+        // The actual host function calls cannot be tested in unit tests as they require the WASM runtime environment
+        // with cached ledger objects. These tests use mock parameters to verify function signatures and constants.
+
+        #[test]
+        fn test_get_account_id_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32, i32) -> Result<AccountID> = get_account_id_field;
+            let _: fn(i32, i32) -> Result<Option<AccountID>> = get_account_id_field_optional;
+        }
+
+        #[test]
+        fn test_get_amount_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32, i32) -> Result<Amount> = get_amount_field;
+            let _: fn(i32, i32) -> Result<Option<Amount>> = get_amount_field_optional;
+        }
+
+        #[test]
+        fn test_get_u16_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32, i32) -> Result<u16> = get_u16_field;
+            let _: fn(i32, i32) -> Result<Option<u16>> = get_u16_field_optional;
+        }
+
+        #[test]
+        fn test_get_u32_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32, i32) -> Result<u32> = get_u32_field;
+            let _: fn(i32, i32) -> Result<Option<u32>> = get_u32_field_optional;
+        }
+
+        #[test]
+        fn test_get_u64_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32, i32) -> Result<u64> = get_u64_field;
+            let _: fn(i32, i32) -> Result<Option<u64>> = get_u64_field_optional;
+        }
+
+        #[test]
+        fn test_get_uint_128_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32, i32) -> Result<Hash128> = get_hash_128_field;
+            let _: fn(i32, i32) -> Result<Option<Hash128>> = get_hash_128_field_optional;
+        }
+
+        #[test]
+        fn test_get_hash_256_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32, i32) -> Result<Hash256> = get_hash_256_field;
+            let _: fn(i32, i32) -> Result<Option<Hash256>> = get_hash_256_field_optional;
+        }
+
+        #[test]
+        fn test_get_blob_field_signature() {
+            // Verify the function signatures compile correctly
+            let _: fn(i32, i32) -> Result<Blob> = get_blob_field;
+            let _: fn(i32, i32) -> Result<Option<Blob>> = get_blob_field_optional;
+        }
+
+        // Tests that actually call the functions with test host bindings
+        #[test]
+        fn test_get_account_id_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (20)
+            let result = get_account_id_field_optional(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap().0.len(), ACCOUNT_ID_SIZE);
+        }
+
+        #[test]
+        fn test_get_account_id_field_call() {
+            // Call the non-optional variant
+            let result = get_account_id_field(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().0.len(), ACCOUNT_ID_SIZE);
+        }
+
+        #[test]
+        fn test_get_amount_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (48)
+            let result = get_amount_field_optional(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), Amount::XRP { num_drops: 0 });
+        }
+
+        #[test]
+        fn test_get_amount_field_call() {
+            // Call the non-optional variant
+            let result = get_amount_field(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), Amount::XRP { num_drops: 0 });
+        }
+
+        #[test]
+        fn test_get_u16_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (2)
+            let result = get_u16_field_optional(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), 0u16);
+        }
+
+        #[test]
+        fn test_get_u16_field_call() {
+            // Call the non-optional variant
+            let result = get_u16_field(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 0u16);
+        }
+
+        #[test]
+        fn test_get_u32_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (4)
+            let result = get_u32_field_optional(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), 0u32);
+        }
+
+        #[test]
+        fn test_get_u32_field_call() {
+            // Call the non-optional variant
+            let result = get_u32_field(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 0u32);
+        }
+
+        #[test]
+        fn test_get_u64_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (8)
+            let result = get_u64_field_optional(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), 0u64);
+        }
+
+        #[test]
+        fn test_get_u64_field_call() {
+            // Call the non-optional variant
+            let result = get_u64_field(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 0u64);
+        }
+
+        #[test]
+        fn test_get_uint_128_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (16)
+            let result = get_hash_128_field_optional(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), Hash128([0u8; 16]));
+        }
+
+        #[test]
+        fn test_get_uint_128_field_call() {
+            // Call the non-optional variant
+            let result = get_hash_128_field(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), Hash128([0u8; 16]));
+        }
+
+        #[test]
+        fn test_get_hash_256_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (32)
+            let result = get_hash_256_field_optional(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap().unwrap(), Hash256([0u8; 32]));
+        }
+
+        #[test]
+        fn test_get_hash_256_field_call() {
+            // Call the non-optional variant
+            let result = get_hash_256_field(1, 1);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), Hash256([0u8; 32]));
+        }
+
+        #[test]
+        fn test_get_blob_field_optional_call() {
+            // Call the optional variant - test bindings will return buffer length (1024)
+            let result = get_blob_field_optional(1, 1);
+            assert!(result.is_ok());
+            let blob_opt = result.unwrap();
+            assert!(blob_opt.is_some());
+            let blob = blob_opt.unwrap();
+            assert_eq!(blob.len, 1024);
+        }
+
+        #[test]
+        fn test_get_blob_field_call() {
+            // Call the non-optional variant
+            let result = get_blob_field(1, 1);
+            assert!(result.is_ok());
+            let blob = result.unwrap();
+            assert_eq!(blob.len, 1024);
+        }
     }
 }
