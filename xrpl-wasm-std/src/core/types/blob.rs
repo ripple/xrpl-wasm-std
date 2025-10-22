@@ -41,10 +41,7 @@ mod tests {
         data[1] = 0xCD;
         data[2] = 0xEF;
 
-        let blob = Blob {
-            data,
-            len: 3,
-        };
+        let blob = Blob { data, len: 3 };
 
         // Verify the blob properties
         assert_eq!(blob.len, 3);
@@ -95,10 +92,7 @@ mod tests {
         data[0] = 0x12;
         data[1] = 0x34;
 
-        let blob1 = Blob {
-            data,
-            len: 2,
-        };
+        let blob1 = Blob { data, len: 2 };
 
         // Clone the blob
         let blob2 = blob1.clone();
@@ -115,10 +109,7 @@ mod tests {
         let mut data = [0u8; BLOB_SIZE];
         data[0] = 0xAA;
 
-        let blob1 = Blob {
-            data,
-            len: 1,
-        };
+        let blob1 = Blob { data, len: 1 };
 
         // Copy the blob
         let blob2 = blob1;
@@ -159,15 +150,9 @@ mod tests {
         // Create two blobs with same data but different lengths
         let data = [0u8; BLOB_SIZE];
 
-        let blob1 = Blob {
-            data,
-            len: 10,
-        };
+        let blob1 = Blob { data, len: 10 };
 
-        let blob2 = Blob {
-            data,
-            len: 20,
-        };
+        let blob2 = Blob { data, len: 20 };
 
         // Verify inequality
         assert_ne!(blob1, blob2);
@@ -231,10 +216,7 @@ mod tests {
             data[i] = i as u8;
         }
 
-        let blob = Blob {
-            data,
-            len: 256,
-        };
+        let blob = Blob { data, len: 256 };
 
         // Verify the pattern
         assert_eq!(blob.len, 256);
@@ -249,10 +231,7 @@ mod tests {
         // This represents a blob where no actual data is valid
         let data = [0xFF; BLOB_SIZE];
 
-        let blob = Blob {
-            data,
-            len: 0,
-        };
+        let blob = Blob { data, len: 0 };
 
         // Verify length is zero even though buffer has data
         assert_eq!(blob.len, 0);
