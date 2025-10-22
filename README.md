@@ -4,52 +4,16 @@ The XRPL Standard Library provides safe, type-safe access to XRPL host functions
 
 ## Quick Start
 
-Add to your `Cargo.toml`:
+There is an interface available at https://ripple.github.io/xrpl-wasm-std/ui/ for local or Devnet testing.
 
-```toml
-[dependencies]
-xrpl-wasm-std = { path = "../xrpl-wasm-std" }
+### Examples Overview
 
-[lib]
-crate-type = ["cdylib"]
-
-[profile.release]
-opt-level = "s"
-lto = true
-panic = "abort"
-```
-
-Create a simple escrow contract:
-
-```rust
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
-use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
-use xrpl_wasm_std::core::types::amount::Amount;
-use xrpl_wasm_std::host::Result::{Ok, Err};
-
-#[unsafe(no_mangle)]
-pub extern "C" fn finish() -> i32 {
-    let tx = EscrowFinish;
-    let account = match tx.get_account() {
-        Ok(acc) => acc,
-        Err(_) => return 0,
-    };
-
-    // Release escrow if balance > 10 XRP
-    match get_account_balance(&account) {
-        Ok(Some(Amount::XRP { num_drops })) if num_drops > 10_000_000 => 1, // Release
-        _ => 0, // Keep locked
-    }
-}
-```
-
-Build and test:
-
-```shell
-cargo build --target wasm32v1-none --release
-./scripts/run-tests.sh examples/your-project
-```
+- **[hello_world](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/hello_world/)** - Basic escrow with logging
+- **[oracle](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/oracle/)** - Price-based release using oracle data
+- **[kyc](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/kyc/)** - Credential-based verification
+- **[notary](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/notary/)** - Multi-signature authorization
+- **[nft_owner](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/nft_owner/)** - NFT ownership verification
+- **[ledger_sqn](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/ledger_sqn/)** - Sequence-based release
 
 ## Documentation
 
@@ -71,20 +35,7 @@ The complete developer guide includes:
 - **Memory-safe operations** with no heap allocations
 - **Deterministic execution** across all nodes/validators
 - **Zero-cost abstractions** over host functions
-- **Comprehensive error handling** with custom Result types
-
-## Examples Overview
-
-- **[hello_world](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/hello_world/)** - Basic escrow with logging
-- **[oracle](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/oracle/)** - Price-based release using oracle data
-- **[kyc](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/kyc/)** - Credential-based verification
-- **[notary](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/notary/)** - Multi-signature authorization
-- **[nft_owner](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/nft_owner/)** - NFT ownership verification
-- **[ledger_sqn](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/ledger_sqn/)** - Sequence-based release
-
-## Testing UI
-
-There is an interface available at https://ripple.github.io/xrpl-wasm-std/ui/ for local or Devnet testing.
+- **Comprehensive error handling** with custom `Result` types
 
 ## Safety and Constraints
 
