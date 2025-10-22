@@ -525,4 +525,4 @@ match risky_operation() {
 ## See Also
 
 - [EscrowFinish Documentation](https://xrpl.org/docs/references/protocol/transactions/types/escrowfinish)
-- [Example Projects](../examples/)
+- [Example Projects](/examples/)
