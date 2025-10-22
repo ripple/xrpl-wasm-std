@@ -2,60 +2,7 @@
 
 The XRPL Standard Library provides safe, type-safe access to XRPL host functions for WebAssembly smart contract development. This `no_std` library offers zero-cost abstractions over raw host function calls and handles memory management, error handling, and type conversions.
 
-## Table of Contents
-
-- [xrpl-wasm-std Library](#xrpl-wasm-std-library)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Installation](#installation)
-  - [Core Concepts](#core-concepts)
-    - [Host Functions](#host-functions)
-    - [Memory Model](#memory-model)
-    - [Error Handling](#error-handling)
-  - [API Reference](#api-reference)
-    - [Transaction Access](#transaction-access)
-    - [Ledger Object Access](#ledger-object-access)
-    - [Type System](#type-system)
-    - [Field Access](#field-access)
-      - [Direct Field Access](#direct-field-access)
-      - [Nested Field Access](#nested-field-access)
-    - [Keylet Generation](#keylet-generation)
-    - [Cryptographic Functions](#cryptographic-functions)
-    - [State Management](#state-management)
-    - [Logging and Debugging](#logging-and-debugging)
-  - [Required Module Exports](#required-module-exports)
-  - [Usage Examples](#usage-examples)
-    - [Basic Balance Check](#basic-balance-check)
-    - [Using classic (r...) addresses](#using-classic-r-addresses)
-    - [Build and run your contract](#build-and-run-your-contract)
-    - [Time-based Release](#time-based-release)
-    - [Credential Verification](#credential-verification)
-  - [Safety and Constraints](#safety-and-constraints)
-    - [Memory Safety](#memory-safety)
-    - [Execution Constraints](#execution-constraints)
-    - [Security Considerations](#security-considerations)
-  - [Error Handling](#error-handling-1)
-    - [Best Practices](#best-practices)
-    - [Common Error Scenarios](#common-error-scenarios)
-  - [Best Practices](#best-practices-1)
-    - [1. Minimize Host Function Calls](#1-minimize-host-function-calls)
-    - [2. Handle Optional Fields](#2-handle-optional-fields)
-    - [3. Use Type-Safe APIs](#3-use-type-safe-apis)
-    - [4. Fail Safely](#4-fail-safely)
-    - [5. Test Thoroughly](#5-test-thoroughly)
-  - [See Also](#see-also)
-
-## Overview
-
-The xrpl-wasm-std library is designed for developing WebAssembly modules that implement conditional logic for XRPL Escrow objects. It provides:
-
-- **Type-safe access** to transaction and ledger data
-- **Memory-safe operations** with no heap allocations
-- **Deterministic execution** across all nodes/validators
-- **Zero-cost abstractions** over host functions
-- **Comprehensive error handling** with custom Result types
-
-## Installation
+## Quick Start
 
 Add to your `Cargo.toml`:
 
@@ -69,460 +16,93 @@ crate-type = ["cdylib"]
 [profile.release]
 opt-level = "s"
 lto = true
+panic = "abort"
 ```
 
-## Core Concepts
+Create a simple escrow contract:
 
-### Host Functions
-
-The library provides access to host functions through safe Rust APIs. Host functions allow:
-
-- **Reading** transaction data
-- **Accessing** ledger objects
-- **Computing** cryptographic hashes
-- **Updating** escrow state (limited)
-- **Tracing** for debugging
-
-### Memory Model
-
-- **Stack-based**: All allocations are on the stack
-- **Fixed buffers**: Predefined sizes for each type
-- **No heap**: Compatible with `no_std` environments
-- **Linear memory**: WASM linear memory for data exchange
-
-### Error Handling
-
-All fallible operations return `Result<T>` with specific error codes:
-
-```rust,ignore
-pub enum Error {
-    InternalError = -1,        // Internal invariant violation
-    FieldNotFound = -2,        // Requested field doesn't exist
-    BufferTooSmall = -3,       // Buffer too small for data
-    NoFreeSlots = -8,          // No cache slots available
-    PointerOutOfBound = -13,   // Memory access violation
-}
-```
-
-## API Reference
-
-### Transaction Access
-
-Access fields from the current transaction being processed:
-
-```rust,ignore
+```rust
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
+use xrpl_wasm_std::core::types::amount::Amount;
+use xrpl_wasm_std::host::Result::{Ok, Err};
 
-// Create an instance to access the current EscrowFinish transaction
-let tx = EscrowFinish;
-
-// Access common transaction fields
-let account = tx.get_account()?;                   // Transaction sender
-let fee = tx.get_fee()?;                           // Fee in drops
-let sequence = tx.get_sequence()?;                 // Account sequence
-let flags = tx.get_flags()?;                       // Transaction flags
-let signing_key = tx.get_signing_pub_key()?;       // Signing public key
-
-// Access EscrowFinish-specific fields
-let owner = tx.get_owner()?;                       // Escrow creator
-let offer_sequence = tx.get_offer_sequence()?;     // EscrowCreate sequence
-let condition = tx.get_condition()?;               // Optional crypto-condition
-let fulfillment = tx.get_fulfillment()?;           // Optional fulfillment
-```
-
-### Ledger Object Access
-
-Access ledger objects like accounts, escrows, and other on-ledger data:
-
-```rust,ignore
-use xrpl_wasm_std::core::ledger_objects::{
-    current_escrow::get_current_escrow,
-    account::get_account_balance,
-};
-
-// Get the current escrow object
-let escrow = get_current_escrow();
-
-// Access escrow fields
-let destination = escrow.get_destination()?;
-let amount = escrow.get_amount()?;
-let condition = escrow.get_condition()?;
-let cancel_after = escrow.get_cancel_after()?;
-let finish_after = escrow.get_finish_after()?;
-
-// Get account balance
-let balance = get_account_balance(&account)?;  // Returns drops (u64)
-```
-
-### Type System
-
-Core types for XRPL data:
-
-```rust,ignore
-use xrpl_wasm_std::core::types::*;
-
-// Account identifier (20 bytes)
-let account: AccountID = /* ... */;
-
-// Transaction/ledger hash (32 bytes)
-let hash: Hash256 = /* ... */;
-
-// Public key (33 bytes compressed)
-let pubkey: PublicKey = /* ... */;
-
-// Variable-length data (max 1024 bytes)
-let data: Blob = /* ... */;
-
-// XRP amount (drops)
-let amount: Amount = /* ... */;
-
-// Transaction type enumeration
-let tx_type: TransactionType = TransactionType::EscrowFinish;
-```
-
-### Field Access
-
-#### Direct Field Access
-
-Access top-level fields from transactions or objects:
-
-```rust,ignore
-use xrpl_wasm_std::host::get_tx_field;
-use xrpl_wasm_std::sfield;
-
-// Get a field by its field code
-let mut buffer = [0u8; 20];
-let len = get_tx_field(sfield::Account, 0, &mut buffer)?;
-```
-
-#### Nested Field Access
-
-Access fields within complex objects using locators:
-
-```rust,ignore
-use xrpl_wasm_std::core::locator::Locator;
-use xrpl_wasm_std::host::get_tx_nested_field;
-use xrpl_wasm_std::sfield;
-
-// Build a locator for Memos[0].MemoType
-let mut locator = Locator::new();
-locator.pack(sfield::Memos);      // Array field
-locator.pack(0);                   // Array index
-locator.pack(sfield::MemoType);    // Field within object
-
-// Get the nested field
-let mut buffer = [0u8; 256];
-let len = get_tx_nested_field(&locator.buffer, &mut buffer)?;
-```
-
-**Important**: For STArray navigation, omit the intermediate object wrapper:
-
-- ✅ `Memos → [0] → MemoType`
-- ❌ `Memos → [0] → Memo → MemoType`
-
-### Keylet Generation
-
-Generate unique identifiers for ledger objects:
-
-```rust,ignore
-use xrpl_wasm_std::core::types::keylets::*;
-
-// Account keylet
-let account_key = account_keylet(&account_id)?;
-
-// Escrow keylet
-let escrow_key = escrow_keylet(&owner, sequence)?;
-
-// Oracle keylet
-let oracle_key = oracle_keylet(&owner, document_id)?;
-
-// Credential keylet
-let cred_key = credential_keylet(&subject, &issuer, credential_type)?;
-```
-
-### Cryptographic Functions
-
-```rust,ignore
-use xrpl_wasm_std::core::crypto::compute_sha512_half;
-
-// Compute SHA-512 half (first 32 bytes)
-let mut hash = [0u8; 32];
-compute_sha512_half(data, &mut hash)?;
-```
-
-### State Management
-
-The only allowed state modification:
-
-```rust,ignore
-use xrpl_wasm_std::core::ledger_objects::current_escrow::update_data;
-
-// Update the escrow's data field (max 256 bytes)
-let new_data = b"execution result";
-update_data(new_data)?;
-```
-
-### Logging and Debugging
-
-Debug output during development:
-
-```rust,ignore
-use xrpl_wasm_std::host::trace::{trace, trace_data, trace_num, DataRepr};
-
-// Simple text trace
-trace("Processing escrow finish")?;
-
-// Trace with data
-trace_data("Account ID", &account_id, DataRepr::AsHex)?;
-trace_data("Message", b"Hello", DataRepr::AsUTF8)?;
-
-// Trace with number
-trace_num("Balance", balance as i64)?;
-```
-
-## Required Module Exports
-
-Every WASM module must export the following function:
-
-```rust,ignore
-#![no_std]
-#![no_main]
-
-/// Main entry point - returns 1 to release escrow, 0 to keep locked
-/// Can also return any positive value to release, or any negative value to keep locked
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
-    // Your conditional logic here
-    1  // Release escrow (or 0 to keep locked)
-}
-```
-
-Only `finish()` must be exported.
-
-## Usage Examples
-
-### Basic Balance Check
-
-```rust,ignore
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::ledger_objects::account::get_account_balance;
-
-#[no_mangle]
-pub extern "C" fn finish() -> i32 {
-    // Get transaction sender
     let tx = EscrowFinish;
     let account = match tx.get_account() {
         Ok(acc) => acc,
         Err(_) => return 0,
     };
 
-    // Check if balance > 10 XRP
+    // Release escrow if balance > 10 XRP
     match get_account_balance(&account) {
-        Ok(balance) => {
-            if balance > 10_000_000 {  // 10 XRP in drops
-                1  // Release escrow
-            } else {
-                0  // Keep locked
-            }
-        },
-        Err(_) => 0,
+        Ok(Some(Amount::XRP { num_drops })) if num_drops > 10_000_000 => 1, // Release
+        _ => 0, // Keep locked
     }
 }
 ```
 
-### Using classic (r...) addresses
-
-Contracts compare 20-byte AccountID values. If you have a classic XRPL address (r...) during development, use the `r_address!` macro to convert it to a `[u8; 20]` constant at compile time:
-
-```rust
-use xrpl_wasm_std::r_address;
-
-const NOTARY: [u8; 20] = r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");
-```
-
-The macro runs at compile time and only accepts string literals (not runtime values). No base58 decoding code is included in the final WASM binary. See `examples/notary` for a complete example.
-
-### Build and run your contract
-
-Build a contract for WASM and run it with the host:
+Build and test:
 
 ```shell
 cargo build --target wasm32v1-none --release
+./scripts/run-tests.sh examples/your-project
 ```
 
-```shell
-# From the wasm-host-simulator crate:
-cargo run -p wasm-host-simulator -- --dir path/to/project --project project_name --function finish
-```
+## Documentation
 
-### Time-based Release
+| Section                                                                     | Description                                     |
+| --------------------------------------------------------------------------- | ----------------------------------------------- |
+| **[Complete Developer Guide](./target/doc/xrpl_wasm_std/guide/index.html)** | Comprehensive guide with working internal links |
+| **[Rust API Docs](https://ripple.github.io/xrpl-wasm-std)**                 | Generated API documentation (`cargo doc`)       |
 
-```rust,ignore
-use xrpl_wasm_std::core::ledger_objects::current_escrow::get_current_escrow;
-use xrpl_wasm_std::host::host_bindings::get_parent_ledger_time;
+The complete developer guide includes:
 
-#[no_mangle]
-pub extern "C" fn finish() -> i32 {
-    // Get current time (returns i32 directly)
-    let current_time = unsafe { get_parent_ledger_time() };
-    if current_time <= 0 {
-        return 0; // Error getting time, don't release
-    }
+- Getting Started - Installation, first contract, core concepts
+- API Reference - Complete API documentation and usage patterns
+- Examples - Smart escrow examples and tutorials
+- Development Guide - Building, testing, and CI setup
 
-    // Get escrow finish_after time
-    let escrow = get_current_escrow();
-    let finish_after = match escrow.get_finish_after() {
-        Ok(Some(time)) => time,
-        _ => return 0, // No finish_after set, don't release
-    };
+## Key Features
 
-    // Release if current time >= finish_after
-    if current_time as u32 >= finish_after {
-        1  // Release escrow
-    } else {
-        0  // Keep locked
-    }
-}
-```
+- **Type-safe access** to transaction and ledger data
+- **Memory-safe operations** with no heap allocations
+- **Deterministic execution** across all nodes/validators
+- **Zero-cost abstractions** over host functions
+- **Comprehensive error handling** with custom Result types
 
-### Credential Verification
+## Examples Overview
 
-```rust,ignore
-use xrpl_wasm_std::core::types::keylets::credential_keylet;
-use xrpl_wasm_std::host::cache_ledger_obj;
+- **[hello_world](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/hello_world/)** - Basic escrow with logging
+- **[oracle](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/oracle/)** - Price-based release using oracle data
+- **[kyc](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/kyc/)** - Credential-based verification
+- **[notary](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/notary/)** - Multi-signature authorization
+- **[nft_owner](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/nft_owner/)** - NFT ownership verification
+- **[ledger_sqn](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/ledger_sqn/)** - Sequence-based release
 
-#[no_mangle]
-pub extern "C" fn finish() -> i32 {
-    let tx = EscrowFinish;
-    let account = tx.get_account().unwrap_or_default();
+## Testing UI
 
-    // Generate credential keylet
-    let keylet = match credential_keylet(
-        &account,
-        &issuer_account,
-        b"KYC"
-    ) {
-        Ok(k) => k,
-        Err(_) => return 0,
-    };
-
-    // Try to load credential (returns slot number if exists)
-    match cache_ledger_obj(&keylet.data) {
-        Ok(_) => 1,   // Credential exists, release escrow
-        Err(_) => 0,  // No credential, keep locked
-    }
-}
-```
+There is an interface available at https://ripple.github.io/xrpl-wasm-std/ui/ for local or Devnet testing.
 
 ## Safety and Constraints
 
-### Memory Safety
+Smart escrows run in a constrained WebAssembly environment:
 
-- All buffers are stack-allocated with fixed sizes
-- No dynamic memory allocation
-- Bounds checking on all array access
-- Safe abstractions over raw pointers
+- **Read-only ledger access** (except escrow data updates)
+- **Deterministic execution** required
+- **Resource limits** enforced
+- **No network/file system** access
 
-### Execution Constraints
+## Contributing
 
-- **Deterministic**: Same inputs must produce same outputs
-- **Read-only**: Only `update_data()` can modify state
-- **Resource-limited**: Bounded by computation allowance
-- **Isolated**: No network or file system access
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines on:
 
-### Security Considerations
+- Development setup and workflow
+- Code standards and style guidelines
+- Pull request process
+- Testing requirements
+- Release procedures
 
-- Always validate input data
-- Handle all error cases explicitly
-- Avoid panics in production code
-- Test with malicious inputs
-
-## Error Handling
-
-### Best Practices
-
-```rust,ignore
-// Prefer early returns for errors
-let account = match tx.get_account() {
-    Ok(acc) => acc,
-    Err(_) => return false,
-};
-
-// Or use the ? operator in helper functions
-fn check_balance(account: &AccountID) -> Result<bool> {
-    let balance = get_account_balance(account)?;
-    Ok(balance > 1_000_000)
-}
-
-// Handle specific errors
-match get_account_balance(&account) {
-    Ok(balance) => { /* use balance */ },
-    Err(Error::FieldNotFound) => { /* handle missing field */ },
-    Err(Error::NoFreeSlots) => { /* handle cache full */ },
-    Err(_) => { /* handle other errors */ },
-}
-```
-
-### Common Error Scenarios
-
-1. **FieldNotFound**: Optional field not present
-2. **NoFreeSlots**: Ledger object cache full (max 255 slots)
-3. **OutOfBounds**: Buffer too small for data
-4. **InternalError**: Unexpected host function failure
-
-## Best Practices
-
-### 1. Minimize Host Function Calls
-
-```rust,ignore
-// Bad: Multiple calls for same data
-let balance1 = get_account_balance(&account)?;
-let balance2 = get_account_balance(&account)?;
-
-// Good: Cache the result
-let balance = get_account_balance(&account)?;
-// Use balance multiple times
-```
-
-### 2. Handle Optional Fields
-
-```rust,ignore
-// Check if optional field exists
-match tx.get_source_tag()? {
-    Some(tag) => { /* use tag */ },
-    None => { /* handle absence */ },
-}
-```
-
-### 3. Use Type-Safe APIs
-
-```rust,ignore
-// Prefer high-level APIs
-let balance = get_account_balance(&account)?;
-
-// Over raw field access
-let mut buffer = [0u8; 8];
-get_ledger_obj_field(slot, sfield::Balance, 0, &mut buffer)?;
-```
-
-### 4. Fail Safely
-
-```rust,ignore
-// Return false on any error to keep escrow locked
-match risky_operation() {
-    Ok(result) => result,
-    Err(_) => false,  // Safe default
-}
-```
-
-### 5. Test Thoroughly
-
-- Test with success and failure fixtures
-- Verify deterministic behavior
-- Check edge cases and error conditions
-- Test with maximum data sizes
-
-## See Also
-
-- [EscrowFinish Documentation](https://xrpl.org/docs/references/protocol/transactions/types/escrowfinish)
-- [Example Projects](/examples/)
+We welcome contributions of all kinds!

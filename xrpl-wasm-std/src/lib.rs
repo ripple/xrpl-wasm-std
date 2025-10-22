@@ -9,17 +9,15 @@ pub mod host;
 pub mod sfield;
 pub mod types;
 
-/// Additional guides and how-tos
-// #[cfg(doc)]
-// pub mod guides {
-//     /// XRPL Field Access and Locators guide
-//     #[doc = include_str!("../../docs/FIELD_ACCESS.md")]
-//     pub mod field_access {}
-
-//     /// XRPL Float Operations (IOU format and math)
-//     #[doc = include_str!("../../docs/FLOAT_OPERATIONS.md")]
-//     pub mod float_operations {}
-// }
+/// Complete Developer Guide
+///
+/// This comprehensive guide covers everything you need to develop smart escrows using
+/// the XRPL WebAssembly Standard Library, from getting started to advanced development.
+///
+/// All internal links work properly within this single documentation page.
+#[cfg(doc)]
+#[doc = include_str!("../../docs/comprehensive-guide.md")]
+pub mod guide {}
 
 /// This function is called on panic but only in the WASM architecture. In non-WASM (e.g., in the
 /// Host Simulator) the standard lib is available, which includes a panic handler.

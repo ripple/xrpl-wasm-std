@@ -92,7 +92,7 @@ pub trait CurrentLedgerObjectCommonFields {
     /// # Returns
     ///
     /// The flags as a u32 value
-    fn get_get_flags(&self) -> Result<u32> {
+    fn get_flags(&self) -> Result<u32> {
         current_ledger_object::get_u32_field(sfield::Flags)
     }
 

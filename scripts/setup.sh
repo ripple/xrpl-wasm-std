@@ -14,9 +14,7 @@ echo "🔧 Setting up development environment..."
 
 # Check if Rust is installed
 if ! command -v rustup &> /dev/null; then
-    echo "❌ Rust/rustup not found. Please install Rust first:"
-    echo "   Visit: https://rustup.rs/"
-    echo "   Or run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    echo "❌ Rust/rustup not found. Please install Rust first."
     exit 1
 fi
 
