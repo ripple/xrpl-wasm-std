@@ -25,7 +25,7 @@ cargo build --target wasm32v1-none --release
 Artifact:
 
 ```
-examples/smart-escrows/helloworld/target/wasm32v1-none/release/helloworld.wasm
+examples/smart-escrows/hello_world/target/wasm32v1-none/release/helloworld.wasm
 ```
 
 ### 3. Deploy WASM to Devnet & Execute
@@ -35,7 +35,7 @@ to run the script from this project's root folder).
 
 ```shell
 cd ../../..
-CI=1 ./scripts/run-tests.sh examples/smart-escrows/helloworld
+CI=1 ./scripts/run-tests.sh examples/smart-escrows/hello_world
 ```
 
 This will:
