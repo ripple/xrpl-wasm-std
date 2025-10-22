@@ -1,6 +1,6 @@
 use crate::core::ledger_objects::traits::{AccountFields, LedgerObjectCommonFields};
 use crate::core::types::account_id::AccountID;
-use crate::core::types::amount::token_amount::TokenAmount;
+use crate::core::types::amount::Amount;
 use crate::core::types::keylets::account_keylet;
 use crate::host;
 use host::Error;
@@ -19,7 +19,7 @@ impl LedgerObjectCommonFields for AccountRoot {
 
 impl AccountFields for AccountRoot {}
 
-pub fn get_account_balance(account_id: &AccountID) -> host::Result<Option<TokenAmount>> {
+pub fn get_account_balance(account_id: &AccountID) -> host::Result<Option<Amount>> {
     // Construct the account keylet. This calls a host function, so propagate the error via `?`
     let account_keylet = match account_keylet(account_id) {
         host::Result::Ok(keylet) => keylet,

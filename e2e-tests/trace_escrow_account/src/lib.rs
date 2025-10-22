@@ -8,7 +8,7 @@ use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::core::ledger_objects::account_root::{AccountRoot, get_account_balance};
 use xrpl_wasm_std::core::ledger_objects::traits::{AccountFields, LedgerObjectCommonFields};
 use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
+use xrpl_wasm_std::core::types::amount::Amount;
 use xrpl_wasm_std::host::cache_ledger_obj;
 use xrpl_wasm_std::host::trace::{DataRepr, trace, trace_data, trace_num};
 use xrpl_wasm_std::{assert_eq, decode_hex_32};
@@ -29,11 +29,11 @@ pub extern "C" fn finish() -> i32 {
         let _ = trace("{ ");
         let account: AccountID = escrow_finish.get_account().unwrap();
         let balance = match get_account_balance(&account).unwrap().unwrap() {
-            TokenAmount::XRP { num_drops } => num_drops,
-            TokenAmount::IOU { .. } => {
+            Amount::XRP { num_drops } => num_drops,
+            Amount::IOU { .. } => {
                 panic!("IOU Balance encountered, but should have been XRP.")
             }
-            TokenAmount::MPT { .. } => {
+            Amount::MPT { .. } => {
                 panic!("MPT Balance encountered, but should have been XRP.")
             }
         };
@@ -123,11 +123,11 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace the `Balance`
         let balance = match account.balance().unwrap().unwrap() {
-            TokenAmount::XRP { num_drops } => num_drops,
-            TokenAmount::IOU { .. } => {
+            Amount::XRP { num_drops } => num_drops,
+            Amount::IOU { .. } => {
                 panic!("IOU Balance encountered, but should have been XRP.")
             }
-            TokenAmount::MPT { .. } => {
+            Amount::MPT { .. } => {
                 panic!("MPT Balance encountered, but should have been XRP.")
             }
         };

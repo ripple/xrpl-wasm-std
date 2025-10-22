@@ -59,7 +59,7 @@
 //! ```
 
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-use crate::core::types::amount::token_amount::{TOKEN_AMOUNT_SIZE, TokenAmount};
+use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
 use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
 use crate::core::types::public_key::PublicKey;
@@ -105,7 +105,7 @@ fn get_account_id_field(field_code: i32) -> Result<AccountID> {
     match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
 }
 
-/// Retrieves a `TokenAmount` field from the current ledger object.
+/// Retrieves a `Amount` field from the current ledger object.
 ///
 /// # Arguments
 ///
@@ -113,16 +113,16 @@ fn get_account_id_field(field_code: i32) -> Result<AccountID> {
 ///
 /// # Returns
 ///
-/// Returns a `Result<TokenAmount>` where:
+/// Returns a `Result<Amount>` where:
 /// * `Ok(AccountID)` - The account identifier for the specified field
 /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
 #[inline]
-fn get_amount_field(field_code: i32) -> Result<TokenAmount> {
-    let mut buffer = [0u8; TOKEN_AMOUNT_SIZE]; // Enough to hold an Amount
+fn get_amount_field(field_code: i32) -> Result<Amount> {
+    let mut buffer = [0u8; AMOUNT_SIZE]; // Enough to hold an Amount
 
     let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
 
-    match_result_code(result_code, || TokenAmount::from(buffer))
+    match_result_code(result_code, || Amount::from(buffer))
 }
 
 /// Retrieves a `u32` field from the current transaction.

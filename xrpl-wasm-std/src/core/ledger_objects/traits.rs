@@ -1,11 +1,11 @@
 use crate::core::ledger_objects::{current_ledger_object, ledger_object};
 use crate::core::types::account_id::AccountID;
-use crate::core::types::amount::token_amount::TokenAmount;
+use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 use crate::core::types::crypto_condition::Condition;
+use crate::core::types::hash_128::Hash128;
 use crate::core::types::hash_256::Hash256;
-use crate::core::types::uint_128::UInt128;
 /// This module provides traits for interacting with XRP Ledger objects.
 ///
 /// It defines common interfaces for accessing and manipulating different types of ledger objects,
@@ -120,7 +120,7 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
     }
 
     /// The amount currently held in the escrow (could be XRP, IOU, or MPT).
-    fn get_amount(&self) -> Result<TokenAmount> {
+    fn get_amount(&self) -> Result<Amount> {
         current_ledger_object::get_amount_field(sfield::Amount)
     }
 
@@ -259,8 +259,8 @@ pub trait EscrowFields: LedgerObjectCommonFields {
     }
 
     /// The amount of XRP, in drops, currently held in the escrow.
-    fn get_amount(&self) -> Result<TokenAmount> {
-        // Create a buffer large enough for any TokenAmount type
+    fn get_amount(&self) -> Result<Amount> {
+        // Create a buffer large enough for any Amount type
         const BUFFER_SIZE: usize = 48usize;
         let mut buffer = [0u8; BUFFER_SIZE];
 
@@ -273,7 +273,7 @@ pub trait EscrowFields: LedgerObjectCommonFields {
             )
         };
 
-        match_result_code(result_code, || TokenAmount::from(buffer))
+        match_result_code(result_code, || Amount::from(buffer))
     }
 
     /// The escrow can be canceled if and only if this field is present and the time it specifies
@@ -419,7 +419,7 @@ pub trait AccountFields: LedgerObjectCommonFields {
     }
 
     /// The account's current XRP balance in drops.
-    fn balance(&self) -> Result<Option<TokenAmount>> {
+    fn balance(&self) -> Result<Option<Amount>> {
         ledger_object::get_amount_field_optional(self.get_slot_num(), sfield::Balance)
     }
 
@@ -436,8 +436,8 @@ pub trait AccountFields: LedgerObjectCommonFields {
     }
 
     /// The MD5 hash of an email address. Clients can use this to look up an avatar through services such as Gravatar.
-    fn email_hash(&self) -> Result<Option<UInt128>> {
-        ledger_object::get_uint_128_field_optional(self.get_slot_num(), sfield::EmailHash)
+    fn email_hash(&self) -> Result<Option<Hash128>> {
+        ledger_object::get_hash_128_field_optional(self.get_slot_num(), sfield::EmailHash)
     }
 
     /// The account's Sequence Number at the time it minted its first non-fungible-token.
