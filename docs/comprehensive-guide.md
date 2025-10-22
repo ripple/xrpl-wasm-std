@@ -103,7 +103,7 @@ Let's create a simple escrow that releases funds when an account balance exceeds
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
-use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
+use xrpl_wasm_std::core::types::amount::Amount;
 use xrpl_wasm_std::host::Result::{Ok, Err};
 
 #[unsafe(no_mangle)]
@@ -118,7 +118,7 @@ pub extern "C" fn finish() -> i32 {
 
     // Check account balance
     match get_account_balance(&account) {
-        Ok(Some(TokenAmount::XRP { num_drops })) if num_drops > 10_000_000 => 1, // Release (>10 XRP)
+        Ok(Some(Amount::XRP { num_drops })) if num_drops > 10_000_000 => 1, // Release (>10 XRP)
         _ => 0, // Keep locked
     }
 }
@@ -223,7 +223,7 @@ use xrpl_wasm_std::sfield;
 let tx = EscrowFinish;
 
 // Access transaction fields using trait methods
-let fee_amount = tx.get_fee().ok(); // Returns TokenAmount
+let fee_amount = tx.get_fee().ok(); // Returns Amount
 let account_id = tx.get_account().ok(); // Returns AccountID
 let sequence = tx.get_sequence().ok(); // Returns u32
 
@@ -245,7 +245,7 @@ use xrpl_wasm_std::sfield;
 
 let account = AccountID::from([0u8; 20]); // Replace with real account
 
-// Get XRP balance (in drops) - returns Option<TokenAmount>
+// Get XRP balance (in drops) - returns Option<Amount>
 let balance = get_account_balance(&account);
 
 // Use host functions to get account fields directly
@@ -277,12 +277,9 @@ let nft_data = get_nft(&owner, &nft);
 ```rust ignore
 use xrpl_wasm_std::core::types::{
     account_id::AccountID,           // 20-byte XRPL account identifier
-    amount::token_amount::TokenAmount, // Token amounts (XRP, IOU, MPT)
-    amount::currency_code::CurrencyCode, // Currency codes
-    hash_256::Hash256,               // 32-byte hash
+    amount::Amount, // Token amounts (XRP, IOU, MPT)
 };
 use xrpl_wasm_std::types::NFT;      // [u8; 32] NFT identifier
-use xrpl_wasm_std::core::types::keylets::KeyletBytes; // [u8; 32] keylet
 
 // Create AccountID from r-address (if r_address macro exists)
 // let account = xrpl_wasm_std::r_address!("rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH");
@@ -355,7 +352,7 @@ fn main() {
     }
 
     let account_root = AccountRoot { slot_num: slot };
-    let balance = account_root.balance();  // Returns Option<TokenAmount>
+    let balance = account_root.balance();  // Returns Option<Amount>
     let sequence = account_root.sequence(); // Returns u32
 }
 ```
@@ -372,7 +369,7 @@ fn main() {
 
     // Access common transaction fields
     let account = tx.get_account(); // AccountID
-    let fee = tx.get_fee(); // TokenAmount
+    let fee = tx.get_fee(); // Amount
     let sequence = tx.get_sequence(); // u32
 
     // Access EscrowFinish-specific fields
@@ -392,7 +389,7 @@ use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::core::ledger_objects::account_root::{get_account_balance, AccountRoot};
 use xrpl_wasm_std::core::ledger_objects::traits::AccountFields;
 use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
+use xrpl_wasm_std::core::types::amount::Amount;
 use xrpl_wasm_std::core::types::keylets::account_keylet;
 use xrpl_wasm_std::host::{cache_ledger_obj, Error, Result};
 use xrpl_wasm_std::host::Result::{Ok, Err};
@@ -431,7 +428,7 @@ fn process_escrow() -> Result<i32> {
     }
 
     return Ok(match balance {
-        Ok(Some(TokenAmount::XRP { num_drops })) if num_drops > 10_000_000 => 1,
+        Ok(Some(Amount::XRP { num_drops })) if num_drops > 10_000_000 => 1,
         _ => 0,
     })
 }
@@ -636,7 +633,7 @@ let slot = unsafe { cache_ledger_obj(account_keylet.as_ptr(), account_keylet.len
 let account_root = AccountRoot { slot_num: slot };
 
 // Use trait methods to access fields efficiently
-let balance = account_root.balance();        // Option<TokenAmount>
+let balance = account_root.balance();        // Option<Amount>
 let sequence = account_root.sequence();      // u32
 let owner_count = account_root.owner_count(); // u32
 ```
