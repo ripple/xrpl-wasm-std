@@ -109,7 +109,3 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines on:
 - Release procedures
 
 We welcome contributions of all kinds!
-
-## License
-
-Licensed under either of Apache License, Version 2.0 or MIT license at your option.
