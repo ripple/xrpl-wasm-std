@@ -20,7 +20,6 @@ This comprehensive guide covers everything you need to develop smart escrows usi
       - [Field Access](#field-access)
     - [Ledger Objects](#ledger-objects)
       - [Account Information](#account-information)
-      - [Trust Lines](#trust-lines)
       - [NFT Objects](#nft-objects)
     - [Type System](#type-system)
       - [Core Types](#core-types)
@@ -100,13 +99,12 @@ npm install
 Let's create a simple escrow that releases funds when an account balance exceeds 10 XRP:
 
 ```rust
-#![no_std]
-#![no_main]
 
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
 use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
+use xrpl_wasm_std::host::Result::{Ok, Err};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -201,8 +199,6 @@ The XRPL WASM Standard Library provides type-safe access to transaction data thr
 #### EscrowFinish Transaction
 
 ```rust ignore
-#![no_std]
-#![no_main]
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 
 let tx = EscrowFinish;
@@ -220,8 +216,6 @@ let escrow_sequence = tx.get_escrow_sequence().unwrap();
 #### Field Access
 
 ```rust
-#![no_std]
-#![no_main]
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::sfield;
@@ -245,8 +239,6 @@ Access current ledger state through the `ledger_objects` module.
 #### Account Information
 
 ```rust
-#![no_std]
-#![no_main]
 use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
 use xrpl_wasm_std::core::types::account_id::AccountID;
 use xrpl_wasm_std::sfield;
@@ -254,20 +246,10 @@ use xrpl_wasm_std::sfield;
 let account = AccountID::from([0u8; 20]); // Replace with real account
 
 // Get XRP balance (in drops) - returns Option<TokenAmount>
-let balance = get_account_balance(&account)?;
+let balance = get_account_balance(&account);
 
 // Use host functions to get account fields directly
 // (Note: Specific helper functions may vary based on current API)
-```
-
-#### Trust Lines
-
-```rust ignore
-// Trust line functionality is not yet implemented in this version
-// Future versions will provide trust line access through ledger object queries
-
-// For now, use low-level host functions to access trust line data
-// or work with XRP amounts only through account balances
 ```
 
 #### NFT Objects
@@ -282,7 +264,7 @@ let owner = AccountID::from([0u8; 20]);
 let nft: NFT = [0u8; 32]; // 32-byte NFT identifier
 
 // Get NFT data
-let nft_data = get_nft(&owner, &nft)?;
+let nft_data = get_nft(&owner, &nft);
 
 // Note: Higher-level NFT functions like ownership checking
 // and page queries are not yet implemented
@@ -333,19 +315,19 @@ let account = AccountID::from([0u8; 20]);
 let sequence = 12345i32;
 
 // Account keylet
-let keylet = account_keylet(&account)?;
+let keylet = account_keylet(&account);
 
 // Trust line keylet (requires Asset types)
 let asset1 = Asset::XRP(XrpAsset {});
 let asset2 = Asset::IOU(IouAsset::new(issuer, currency));
-let keylet = line_keylet(&account, &asset1, &asset2)?;
+let keylet = line_keylet(&account, &asset1, &asset2);
 
 // Escrow keylet
-let keylet = escrow_keylet(&account, sequence)?;
+let keylet = escrow_keylet(&account, sequence);
 
 // Oracle keylet
 let document_id = 1i32;
-let keylet = oracle_keylet(&account, document_id)?;
+let keylet = oracle_keylet(&account, document_id);
 ```
 
 ### Host Functions
@@ -355,44 +337,49 @@ Low-level host function access through the `host` module.
 #### Ledger Access
 
 ```rust
-#![no_std]
-#![no_main]
-use xrpl_wasm_std::host::ledger::{
-    cache_ledger_obj, get_field_from_slot, does_obj_exist
-};
-use xrpl_wasm_std::sfield;
+// Use the high-level trait methods instead of low-level host functions
+use xrpl_wasm_std::core::ledger_objects::account_root::AccountRoot;
+use xrpl_wasm_std::core::ledger_objects::traits::AccountFields;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::core::types::keylets::account_keylet;
+use xrpl_wasm_std::host::cache_ledger_obj;
+use xrpl_wasm_std::host::Error;
 
-// Cache a ledger object for efficient access
-let slot = cache_ledger_obj(&keylet)?;
+// The correct approach is to use the trait methods
+fn main() {
+    let account = AccountID::from(*b"\xd5\xb9\x84VP\x9f \xb5'\x9d\x1eJ.\xe8\xb2\xaa\x82\xaec\xe3");
+    let account_keylet = account_keylet(&account).unwrap_or_panic();
+    let slot = unsafe { cache_ledger_obj(account_keylet.as_ptr(), account_keylet.len(), 0) };
+    if slot < 0 {
+        return;
+    }
 
-// Extract fields from cached object
-let balance = get_field_from_slot::<u64>(slot, sfield::Balance)?;
-let sequence = get_field_from_slot::<u32>(slot, sfield::Sequence)?;
-
-// Check if object exists without caching
-if does_obj_exist(&keylet)? {
-    // Object exists in ledger
+    let account_root = AccountRoot { slot_num: slot };
+    let balance = account_root.balance();  // Returns Option<TokenAmount>
+    let sequence = account_root.sequence(); // Returns u32
 }
 ```
 
 #### Transaction Fields
 
-```rust ignore
+```rust
 // Use the high-level trait methods instead of low-level host functions
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::{TransactionCommonFields, EscrowFinishFields};
 
-let tx = EscrowFinish;
+fn main() {
+    let tx = EscrowFinish;
 
-// Access common transaction fields
-let account = tx.get_account()?; // AccountID
-let fee = tx.get_fee()?; // TokenAmount
-let sequence = tx.get_sequence()?; // u32
+    // Access common transaction fields
+    let account = tx.get_account(); // AccountID
+    let fee = tx.get_fee(); // TokenAmount
+    let sequence = tx.get_sequence(); // u32
 
-// Access EscrowFinish-specific fields
-let owner = tx.get_owner()?; // AccountID
-let offer_sequence = tx.get_offer_sequence()?; // u32
-let condition = tx.get_condition()?; // Option<Condition>
+    // Access EscrowFinish-specific fields
+    let owner = tx.get_owner(); // AccountID
+    let offer_sequence = tx.get_offer_sequence(); // u32
+    let condition = tx.get_condition(); // Option<Condition>
+}
 ```
 
 ### Error Handling
@@ -400,8 +387,6 @@ let condition = tx.get_condition()?; // Option<Condition>
 The library uses custom `Result` types for comprehensive error handling:
 
 ```rust
-#![no_std]
-#![no_main]
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::core::ledger_objects::account_root::{get_account_balance, AccountRoot};
@@ -409,40 +394,45 @@ use xrpl_wasm_std::core::ledger_objects::traits::AccountFields;
 use xrpl_wasm_std::core::types::account_id::AccountID;
 use xrpl_wasm_std::core::types::amount::token_amount::TokenAmount;
 use xrpl_wasm_std::core::types::keylets::account_keylet;
-use xrpl_wasm_std::host::{cache_ledger_obj, Result};
+use xrpl_wasm_std::host::{cache_ledger_obj, Error, Result};
+use xrpl_wasm_std::host::Result::{Ok, Err};
 
 fn process_escrow() -> Result<i32> {
     let tx = EscrowFinish;
 
     // Chain operations with ?
-    let account = tx.get_account()?;
-    let balance = get_account_balance(&account)?;
+    let account = match tx.get_account() {
+        Ok(acc) => acc,
+        Err(e) => return Err(e), // Invalid transaction
+    };
+
+    let balance = get_account_balance(&account);
 
     // Handle specific errors - create AccountRoot to access account fields
     let account_keylet = match account_keylet(&account) {
         Ok(keylet) => keylet,
-        Err(_) => return Ok(-1), // Invalid account
+        Err(e) => return Err(e), // Invalid account
     };
 
-    let slot = match cache_ledger_obj(&account_keylet) {
-        Ok(slot) => slot,
-        Err(_) => return Ok(-1), // Account doesn't exist
-    };
+    let slot = unsafe { cache_ledger_obj(account_keylet.as_ptr(), account_keylet.len(), 0) };
+    if slot < 0 {
+        return Err(Error::from_code(slot));
+    }
 
     let account_root = AccountRoot { slot_num: slot };
     match account_root.sequence() {
         Ok(sequence) => {
             // Use sequence
         },
-        Err(_) => {
+        Err(e) => {
             // Handle missing field or other error
-            return Ok(-1);
+            return Err(e);
         },
     }
 
     return Ok(match balance {
-        Some(TokenAmount::XRP { num_drops }) if num_drops > 10_000_000 => 1,
-        _ => -1,
+        Ok(Some(TokenAmount::XRP { num_drops })) if num_drops > 10_000_000 => 1,
+        _ => 0,
     })
 }
 ```
@@ -619,31 +609,36 @@ match operation() {
 
 ```rust ignore
 // Good: Call once, use cached result
-let account = tx.get_account()?;
-let balance = get_account_balance(&account)?;
+let account = tx.get_account();
+let balance = get_account_balance(&account);
 // Create AccountRoot to access account fields
-let account_keylet = account_keylet(&account)?;
-let slot = cache_ledger_obj(&account_keylet)?;
+let account_keylet = account_keylet(&account);
+let slot = cache_ledger_obj(&account_keylet);
 let account_root = AccountRoot { slot_num: slot };
-let sequence = account_root.sequence()?;
+let sequence = account_root.sequence();
 
 // Bad: Multiple calls for same data
-let balance = get_account_balance(&tx.get_account()?)?;
+let balance = get_account_balance(&tx.get_account());
 // Bad: Multiple calls - should cache the account and keylet
-let account_keylet = account_keylet(&tx.get_account()?)?;
-let slot = cache_ledger_obj(&account_keylet)?;
+let account_keylet = account_keylet(&tx.get_account());
+let slot = cache_ledger_obj(&account_keylet);
 let account_root = AccountRoot { slot_num: slot };
-let sequence = account_root.sequence()?;
+let sequence = account_root.sequence();
 ```
 
 **Efficient ledger object access:**
 
 ```rust ignore
-// Cache ledger objects for multiple field access
-let slot = cache_ledger_obj(&account_keylet)?;
-let balance = get_field_from_slot::<u64>(slot, sfield::Balance)?;
-let sequence = get_field_from_slot::<u32>(slot, sfield::Sequence)?;
-let owner_count = get_field_from_slot::<u32>(slot, sfield::OwnerCount)?;
+// Cache ledger objects for multiple field access using traits
+let account = AccountID::from(*b"\xd5\xb9\x84VP\x9f \xb5'\x9d\x1eJ.\xe8\xb2\xaa\x82\xaec\xe3");
+let account_keylet = account_keylet(&account).unwrap_or_panic();
+let slot = unsafe { cache_ledger_obj(account_keylet.as_ptr(), account_keylet.len(), 0) };
+let account_root = AccountRoot { slot_num: slot };
+
+// Use trait methods to access fields efficiently
+let balance = account_root.balance();        // Option<TokenAmount>
+let sequence = account_root.sequence();      // u32
+let owner_count = account_root.owner_count(); // u32
 ```
 
 **Memory usage optimization:**
@@ -652,10 +647,10 @@ let owner_count = get_field_from_slot::<u32>(slot, sfield::OwnerCount)?;
 // Use stack-based allocation
 let mut accounts = [AccountID::default(); 10];
 
-// Reuse buffers
+// Reuse buffers for transaction fields
 let mut buffer = [0u8; 64];
-let len1 = get_field(sfield::Account, 0, &mut buffer[..20])?;
-let len2 = get_field(sfield::Destination, 0, &mut buffer[20..40])?;
+let len1 = unsafe { get_tx_field(sfield::Account, buffer[..20].as_mut_ptr(), 20) };
+let len2 = unsafe { get_tx_field(sfield::Destination, buffer[20..40].as_mut_ptr(), 20) };
 ```
 
 ### Troubleshooting
@@ -685,7 +680,7 @@ let len2 = get_field(sfield::Destination, 0, &mut buffer[20..40])?;
 **Add trace statements:**
 
 ```rust
-use xrpl_wasm_std::host::trace::{trace, trace_data, DataRepr};
+use xrpl_wasm_std::host::trace::{trace, trace_data, trace_num, DataRepr};
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::host::Result::{Ok, Err};
@@ -701,7 +696,7 @@ pub extern "C" fn finish() -> i32 {
             acc
         },
         Err(e) => {
-            trace(&format!("Error getting account: {:?}", e)).ok();
+            trace_num("Error getting account: {:?}", e as i64).ok();
             return 0;
         }
     };

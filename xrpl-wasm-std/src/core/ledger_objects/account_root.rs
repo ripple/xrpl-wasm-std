@@ -28,7 +28,7 @@ pub fn get_account_balance(account_id: &AccountID) -> host::Result<Option<TokenA
 
     // Try to cache the ledger object inside rippled
     let slot = unsafe { host::cache_ledger_obj(account_keylet.as_ptr(), account_keylet.len(), 0) };
-    if slot <= 0 {
+    if slot < 0 {
         return host::Result::Err(Error::from_code(slot));
     }
 

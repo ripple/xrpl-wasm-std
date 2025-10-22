@@ -27,7 +27,7 @@ pub fn object_exists(
             let _ = trace_data(keylet_type, &keylet, DataRepr::AsHex);
 
             let slot = unsafe { host::cache_ledger_obj(keylet.as_ptr(), keylet.len(), 0) };
-            if slot <= 0 {
+            if slot < 0 {
                 let _ = trace_num("Error: ", slot.into());
                 return Err(Error::from_code(slot));
             }

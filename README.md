@@ -22,9 +22,6 @@ panic = "abort"
 Create a simple escrow contract:
 
 ```rust
-#![no_std]
-#![no_main]
-
 use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
 use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
