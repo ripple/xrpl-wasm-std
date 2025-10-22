@@ -86,6 +86,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::clone_on_copy)]
     fn test_blob_clone() {
         // Create a test blob
         let mut data = [0u8; BLOB_SIZE];
@@ -207,6 +208,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::needless_range_loop)]
     fn test_blob_with_binary_data() {
         // Test with various binary patterns
         let mut data = [0u8; BLOB_SIZE];
