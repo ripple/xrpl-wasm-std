@@ -4,246 +4,314 @@ pub mod escrow;
 pub mod nft;
 pub mod traits;
 
-pub mod current_ledger_object {
-    use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-    use crate::core::types::amount::Amount;
-    use crate::core::types::blob::Blob;
-    use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
-    use crate::host::error_codes::{
-        match_result_code, match_result_code_with_expected_bytes,
-        match_result_code_with_expected_bytes_optional,
-    };
-    use crate::host::{Result, get_current_ledger_obj_field, to_non_optional};
+use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
+use crate::core::types::amount::Amount;
+use crate::core::types::blob::Blob;
+use crate::core::types::hash_128::{HASH128_SIZE, Hash128};
+use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
+use crate::host::error_codes::{
+    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
+    match_result_code_with_expected_bytes_optional,
+};
+use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 
-    /// Retrieves an `AccountID` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<AccountID>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
-    #[inline(always)]
-    pub fn get_account_id_field(field_code: i32) -> Result<AccountID> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+/// Trait for types that can be retrieved from ledger object fields
+pub trait FieldGetter: Sized {
+    /// Get a required field from the current ledger object
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self>;
 
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+    /// Get an optional field from the current ledger object
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>>;
 
-        match_result_code_with_expected_bytes(result_code, buffer.len(), || buffer.into())
-    }
+    /// Get a required field from a specific ledger object
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self>;
 
-    /// Retrieves a `Amount` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_amount_field(field_code: i32) -> Result<Amount> {
-        const BUFFER_SIZE: usize = 48usize;
+    /// Get an optional field from a specific ledger object
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>>;
+}
 
-        let mut buffer = [0u8; BUFFER_SIZE]; // Enough to hold an Amount
-
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
-
-        match_result_code(result_code, || Amount::from(buffer))
-    }
-
-    /// Retrieves a `u16` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u16_field(field_code: i32) -> Result<u16> {
-        to_non_optional(get_u16_field_optional(field_code))
-    }
-
-    /// Retrieves an optionally present `u16` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u16_field_optional(field_code: i32) -> Result<Option<u16>> {
-        let mut value: u16 = 0; // <-- Initialize 8 bytes (only works due to little endian encoding in WASM and WAMR-host
+// Implementation for u16
+impl FieldGetter for u16 {
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut value: u16 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-
         let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 2) };
+        match_result_code_with_expected_bytes(result_code, 2, || value)
+    }
 
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut value: u16 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
+        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 2) };
         match_result_code_with_expected_bytes_optional(result_code, 2, || Some(value))
     }
 
-    /// Retrieves a `u32` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u32_field(field_code: i32) -> Result<u32> {
-        to_non_optional(get_u32_field_optional(field_code))
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut value: u16 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
+        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 2) };
+        match_result_code_with_expected_bytes(result_code, 2, || value)
     }
 
-    /// Retrieves an optionally present `u32` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u32_field_optional(field_code: i32) -> Result<Option<u32>> {
-        let mut value: u32 = 0; // <-- Initialize 8 bytes (only works due to little endian encoding in WASM and WAMR-host
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut value: u16 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
+        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 2) };
+        match_result_code_with_expected_bytes_optional(result_code, 2, || Some(value))
+    }
+}
+
+// Implementation for u32
+impl FieldGetter for u32 {
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut value: u32 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-
         let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 4) };
+        match_result_code_with_expected_bytes(result_code, 4, || value)
+    }
 
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut value: u32 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
+        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 4) };
         match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
     }
 
-    /// Retrieves a `u64` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which AccountID field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u64_field(field_code: i32) -> Result<u64> {
-        to_non_optional(get_u64_field_optional(field_code))
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut value: u32 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
+        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 4) };
+        match_result_code_with_expected_bytes(result_code, 4, || value)
     }
 
-    /// Retrieves an optionally present `u64` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u64_field_optional(field_code: i32) -> Result<Option<u64>> {
-        let mut value: u64 = 0u64; // <-- Initialize 8 bytes (only works due to little endian encoding in WASM and WAMR-host
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut value: u32 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
+        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 4) };
+        match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
+    }
+}
+
+// Implementation for u64
+impl FieldGetter for u64 {
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut value: u64 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-
         let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 8) };
+        match_result_code_with_expected_bytes(result_code, 8, || value)
+    }
 
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut value: u64 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
+        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 8) };
         match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
     }
 
-    /// Retrieves a `Hash256` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which AccountID field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_hash_256_field(field_code: i32) -> Result<Hash256> {
-        to_non_optional(get_hash_256_field_optional(field_code))
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut value: u64 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
+        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 8) };
+        match_result_code_with_expected_bytes(result_code, 8, || value)
     }
 
-    /// Retrieves an optionally present `Hash256` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_hash_256_field_optional(field_code: i32) -> Result<Option<Hash256>> {
-        let mut buffer = [0u8; HASH256_SIZE]; // Enough to hold 256 bits (32 bytes)
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut value: u64 = 0;
+        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
+        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 8) };
+        match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
+    }
+}
 
+// Implementation for AccountID
+impl FieldGetter for AccountID {
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code =
             unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_with_expected_bytes(result_code, buffer.len(), || buffer.into())
+    }
 
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Some(Hash256(buffer)) // <-- Move the buffer into a Hash256
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_with_expected_bytes_optional(result_code, buffer.len(), || {
+            Some(buffer.into())
         })
     }
 
-    /// Retrieves a `Blob` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which AccountID field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_blob_field(field_code: i32) -> Result<Blob> {
-        to_non_optional(get_blob_field_optional(field_code))
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        };
+        match_result_code_with_expected_bytes(result_code, buffer.len(), || buffer.into())
     }
 
-    /// Retrieves an optionally present `Blob` field from the current ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_blob_field_optional(field_code: i32) -> Result<Option<Blob>> {
-        let mut buffer = [0u8; 1024]; // Enough to hold the largest field, which is a memo.
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        };
+        match_result_code_with_expected_bytes_optional(result_code, buffer.len(), || {
+            Some(buffer.into())
+        })
+    }
+}
 
+// Implementation for Amount
+impl FieldGetter for Amount {
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        const BUFFER_SIZE: usize = 48;
+        let mut buffer = [0u8; BUFFER_SIZE];
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
+        match_result_code(result_code, || Amount::from(buffer))
+    }
+
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        const BUFFER_SIZE: usize = 48;
+        let mut buffer = [0u8; BUFFER_SIZE];
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
+        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
+    }
+
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        const BUFFER_SIZE: usize = 48;
+        let mut buffer = [0u8; BUFFER_SIZE];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
+        };
+        match_result_code(result_code, || Amount::from(buffer))
+    }
+
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        const BUFFER_SIZE: usize = 48;
+        let mut buffer = [0u8; BUFFER_SIZE];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
+        };
+        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
+    }
+}
+
+// Implementation for Hash128
+impl FieldGetter for Hash128 {
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = [0u8; HASH128_SIZE];
         let result_code =
             unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || Hash128(buffer))
+    }
 
-        match_result_code(result_code, || {
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0u8; HASH128_SIZE];
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
+            Some(Hash128(buffer))
+        })
+    }
+
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = [0u8; HASH128_SIZE];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        };
+        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || Hash128(buffer))
+    }
+
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0u8; HASH128_SIZE];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        };
+        match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
+            Some(Hash128(buffer))
+        })
+    }
+}
+
+// Implementation for Hash256
+impl FieldGetter for Hash256 {
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = [0u8; HASH256_SIZE];
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256(buffer))
+    }
+
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0u8; HASH256_SIZE];
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
+            Some(Hash256(buffer))
+        })
+    }
+
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = [0u8; HASH256_SIZE];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        };
+        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256(buffer))
+    }
+
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0u8; HASH256_SIZE];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        };
+        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
+            Some(Hash256(buffer))
+        })
+    }
+}
+
+// Implementation for Blob
+impl FieldGetter for Blob {
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = [0u8; 1024];
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code(result_code, || Blob {
+            data: buffer,
+            len: result_code as usize,
+        })
+    }
+
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0u8; 1024];
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_optional(result_code, || {
+            Some(Blob {
+                data: buffer,
+                len: result_code as usize,
+            })
+        })
+    }
+
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = [0u8; 1024];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        };
+        match_result_code(result_code, || Blob {
+            data: buffer,
+            len: result_code as usize,
+        })
+    }
+
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0u8; 1024];
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        };
+        match_result_code_optional(result_code, || {
             Some(Blob {
                 data: buffer,
                 len: result_code as usize,
@@ -252,277 +320,139 @@ pub mod current_ledger_object {
     }
 }
 
-pub mod ledger_object {
-    use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-    use crate::core::types::amount::Amount;
-    use crate::core::types::blob::Blob;
-    use crate::core::types::hash_128::{HASH128_SIZE, Hash128};
-    use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
-    use crate::host::error_codes::{
-        match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
-        match_result_code_with_expected_bytes_optional,
-    };
-    use crate::host::{Result, get_ledger_obj_field, to_non_optional};
+pub mod current_ledger_object {
+    use super::FieldGetter;
+    use crate::host::Result;
 
-    /// Retrieves an AccountID field from the current ledger object.
+    /// Retrieves a field from the current ledger object.
     ///
     /// # Arguments
     ///
-    /// * `field_code` - The field code identifying which AccountID field to retrieve
+    /// * `field_code` - The field code identifying which field to retrieve
     ///
     /// # Returns
     ///
-    /// Returns a `Result<AccountID>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
+    /// Returns a `Result<T>` where:
+    /// * `Ok(T)` - The field value for the specified field
+    /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
+    #[inline(always)]
+    pub fn get_field<T: FieldGetter>(field_code: i32) -> Result<T> {
+        T::get_from_current_ledger_obj(field_code)
+    }
+
+    /// Retrieves an optionally present field from the current ledger object.
+    ///
+    /// # Arguments
+    ///
+    /// * `field_code` - The field code identifying which field to retrieve
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result<Option<T>>` where:
+    /// * `Ok(Some(T))` - The field value for the specified field
+    /// * `Ok(None)` - If the field is not present
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_account_id_field(register_num: i32, field_code: i32) -> Result<AccountID> {
-        to_non_optional(get_account_id_field_optional(register_num, field_code))
+    pub fn get_field_optional<T: FieldGetter>(field_code: i32) -> Result<Option<T>> {
+        T::get_from_current_ledger_obj_optional(field_code)
     }
+}
 
-    pub fn get_account_id_field_optional(
-        register_num: i32,
-        field_code: i32,
-    ) -> Result<Option<AccountID>> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+pub mod ledger_object {
+    use super::FieldGetter;
+    use crate::host::Result;
 
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
-        };
-
-        match_result_code_with_expected_bytes_optional(result_code, buffer.len(), || {
-            let account_id: AccountID = buffer.into();
-            Some(account_id)
-        })
-    }
-
-    /// Retrieves a `Amount` field from a specified ledger object.
-    ///
-    /// This function retrieves a token amount field from a ledger object stored in a register.
-    /// It wraps the optional variant and returns an error if the field is not present.
+    /// Retrieves a field from a specified ledger object.
     ///
     /// # Arguments
     ///
     /// * `register_num` - The register number holding the ledger object to look for data in
-    /// * `field_code` - The field code identifying which Amount field to retrieve
+    /// * `field_code` - The field code identifying which field to retrieve
     ///
     /// # Returns
     ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(Amount)` - The token amount for the specified field, which can be XRP, IOU, or MPT
-    /// * `Err(Error)` - If the field cannot be retrieved, is not present, or has an unexpected format
+    /// Returns a `Result<T>` where:
+    /// * `Ok(T)` - The field value for the specified field
+    /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_amount_field(register_num: i32, field_code: i32) -> Result<Amount> {
-        to_non_optional(get_amount_field_optional(register_num, field_code))
+    pub fn get_field<T: FieldGetter>(register_num: i32, field_code: i32) -> Result<T> {
+        T::get_from_ledger_obj(register_num, field_code)
     }
 
-    /// Retrieves an optionally present `Amount` field from a specified ledger object.
-    ///
-    /// This function attempts to retrieve a token amount field from a ledger object stored in a register.
-    /// Unlike the non-optional variant, this function returns `None` if the field is not present,
-    /// rather than returning an error.
+    /// Retrieves an optionally present field from a specified ledger object.
     ///
     /// # Arguments
     ///
     /// * `register_num` - The register number holding the ledger object to look for data in
-    /// * `field_code` - The field code identifying which Amount field to retrieve
+    /// * `field_code` - The field code identifying which field to retrieve
     ///
     /// # Returns
     ///
-    /// Returns a `Result<Option<Amount>>` where:
-    /// * `Ok(Some(Amount))` - The token amount for the specified field, which can be XRP, IOU, or MPT
+    /// Returns a `Result<Option<T>>` where:
+    /// * `Ok(Some(T))` - The field value for the specified field
     /// * `Ok(None)` - If the field is not present in the ledger object
-    /// * `Err(Error)` - If the field retrieval operation failed or the data has an unexpected format
+    /// * `Err(Error)` - If the field retrieval operation failed
     #[inline]
-    pub fn get_amount_field_optional(register_num: i32, field_code: i32) -> Result<Option<Amount>> {
-        const BUFFER_SIZE: usize = 48usize;
-
-        let mut buffer = [0u8; BUFFER_SIZE]; // Enough to hold an Amount
-
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
-        };
-
-        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
-    }
-
-    /// Retrieves a `u16` field from the specified ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `register_num` - The register number holding the ledger object to look for data in.
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u16_field(register_num: i32, field_code: i32) -> Result<u16> {
-        to_non_optional(get_u16_field_optional(register_num, field_code))
-    }
-
-    /// Retrieves an optionally present `u16` field from the specified ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `register_num` - The register number holding the ledger object to look for data in.
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u16_field_optional(register_num: i32, field_code: i32) -> Result<Option<u16>> {
-        let mut value: u16 = 0; // <-- Initialize 8 bytes (only works due to little endian encoding in WASM and WAMR-host
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 2) };
-
-        match_result_code_with_expected_bytes_optional(result_code, 2, || Some(value))
-    }
-
-    /// Retrieves a `u32` field from the specified ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `register_num` - The register number holding the ledger object to look for data in.
-    /// * `field_code` - The field code identifying which AccountID field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u32_field(register_num: i32, field_code: i32) -> Result<u32> {
-        to_non_optional(get_u32_field_optional(register_num, field_code))
-    }
-
-    /// Retrieves an optionally present `u32` field from the specified ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `register_num` - The register number holding the ledger object to look for data in.
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u32_field_optional(register_num: i32, field_code: i32) -> Result<Option<u32>> {
-        let mut value: u32 = 0; // <-- Initialize 8 bytes (only works due to little endian encoding in WASM and WAMR-host
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 4) };
-
-        match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
-    }
-
-    /// Retrieves a `u64` field from the specified ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `register_num` - The register number holding the ledger object to look for data in.
-    /// * `field_code` - The field code identifying which AccountID field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u64_field(register_num: i32, field_code: i32) -> Result<u64> {
-        to_non_optional(get_u64_field_optional(register_num, field_code))
-    }
-
-    /// Retrieves an optionally present `u64` field from the specified ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `register_num` - The register number holding the ledger object to look for data in.
-    /// * `field_code` - The field code identifying which field to retrieve
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Amount>` where:
-    /// * `Ok(AccountID)` - The account identifier for the specified field
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-    #[inline]
-    pub fn get_u64_field_optional(register_num: i32, field_code: i32) -> Result<Option<u64>> {
-        let mut value: u64 = 0; // <-- Initialize 8 bytes (only works due to little endian encoding in WASM and WAMR-host
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 8) };
-
-        match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
-    }
-
-    #[inline]
-    pub fn get_hash_128_field(register_num: i32, field_code: i32) -> Result<Hash128> {
-        to_non_optional(get_hash_128_field_optional(register_num, field_code))
-    }
-
-    #[inline]
-    pub fn get_hash_128_field_optional(
+    pub fn get_field_optional<T: FieldGetter>(
         register_num: i32,
         field_code: i32,
-    ) -> Result<Option<Hash128>> {
-        let mut buffer = [0u8; HASH128_SIZE]; // Enough to hold 128 bits (16 bytes)
+    ) -> Result<Option<T>> {
+        T::get_from_ledger_obj_optional(register_num, field_code)
+    }
+}
 
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+#[cfg(test)]
+mod tests {
+    use super::ledger_object;
+    use crate::sfield;
+
+    #[test]
+    fn test_get_field_compilation() {
+        // This test verifies that the get_field function compiles with the expected types
+        // We can't actually run these functions without a proper host environment,
+        // but we can verify they compile correctly
+
+        let slot = 0;
+
+        // Test the user's requested usage patterns
+        let _balance_call = || -> crate::host::Result<u64> {
+            ledger_object::get_field::<u64>(slot, sfield::Balance)
         };
 
-        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
-            Some(Hash128(buffer)) // <-- Move the buffer into a Hash128
-        })
-    }
-
-    #[inline]
-    pub fn get_hash_256_field(register_num: i32, field_code: i32) -> Result<Hash256> {
-        to_non_optional(get_hash_256_field_optional(register_num, field_code))
-    }
-
-    #[inline]
-    pub fn get_hash_256_field_optional(
-        register_num: i32,
-        field_code: i32,
-    ) -> Result<Option<Hash256>> {
-        let mut buffer = [0u8; HASH256_SIZE]; // Enough to hold 256 bits (32 bytes)
-
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        let _sequence_call = || -> crate::host::Result<u32> {
+            ledger_object::get_field::<u32>(slot, sfield::Sequence)
         };
 
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Some(Hash256(buffer)) // <-- Move the buffer into an Hash256
-        })
-    }
-
-    #[inline]
-    pub fn get_blob_field(register_num: i32, field_code: i32) -> Result<Blob> {
-        to_non_optional(get_blob_field_optional(register_num, field_code))
-    }
-
-    #[inline]
-    pub fn get_blob_field_optional(register_num: i32, field_code: i32) -> Result<Option<Blob>> {
-        let mut buffer = [0u8; 1024]; // Enough to hold the largest field, which is a memo.
-
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+        // Test with other types to ensure the trait implementations work
+        let _account_call = || -> crate::host::Result<crate::core::types::account_id::AccountID> {
+            ledger_object::get_field(slot, sfield::Account)
         };
 
-        match_result_code(result_code, || {
-            Some(Blob {
-                data: buffer,
-                len: result_code as usize,
-            })
-        })
+        let _amount_call = || -> crate::host::Result<crate::core::types::amount::Amount> {
+            ledger_object::get_field(slot, sfield::Amount)
+        };
+
+        // Test optional variants
+        let _optional_balance_call = || -> crate::host::Result<Option<u64>> {
+            ledger_object::get_field_optional::<u64>(slot, sfield::Balance)
+        };
+
+        let _optional_sequence_call = || -> crate::host::Result<Option<u32>> {
+            ledger_object::get_field_optional::<u32>(slot, sfield::Sequence)
+        };
+    }
+
+    #[test]
+    fn test_exact_user_pattern() {
+        // Test the exact pattern the user requested
+        let slot = 0;
+
+        // These should compile exactly as the user specified
+        let _balance = ledger_object::get_field::<u64>(slot, sfield::Balance);
+        let _sequence = ledger_object::get_field::<u32>(slot, sfield::Sequence);
+
+        // Also test that Balance should work with Amount type (which is more correct)
+        let _balance_amount =
+            ledger_object::get_field::<crate::core::types::amount::Amount>(slot, sfield::Balance);
     }
 }
