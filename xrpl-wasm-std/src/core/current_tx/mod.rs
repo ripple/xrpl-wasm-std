@@ -64,7 +64,7 @@ use crate::core::types::blob::Blob;
 use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
 use crate::core::types::public_key::PublicKey;
 use crate::host::error_codes::{
-    match_result_code, match_result_code_with_expected_bytes,
+    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
     match_result_code_with_expected_bytes_optional,
 };
 use crate::host::{Result, get_tx_field};
@@ -234,7 +234,7 @@ impl CurrentTxFieldGetter for Amount {
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; AMOUNT_SIZE];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code(result_code, || Some(Amount::from(buffer)))
+        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
     }
 }
 
