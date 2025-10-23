@@ -140,35 +140,6 @@ impl From<i64> for Result<u64> {
     }
 }
 
-/// Converts a `Result<Option<T>>` to a `Result<T>` by treating `None` as an error.
-///
-/// This utility function is commonly used in the XRPL Programmability API context
-/// where operations may return optional values that should be treated as errors
-/// when absent.
-///
-/// # Arguments
-///
-/// * `result` - A `Result` containing an `Option<T>` that needs to be unwrapped
-///
-/// # Returns
-///
-/// * `Result::Ok(value)` - If the input was `Result::Ok(Some(value))`
-/// * `Result::Err(Error::FieldNotFound)` - If the input was `Result::Ok(None)`
-/// * `Result::Err(err)` - If the input was `Result::Err(err)`, the error is propagated
-///
-/// # Error Handling
-///
-/// When the optional value is `None`, this function returns `Error::FieldNotFound`,
-/// which is appropriate for cases where a required field or value is missing from
-/// XRPL ledger objects or API responses.
-pub(crate) fn to_non_optional<T>(result: Result<Option<T>>) -> Result<T> {
-    match result {
-        Result::Ok(Some(value)) => Result::Ok(value),
-        Result::Ok(None) => Result::Err(Error::FieldNotFound),
-        Result::Err(err) => Result::Err(err),
-    }
-}
-
 /// Possible errors returned by XRPL Programmability APIs.
 ///
 /// Errors are global across all Programmability APIs.

@@ -8,7 +8,9 @@ use xrpl_wasm_std::core::ledger_objects::current_escrow::CurrentEscrow;
 use xrpl_wasm_std::core::ledger_objects::current_escrow::get_current_escrow;
 use xrpl_wasm_std::core::ledger_objects::ledger_object;
 use xrpl_wasm_std::core::ledger_objects::traits::CurrentEscrowFields;
+use xrpl_wasm_std::core::types::account_id::AccountID;
 use xrpl_wasm_std::core::types::currency::Currency;
+use xrpl_wasm_std::core::types::hash_256::Hash256;
 use xrpl_wasm_std::core::types::issue::{IouIssue, Issue, XrpIssue};
 use xrpl_wasm_std::core::types::keylets;
 use xrpl_wasm_std::core::types::mpt_id::MptId;
@@ -34,7 +36,7 @@ pub fn object_exists(
             if field == 0 {
                 let new_field = sfield::PreviousTxnID;
                 let _ = trace_num("Getting field: ", new_field.into());
-                match ledger_object::get_hash_256_field(slot, new_field) {
+                match ledger_object::get_field::<Hash256>(slot, new_field) {
                     Ok(data) => {
                         let _ = trace_data("Field data: ", &data.0, DataRepr::AsHex);
                     }
@@ -45,7 +47,7 @@ pub fn object_exists(
                 }
             } else {
                 let _ = trace_num("Getting field: ", field.into());
-                match ledger_object::get_account_id_field(slot, field) {
+                match ledger_object::get_field::<AccountID>(slot, field) {
                     Ok(data) => {
                         let _ = trace_data("Field data: ", &data.0, DataRepr::AsHex);
                     }
