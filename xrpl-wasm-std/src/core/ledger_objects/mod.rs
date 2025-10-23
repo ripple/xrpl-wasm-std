@@ -250,16 +250,18 @@ impl FieldGetter for u64 {
 impl FieldGetter for AccountID {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes(result_code, buffer.len(), || buffer.into())
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), ACCOUNT_ID_SIZE)
+        };
+        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
     }
 
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes_optional(result_code, buffer.len(), || {
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), ACCOUNT_ID_SIZE)
+        };
+        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
             Some(buffer.into())
         })
     }
@@ -267,17 +269,27 @@ impl FieldGetter for AccountID {
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr(),
+                ACCOUNT_ID_SIZE,
+            )
         };
-        match_result_code_with_expected_bytes(result_code, buffer.len(), || buffer.into())
+        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
     }
 
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr(),
+                ACCOUNT_ID_SIZE,
+            )
         };
-        match_result_code_with_expected_bytes_optional(result_code, buffer.len(), || {
+        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
             Some(buffer.into())
         })
     }
@@ -344,14 +356,14 @@ impl FieldGetter for Hash128 {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH128_SIZE];
         let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), HASH128_SIZE) };
         match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || Hash128(buffer))
     }
 
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH128_SIZE];
         let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), HASH128_SIZE) };
         match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
             Some(Hash128(buffer))
         })
@@ -360,7 +372,7 @@ impl FieldGetter for Hash128 {
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH128_SIZE];
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), HASH128_SIZE)
         };
         match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || Hash128(buffer))
     }
@@ -368,7 +380,7 @@ impl FieldGetter for Hash128 {
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH128_SIZE];
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), HASH128_SIZE)
         };
         match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
             Some(Hash128(buffer))
@@ -390,14 +402,14 @@ impl FieldGetter for Hash256 {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), HASH256_SIZE) };
         match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256(buffer))
     }
 
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), HASH256_SIZE) };
         match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
             Some(Hash256(buffer))
         })
@@ -406,7 +418,7 @@ impl FieldGetter for Hash256 {
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), HASH256_SIZE)
         };
         match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256(buffer))
     }
@@ -414,13 +426,15 @@ impl FieldGetter for Hash256 {
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), HASH256_SIZE)
         };
         match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
             Some(Hash256(buffer))
         })
     }
 }
+
+const BLOB_BUFFER_SIZE: usize = 1024;
 
 /// Implementation of `FieldGetter` for variable-length binary data.
 ///
@@ -436,9 +450,10 @@ impl FieldGetter for Hash256 {
 /// performed since blobs can vary significantly in size.
 impl FieldGetter for Blob {
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; 1024];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BLOB_BUFFER_SIZE)
+        };
         match_result_code(result_code, || Blob {
             data: buffer,
             len: result_code as usize,
@@ -446,9 +461,10 @@ impl FieldGetter for Blob {
     }
 
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; 1024];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BLOB_BUFFER_SIZE)
+        };
         match_result_code_optional(result_code, || {
             Some(Blob {
                 data: buffer,
@@ -458,9 +474,14 @@ impl FieldGetter for Blob {
     }
 
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; 1024];
+        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr(),
+                BLOB_BUFFER_SIZE,
+            )
         };
         match_result_code(result_code, || Blob {
             data: buffer,
@@ -469,9 +490,14 @@ impl FieldGetter for Blob {
     }
 
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; 1024];
+        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr(),
+                BLOB_BUFFER_SIZE,
+            )
         };
         match_result_code_optional(result_code, || {
             Some(Blob {
