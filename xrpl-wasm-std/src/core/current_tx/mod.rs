@@ -96,7 +96,7 @@ pub mod traits;
 /// - The specified field is not present in the transaction
 /// - The field data is not exactly 20 bytes (ACCOUNT_ID_SIZE)
 /// - The underlying host function call fails
-#[inline]
+#[inline(always)]
 fn get_account_id_field(field_code: i32) -> Result<AccountID> {
     let mut buffer = [0x00; ACCOUNT_ID_SIZE];
 
@@ -116,7 +116,7 @@ fn get_account_id_field(field_code: i32) -> Result<AccountID> {
 /// Returns a `Result<Amount>` where:
 /// * `Ok(AccountID)` - The account identifier for the specified field
 /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
-#[inline]
+#[inline(always)]
 fn get_amount_field(field_code: i32) -> Result<Amount> {
     let mut buffer = [0u8; AMOUNT_SIZE]; // Enough to hold an Amount
 

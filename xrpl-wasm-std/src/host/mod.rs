@@ -44,13 +44,13 @@ pub enum Result<T> {
 
 impl<T> Result<T> {
     /// Returns `true` if the result is [`Ok`].
-    #[inline]
+    #[inline(always)]
     pub fn is_ok(&self) -> bool {
         matches!(*self, Result::Ok(_))
     }
 
     /// Returns `true` if the result is [`Err`].
-    #[inline]
+    #[inline(always)]
     pub fn is_err(&self) -> bool {
         !self.is_ok()
     }
@@ -161,6 +161,7 @@ impl From<i64> for Result<u64> {
 /// When the optional value is `None`, this function returns `Error::FieldNotFound`,
 /// which is appropriate for cases where a required field or value is missing from
 /// XRPL ledger objects or API responses.
+#[inline(always)]
 pub(crate) fn to_non_optional<T>(result: Result<Option<T>>) -> Result<T> {
     match result {
         Result::Ok(Some(value)) => Result::Ok(value),

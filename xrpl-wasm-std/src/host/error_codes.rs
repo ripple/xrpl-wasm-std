@@ -138,7 +138,7 @@ where
 ///
 /// This function requires an exact match between the result code and expected byte count,
 /// making it suitable for operations where the exact amount of data written is critical.
-#[inline]
+#[inline(always)]
 pub fn match_result_code_with_expected_bytes<F, T>(
     result_code: i32,
     expected_num_bytes: usize,
@@ -184,7 +184,7 @@ where
 /// This function provides enhanced error handling with debug tracing for unexpected
 /// byte counts and error codes, making it easier to diagnose issues during development.
 /// The `FIELD_NOT_FOUND` error code is treated as a valid "no data" case.
-#[inline]
+#[inline(always)]
 pub fn match_result_code_with_expected_bytes_optional<F, T>(
     result_code: i32,
     expected_num_bytes: usize,

@@ -73,7 +73,7 @@ pub const AMOUNT_SIZE: usize = 48;
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-#[repr(C)]
+#[repr(C, u8)] // Explicit u8 discriminant for smaller enum size in WASM
 pub enum Amount {
     XRP {
         // amount: Amount::XRP,
@@ -93,8 +93,8 @@ pub enum Amount {
     },
     MPT {
         // amount: MptAmount,
+        is_positive: bool, // Positioned first for better packing with discriminant
         num_units: u64,
-        is_positive: bool, // not expected, but just in case.
         mpt_id: MptId,
     },
 }
