@@ -667,9 +667,12 @@
           client = new xrpl.Client(selectedNetwork)
 
           // Add connection event listeners
-          client.on("connected", () => {
+          client.on("connected", async () => {
             updateConnectionStatus(true, selectedNetwork)
             log(`Successfully connected to ${selectedNetwork}`)
+            // Reload accounts from localStorage and update UI
+            accounts = loadAccountsFromStorage()
+            await updateAccountsList()
           })
 
           client.on("disconnected", () => {
@@ -832,72 +835,99 @@
       }
 
       // Account Management
-      async function generateAccount() {
-        if (!client || !client.isConnected()) {
-          logError("Please connect to a network first", "warning")
-          return
-        }
+       // Store and load accounts from localStorage
+       function saveAccountsToStorage() {
+         const simpleAccounts = accounts.map(acc => ({
+           address: acc.address,
+           publicKey: acc.publicKey,
+           privateKey: acc.privateKey,
+           seed: acc.seed
+         }))
+         localStorage.setItem('xrpl_accounts', JSON.stringify(simpleAccounts))
+       }
 
-        // Show loading state
-        const generateBtn = document.getElementById("generateBtn")
-        const accountLoading = document.getElementById("accountLoading")
-        const loadingText = document.getElementById("loadingText")
+       function loadAccountsFromStorage() {
+         const data = localStorage.getItem('xrpl_accounts')
+         if (!data) return []
+         try {
+           const arr = JSON.parse(data)
+           return arr.map(acc => xrpl.Wallet.fromSeed(acc.seed))
+         } catch (e) {
+           return []
+         }
+       }
 
-        generateBtn.disabled = true
-        generateBtn.textContent = "Generating..."
-        accountLoading.style.display = "block"
-        loadingText.textContent = "Generating new account..."
+  // On page load, restore accounts
+  accounts = loadAccountsFromStorage()
 
-        try {
-          log("Generating new account...")
-          const wallet = xrpl.Wallet.generate()
+       async function generateAccount() {
+         if (!client || !client.isConnected()) {
+           window.scrollTo({ top: 0, behavior: 'smooth' });
+           logError("Please connect to a network first", "warning")
+           return
+         }
 
-          // Fund the wallet
-          loadingText.textContent = "Funding account..."
-          let fundedWallet
-          const network = document.querySelector(
-            'input[name="network"]:checked',
-          ).value
+         // Show loading state
+         const generateBtn = document.getElementById("generateBtn")
+         const accountLoading = document.getElementById("accountLoading")
+         const loadingText = document.getElementById("loadingText")
 
-          if (network.includes("localhost") || network.includes("127.0.0.1")) {
-            // Use master wallet for local funding
-            const master = xrpl.Wallet.fromSeed(
-              "snoPBrXtMeMyMHUVTgbuqAfg1SUTb",
-              {
-                algorithm: xrpl.ECDSA.secp256k1,
-              },
-            )
+         generateBtn.disabled = true
+         generateBtn.textContent = "Generating..."
+         accountLoading.style.display = "block"
+         loadingText.textContent = "Generating new account..."
 
-            await client.submitAndWait(
-              {
-                TransactionType: "Payment",
-                Account: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
-                Amount: xrpl.xrpToDrops(10000),
-                Destination: wallet.address,
-              },
-              { autofill: true, wallet: master },
-            )
+         try {
+           log("Generating new account...")
+           const wallet = xrpl.Wallet.generate()
 
-            fundedWallet = wallet
-          } else {
-            // Use fundWallet for testnets
-            const result = await client.fundWallet(wallet)
-            fundedWallet = result.wallet
-          }
+           // Fund the wallet
+           loadingText.textContent = "Funding account..."
+           let fundedWallet
+           const network = document.querySelector(
+             'input[name="network"]:checked',
+           ).value
 
-          accounts.push(fundedWallet)
-          await updateAccountsList()
-          log(`Generated and funded account: ${fundedWallet.address}`)
-          showToast("Account generated and funded successfully!", "success")
-        } catch (error) {
-          logError(`Failed to generate account: ${error.message}`)
-        } finally {
-          // Hide loading state
-          generateBtn.disabled = false
-          generateBtn.textContent = "Generate New Account"
-          accountLoading.style.display = "none"
-        }
-      }
+           if (network.includes("localhost") || network.includes("127.0.0.1")) {
+             // Use master wallet for local funding
+             const master = xrpl.Wallet.fromSeed(
+               "snoPBrXtMeMyMHUVTgbuqAfg1SUTb",
+               {
+                 algorithm: xrpl.ECDSA.secp256k1,
+               },
+             )
+
+             await client.submitAndWait(
+               {
+                 TransactionType: "Payment",
+                 Account: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+                 Amount: xrpl.xrpToDrops(10000),
+                 Destination: wallet.address,
+               },
+               { autofill: true, wallet: master },
+             )
+
+             fundedWallet = wallet
+           } else {
+             // Use fundWallet for testnets
+             const result = await client.fundWallet(wallet)
+             fundedWallet = result.wallet
+           }
+
+           accounts.push(fundedWallet)
+           saveAccountsToStorage()
+           await updateAccountsList()
+           log(`Generated and funded account: ${fundedWallet.address}`)
+           showToast("Account generated and funded successfully!", "success")
+         } catch (error) {
+           logError(`Failed to generate account: ${error.message}`)
+         } finally {
+           // Hide loading state
+           generateBtn.disabled = false
+           generateBtn.textContent = "Generate New Account"
+           accountLoading.style.display = "none"
+         }
+       }
 
       async function fundSelectedAccount() {
         if (!selectedAccount || !client || !client.isConnected()) {
@@ -953,60 +983,62 @@
         }
       }
 
-      async function updateAccountsList() {
-        const accountsList = document.getElementById("accountsList")
-        const fundBtn = document.getElementById("fundBtn")
+       async function updateAccountsList() {
+         const accountsList = document.getElementById("accountsList")
+         const fundBtn = document.getElementById("fundBtn")
 
-        if (accounts.length === 0) {
-          accountsList.innerHTML = `
-                    <div class="empty-state">
-                        No accounts loaded. Generate or load accounts to get started.
-                    </div>
-                `
-          fundBtn.style.display = "none"
-          return
-        }
+         if (accounts.length === 0) {
+           accountsList.innerHTML = `
+                     <div class="empty-state">
+                         No accounts loaded. Generate or load accounts to get started.
+                     </div>
+                 `
+           fundBtn.style.display = "none"
+           return
+         }
 
-        // Show the fund button when there are accounts
-        fundBtn.style.display = "inline-block"
+         // Show the fund button when there are accounts
+         fundBtn.style.display = "inline-block"
 
-        let html = ""
-        for (let i = 0; i < accounts.length; i++) {
-          const account = accounts[i]
-          let balance = "Unknown"
+         let html = ""
+         for (let i = 0; i < accounts.length; i++) {
+           const account = accounts[i]
+           let balance = "Unknown"
 
-          if (client && client.isConnected()) {
-            try {
-              const accountInfo = await client.request({
-                command: "account_info",
-                account: account.address,
-              })
-              balance = `${xrpl.dropsToXrp(accountInfo.result.account_data.Balance)} XRP`
-            } catch (e) {
-              balance = "Not funded"
-            }
-          }
+           if (client && client.isConnected()) {
+             try {
+               const accountInfo = await client.request({
+                 command: "account_info",
+                 account: account.address,
+               })
+               balance = `${xrpl.dropsToXrp(accountInfo.result.account_data.Balance)} XRP`
+             } catch (e) {
+               balance = "Not funded"
+             }
+           }
 
-          html += `
-                    <div class="account-item ${selectedAccount === account ? "selected" : ""}" onclick="selectAccount(${i})">
-                        <div class="item-header">
-                            <div>
-                                <strong>Account ${i + 1}</strong>
-                                <div class="account-balance">${balance}</div>
-                            </div>
-                            <button class="btn btn-small" onclick="copyAddress('${account.address}'); event.stopPropagation();">Copy</button>
-                        </div>
-                        <div class="account-address">${account.address}</div>
-                    </div>
-                `
-        }
+           html += `
+                     <div class="account-item ${selectedAccount === account ? "selected" : ""}" onclick="selectAccount(${i})">
+                         <div class="item-header">
+                             <div>
+                                 <strong>Account ${i + 1}</strong>
+                                 <div class="account-balance">${balance}</div>
+                             </div>
+                             <button class="btn btn-small" onclick="copyAddress('${account.address}'); event.stopPropagation();">Copy</button>
+                         </div>
+                         <div class="account-address">${account.address}</div>
+                     </div>
+                 `
+         }
 
-        accountsList.innerHTML = html
+         accountsList.innerHTML = html
 
-        // Update dropdowns
-        updateAccountDropdowns()
-        await updateEscrowsList()
-      }
+         saveAccountsToStorage()
+
+         // Update dropdowns
+         updateAccountDropdowns()
+         await updateEscrowsList()
+       }
 
       function selectAccount(index) {
         selectedAccount = accounts[index]
