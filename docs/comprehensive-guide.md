@@ -448,7 +448,7 @@ fn process_escrow() -> Result<i32> {
 
 Host functions return negative integers for errors. You can use trace functions to log error codes for debugging:
 
-```rust
+```rust ignore
 use xrpl_wasm_std::host::trace::trace_num;
 
 let result = unsafe { some_host_function(params) };

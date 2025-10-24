@@ -182,7 +182,7 @@ _Phase 2 reads the last 4 bytes as deadline timestamp_
 
 ### Build Commands
 
-```bash
+```shell
 cargo build --target wasm32v1-none
 cargo build --target wasm32v1-none --release
 ```
@@ -195,7 +195,7 @@ The resulting WASM file will be located at:
 
 ## Testing
 
-```bash
+```shell
 cd ../../../
 CI=1 ./scripts/run-tests.sh examples/smart-escrows/atomic_swap2
 ```
