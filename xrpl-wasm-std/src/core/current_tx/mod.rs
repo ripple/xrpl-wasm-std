@@ -415,7 +415,8 @@ fn get_blob_field(field_code: i32) -> Result<Blob> {
 /// * [`Blob`] - The structure used to represent variable-length binary data
 #[inline]
 fn get_blob_field_optional(field_code: i32) -> Result<Option<Blob>> {
-    let mut buffer = [0u8; 1024]; // Enough to hold the largest field, which is a memo.
+    use crate::core::types::blob::BLOB_BUFFER_SIZE;
+    let mut buffer = [0u8; BLOB_BUFFER_SIZE];
 
     let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
 

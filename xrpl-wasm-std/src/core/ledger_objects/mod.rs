@@ -238,7 +238,8 @@ pub mod current_ledger_object {
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size.
     #[inline]
     pub fn get_blob_field_optional(field_code: i32) -> Result<Option<Blob>> {
-        let mut buffer = [0u8; 1024]; // Enough to hold the largest field, which is a memo.
+        use crate::core::types::blob::BLOB_BUFFER_SIZE;
+        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
 
         let result_code =
             unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
@@ -512,7 +513,8 @@ pub mod ledger_object {
 
     #[inline]
     pub fn get_blob_field_optional(register_num: i32, field_code: i32) -> Result<Option<Blob>> {
-        let mut buffer = [0u8; 1024]; // Enough to hold the largest field, which is a memo.
+        use crate::core::types::blob::BLOB_BUFFER_SIZE;
+        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
 
         let result_code = unsafe {
             get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), buffer.len())
