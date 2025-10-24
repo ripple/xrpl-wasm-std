@@ -5,14 +5,8 @@
 async function test(testContext) {
   const { deploy, finish, submit, sourceWallet, destWallet } = testContext
 
-  console.log("\nTesting Atomic Swap 2 (Data field-based):")
-  console.log(
-    "This is a simplified test - see atomic_swap1/run_test.js for comprehensive testing",
-  )
-
   // Deploy an escrow with some initial data
   const escrowResult = await deploy(sourceWallet, destWallet, finish)
-  console.log(`Escrow deployed with sequence: ${escrowResult.sequence}`)
 
   // This test just demonstrates basic functionality
   // A full test would involve:
@@ -32,9 +26,7 @@ async function test(testContext) {
 
   // This will likely fail because the data field doesn't contain a valid escrow keylet
   if (response.result.meta.TransactionResult === "tecWASM_REJECTED") {
-    console.log("✓ Escrow correctly rejected due to missing/invalid data field")
-  } else if (response.result.meta.TransactionResult === "tesSUCCESS") {
-    console.log("✓ Escrow finished successfully")
+    // Expected - escrow correctly rejected due to missing/invalid data field
   } else {
     console.error(
       "\nUnexpected result:",
@@ -42,9 +34,6 @@ async function test(testContext) {
     )
     process.exit(1)
   }
-
-  console.log("✓ Basic atomic_swap2 test completed")
-  console.log("For full atomic swap testing, run the atomic_swap1 test")
 }
 
 module.exports = { test }

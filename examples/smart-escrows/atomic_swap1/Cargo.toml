@@ -2,7 +2,7 @@
 name = "atomic_swap1"
 version = "0.1.0"
 edition = "2024"
-description = "Smart Escrow example that unlocks when the ledger sequence number reaches a minimum threshold"
+description = "Smart Escrow example that implements atomic swaps using memo-based counterpart escrow validation"
 license = "ISC"
 
 
