@@ -16,6 +16,12 @@ use xrpl_wasm_std::host::{Error, Result, Result::Err, Result::Ok};
 use xrpl_wasm_std::sfield;
 use xrpl_wasm_std::types::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 
+/// Extracts the first memo from the transaction.
+///
+/// This function uses a Locator to navigate the transaction structure:
+/// - Memos[0].MemoData contains the counterpart escrow keylet
+/// - Returns the memo data as a byte array and its length
+/// - Used to get the 32-byte keylet of the counterpart escrow
 #[unsafe(no_mangle)]
 pub fn get_first_memo() -> Result<Option<(ContractData, usize)>> {
     let mut data: ContractData = [0; XRPL_CONTRACT_DATA_SIZE];
@@ -39,13 +45,26 @@ pub fn get_first_memo() -> Result<Option<(ContractData, usize)>> {
     }
 }
 
+/// Main finish function for memo-based atomic swap validation.
+///
+/// This function implements the core atomic swap logic:
+/// 1. Extracts counterpart escrow keylet from transaction memo
+/// 2. Loads the counterpart escrow from the ledger using cache_ledger_obj
+/// 3. Verifies account reversal: current.account == counterpart.destination
+/// 4. Returns 1 (success) only if all atomic swap conditions are met
+///
+/// The atomic swap property is enforced by requiring mutual validation:
+/// - Escrow A (Alice→Bob) references Escrow B's keylet in memo
+/// - Escrow B (Bob→Alice) references Escrow A's keylet in memo
+/// - Both must validate their counterpart before completing
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
+    // Extract the counterpart escrow keylet from transaction memo
     let (memo, memo_len) = match get_first_memo() {
         Ok(v) => {
             match v {
                 Some(v) => v,
-                None => return 0, // No memo provided
+                None => return 0, // No memo provided - atomic swap requires counterpart reference
             }
         }
         Err(e) => {
@@ -54,7 +73,7 @@ pub extern "C" fn finish() -> i32 {
         }
     };
 
-    // Extract the escrow ID from the memo (first 32 bytes)
+    // Validate memo contains a full 32-byte keylet
     if memo_len < XRPL_KEYLET_SIZE {
         let _ = trace_num(
             "Memo too short, expected at least 32 bytes, got:",
@@ -63,6 +82,7 @@ pub extern "C" fn finish() -> i32 {
         return 0;
     }
 
+    // Extract the counterpart escrow keylet (first 32 bytes of memo)
     let escrow_id: [u8; XRPL_KEYLET_SIZE] = memo[0..32].try_into().unwrap();
     let _ = trace_data(
         "Counterpart escrow ID from memo:",
@@ -70,7 +90,8 @@ pub extern "C" fn finish() -> i32 {
         DataRepr::AsHex,
     );
 
-    // Cache the counterpart escrow using the escrow ID directly
+    // Load the counterpart escrow from the ledger
+    // This will fail if the escrow doesn't exist or has been consumed
     let counterpart_slot =
         unsafe { host::cache_ledger_obj(escrow_id.as_ptr(), escrow_id.len(), 0) };
     if counterpart_slot < 0 {
@@ -83,7 +104,7 @@ pub extern "C" fn finish() -> i32 {
 
     let counterpart_escrow = Escrow::new(counterpart_slot);
 
-    // Get current escrow's account and destination
+    // Get current escrow's account and destination fields
     let current_escrow = current_escrow::get_current_escrow();
     let current_account = match current_escrow.get_account() {
         Ok(account) => account,
@@ -101,7 +122,7 @@ pub extern "C" fn finish() -> i32 {
         }
     };
 
-    // Get counterpart escrow's account and destination
+    // Get counterpart escrow's account and destination fields
     let counterpart_account = match counterpart_escrow.get_account() {
         Ok(account) => account,
         Err(e) => {
@@ -121,7 +142,11 @@ pub extern "C" fn finish() -> i32 {
         }
     };
 
-    // Verify that accounts are reversed: current.account == counterpart.destination && current.destination == counterpart.account
+    // ATOMIC SWAP VALIDATION: Verify account reversal
+    // For a valid atomic swap:
+    // - Current escrow (A→B) should reference counterpart escrow (B→A)
+    // - current.account should equal counterpart.destination
+    // - current.destination should equal counterpart.account
     if current_account.0 != counterpart_destination.0 {
         let _ = trace_data("Current account:", &current_account.0, DataRepr::AsHex);
         let _ = trace_data(
@@ -146,6 +171,6 @@ pub extern "C" fn finish() -> i32 {
         return 0;
     }
 
-    // All checks passed - atomic swap conditions are met
+    // All atomic swap conditions verified - allow escrow to complete
     1
 }

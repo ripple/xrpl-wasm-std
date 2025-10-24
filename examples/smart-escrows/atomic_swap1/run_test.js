@@ -8,6 +8,13 @@ async function test(testContext) {
   console.log(`Source wallet: ${sourceWallet.address}`)
   console.log(`Dest wallet: ${destWallet.address}`)
 
+  // This test suite validates:
+  // ✅ Rejection without memo
+  // ✅ Rejection with invalid keylet
+  // ✅ Rejection with self-reference
+  // ✅ Success with valid counterpart
+  // ✅ Atomic consumption behavior
+
   // Deploy first escrow (source -> dest)
   const firstEscrowResult = await deploy(sourceWallet, destWallet, finish)
   console.log(
