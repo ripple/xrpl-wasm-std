@@ -199,11 +199,107 @@ cd ../../../
 CI=1 ./scripts/run-tests.sh examples/smart-escrows/atomic_swap1
 ```
 
+## How It Works - Implementation Details
+
+### Validation Steps
+
+1. **Memo Extraction**: Retrieves counterpart escrow keylet from transaction memo (32 bytes)
+2. **Counterpart Loading**: Loads the referenced escrow from the ledger
+3. **WASM Validation**: Confirms counterpart uses atomic_swap2 contract (magic number, version, size checks)
+4. **Data Field Validation**: Verifies counterpart's data field is valid (32 or 36 bytes)
+5. **Account Reversal**: Validates that accounts are properly reversed:
+   - Current escrow's account == Counterpart's destination
+   - Current escrow's destination == Counterpart's account
+6. **Completion**: Returns 1 (success) if all validations pass, allowing escrow to complete
+
+### Security Features
+
+- **Mutual Validation**: Both escrows must validate each other before completing
+- **WASM Verification**: Prevents accepting wrong contracts with correct headers
+- **Account Reversal Check**: Ensures escrows are properly paired (A→B with B→A)
+- **Keylet-Based References**: Uses immutable ledger object identifiers for precise targeting
+
+## Execution Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ EscrowFinish Transaction Submitted                              │
+│ (with memo containing counterpart keylet)                       │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Extract Memo Data      │
+            │ (32-byte keylet)       │
+            └────────────┬───────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Load Counterpart       │
+            │ Escrow from Ledger     │
+            └────────────┬───────────┘
+                         │
+                    ┌────┴────┐
+                    │ Exists?  │
+                    └────┬────┘
+                    Yes  │  No
+                         │
+        ┌────────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│ Validate WASM            │
+│ (magic, version, size)   │
+└────────────┬─────────────┘
+             │
+        ┌────┴────┐
+        │ Valid?   │
+        └────┬────┘
+        Yes  │  No
+             │
+    ┌────────┘
+    │
+    ▼
+┌──────────────────────────┐
+│ Validate Data Field      │
+│ (32 or 36 bytes)         │
+└────────────┬─────────────┘
+             │
+        ┌────┴────┐
+        │ Valid?   │
+        └────┬────┘
+        Yes  │  No
+             │
+    ┌────────┘
+    │
+    ▼
+┌──────────────────────────┐
+│ Validate Account         │
+│ Reversal                 │
+└────────────┬─────────────┘
+             │
+        ┌────┴────┐
+        │ Valid?   │
+        └────┬────┘
+        Yes  │  No
+             │
+    ┌────────┘
+    │
+    ▼
+┌──────────────────────────┐
+│ Return 1 (Success)       │
+│ Escrow Completes         │
+│ Funds Transferred        │
+└──────────────────────────┘
+```
+
 ## Important Notes
 
 ⚠️ **Timing**: Both escrows should be finished quickly after each other. Once one escrow is consumed, the counterpart becomes unreferenceable.
 
 ⚠️ **Coordination**: In practice, both parties should submit their `EscrowFinish` transactions in the same ledger or use coordination mechanisms.
+
+⚠️ **Memo Format**: The memo must contain exactly the 32-byte keylet of the counterpart escrow. Extra data is ignored but should be avoided.
 
 ## What can go wrong?
 
@@ -223,3 +319,30 @@ This escrow is designed to work **with other escrows** to create complete atomic
 - **Escrow B** (Bob→Alice): Uses any contract (including atomic_swap2), both validate each other
 
 The atomic_swap2 example shows a different validation approach using data fields and timing, but both examples demonstrate the same principle: **mutual validation between escrows**.
+
+## Production Considerations
+
+To make this example production-grade, you would want to implement:
+
+### Enhanced Validation
+
+- **CancelAfter validation**: Verify that the counterpart's CancelAfter is in the future to prevent accepting already-expired escrows
+- **Counterpart data field validation**: Verify that the counterpart's data field contains the expected keylet, adding a layer of defense against misconfigured escrows
+- **Stricter memo format validation**: Reject memos with extra bytes to prevent accidental data corruption
+
+### Cryptographic Security
+
+- **Hash-based WASM validation**: Replace the current magic number check with SHA256 hash verification against known good versions, preventing acceptance of wrong WASM with correct headers
+- **Signature verification**: Consider requiring cryptographic signatures from both parties to prevent unauthorized escrow creation
+
+### Robustness
+
+- **Ledger time sanity checks**: Validate that current_time is reasonable (not 0, not in far future) to catch unexpected ledger state
+- **Comprehensive error recovery**: Implement retry logic and state recovery procedures for edge cases
+- **Timeout handling**: Implement mechanisms to handle cases where one party never submits their EscrowFinish
+
+### Operational
+
+- **Failure scenario documentation**: Document what happens if one escrow expires before the other completes, and implement recovery procedures
+- **Monitoring and alerting**: Add metrics for swap success/failure rates and alert on anomalies
+- **Rate limiting**: Implement rate limiting to prevent abuse of the atomic swap mechanism

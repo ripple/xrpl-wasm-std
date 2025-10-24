@@ -200,13 +200,172 @@ cd ../../../
 CI=1 ./scripts/run-tests.sh examples/smart-escrows/atomic_swap2
 ```
 
+## How It Works - Implementation Details
+
+### Phase 1 Execution
+
+1. **Data Validation**: Verifies data field contains exactly 32 bytes (first escrow keylet)
+2. **Counterpart Verification**: Loads and validates the first escrow exists on the ledger
+3. **WASM Validation**: Confirms first escrow uses atomic_swap1 contract
+4. **Account Reversal**: Validates proper account setup between escrows
+5. **Timing Setup**: Retrieves current escrow's CancelAfter as the swap deadline
+6. **Data Persistence**: Appends CancelAfter timestamp to data field (36 bytes total)
+7. **Result**: Returns 0 (failure) but data persists - escrow remains active for Phase 2
+
+### Phase 2 Execution
+
+1. **Data Extraction**: Retrieves the CancelAfter timestamp from last 4 bytes of data
+2. **Time Check**: Gets current ledger time and compares against deadline
+3. **Completion**: Returns 1 (success) if within deadline, 0 (failure) if expired
+
+## Two-Phase State Machine Diagram
+
+```
+PHASE 1: Initialization
+═════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────┐
+│ EscrowFinish Transaction Submitted (Phase 1)                    │
+│ Data Field: 32 bytes (first escrow keylet)                      │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Validate Data Length   │
+            │ (must be 32 bytes)     │
+            └────────────┬───────────┘
+                         │
+                    ┌────┴────┐
+                    │ Valid?   │
+                    └────┬────┘
+                    Yes  │  No → FAIL
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Load First Escrow      │
+            │ from Ledger            │
+            └────────────┬───────────┘
+                         │
+                    ┌────┴────┐
+                    │ Exists?  │
+                    └────┬────┘
+                    Yes  │  No → FAIL
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Validate WASM          │
+            │ (atomic_swap1)         │
+            └────────────┬───────────┘
+                         │
+                    ┌────┴────┐
+                    │ Valid?   │
+                    └────┬────┘
+                    Yes  │  No → FAIL
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Validate Account       │
+            │ Reversal               │
+            └────────────┬───────────┘
+                         │
+                    ┌────┴────┐
+                    │ Valid?   │
+                    └────┬────┘
+                    Yes  │  No → FAIL
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Get CancelAfter        │
+            │ Timestamp              │
+            └────────────┬───────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Append CancelAfter     │
+            │ to Data Field          │
+            │ (32 → 36 bytes)        │
+            └────────────┬───────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Persist Updated Data   │
+            │ to Escrow              │
+            └────────────┬───────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Return 0 (Wait)        │
+            │ tecWASM_REJECTED       │
+            │ Data Persisted ✓       │
+            └────────────────────────┘
+                         │
+                         │ Escrow remains active
+                         │ Ready for Phase 2
+                         │
+                         ▼
+PHASE 2: Timing Validation
+═════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────┐
+│ EscrowFinish Transaction Submitted (Phase 2)                    │
+│ Data Field: 36 bytes (keylet + CancelAfter)                     │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Validate Data Length   │
+            │ (must be ≥ 36 bytes)   │
+            └────────────┬───────────┘
+                         │
+                    ┌────┴────┐
+                    │ Valid?   │
+                    └────┬────┘
+                    Yes  │  No → FAIL
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Extract CancelAfter    │
+            │ from Last 4 Bytes      │
+            └────────────┬───────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Get Current            │
+            │ Ledger Time            │
+            └────────────┬───────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │ Compare Times          │
+            │ current < CancelAfter? │
+            └────────────┬───────────┘
+                         │
+                    ┌────┴────┐
+                    │ Within   │
+                    │ Deadline?│
+                    └────┬────┘
+                    Yes  │  No
+                         │
+        ┌────────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│ Return 1 (Success)       │
+│ tesSUCCESS               │
+│ Escrow Completes         │
+│ Funds Transferred        │
+└──────────────────────────┘
+```
+
 ## Important Notes
 
 ⚠️ **Two Executions Required**: You must call `EscrowFinish` twice - once for each phase.
 
-⚠️ **Timing**: The deadline is set from the escrow's `CancelAfter` field during Phase 1.
+⚠️ **Timing**: The deadline is set from the escrow's `CancelAfter` field during Phase 1. Phase 2 must execute before this deadline.
 
 ⚠️ **Data Field**: Must contain exactly 32 bytes (the first escrow's keylet) when creating the escrow.
+
+⚠️ **Phase 2 Data Consistency**: The first 32 bytes of the data field are re-validated in Phase 2 to ensure they haven't been tampered with.
 
 ## What can go wrong?
 
@@ -225,3 +384,33 @@ This escrow is designed to work **with other escrows** to create complete atomic
 - **Escrow B** (Bob→Alice): Uses this data field-based contract, references Escrow A's keylet
 
 The atomic_swap1 example shows a different validation approach using memos, but both examples demonstrate the same principle: **one escrow validates the other exists before completing**.
+
+## Production Considerations
+
+To make this example production-grade, you would want to implement:
+
+### Enhanced Validation
+
+- **Phase 2 data consistency**: Re-validate that the first 32 bytes of the data field still match the first escrow's keylet to detect tampering between phases
+- **Counterpart data field validation**: Verify that the first escrow's data field contains the expected values (e.g., this escrow's keylet for bidirectional validation)
+- **Stricter data format validation**: Reject data fields with unexpected lengths or formats
+
+### Cryptographic Security
+
+- **Hash-based WASM validation**: Replace the current magic number check with SHA256 hash verification against known good versions, preventing acceptance of wrong WASM with correct headers
+- **Signature verification**: Consider requiring cryptographic signatures from both parties to prevent unauthorized escrow creation
+- **Keylet validation**: Implement cryptographic verification that keylets are properly formatted and valid
+
+### Robustness
+
+- **Ledger time sanity checks**: Validate that current_time is reasonable (not 0, not in far future) to catch unexpected ledger state
+- **CancelAfter validation**: Verify that CancelAfter is in the future during Phase 1 to prevent accepting already-expired deadlines
+- **Comprehensive error recovery**: Implement retry logic and state recovery procedures for edge cases
+- **Timeout handling**: Implement mechanisms to handle cases where Phase 2 is never executed
+
+### Operational
+
+- **Failure scenario documentation**: Document what happens if one escrow expires before the other completes, and implement recovery procedures
+- **Monitoring and alerting**: Add metrics for swap success/failure rates, phase execution times, and alert on anomalies
+- **Rate limiting**: Implement rate limiting to prevent abuse of the atomic swap mechanism
+- **Audit logging**: Log all phase transitions and validation failures for compliance and debugging
