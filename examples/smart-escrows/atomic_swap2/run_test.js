@@ -11,8 +11,8 @@ async function test(testContext) {
   )
 
   // Deploy an escrow with some initial data
-  const offerSequence = await deploy(sourceWallet, destWallet, finish)
-  console.log(`Escrow deployed with sequence: ${offerSequence}`)
+  const escrowResult = await deploy(sourceWallet, destWallet, finish)
+  console.log(`Escrow deployed with sequence: ${escrowResult.sequence}`)
 
   // This test just demonstrates basic functionality
   // A full test would involve:
@@ -24,7 +24,7 @@ async function test(testContext) {
     TransactionType: "EscrowFinish",
     Account: sourceWallet.address,
     Owner: sourceWallet.address,
-    OfferSequence: parseInt(offerSequence),
+    OfferSequence: parseInt(escrowResult.sequence),
     ComputationAllowance: 1000000,
   }
 
