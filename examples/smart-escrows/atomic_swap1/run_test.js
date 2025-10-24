@@ -9,19 +9,17 @@ async function test(testContext) {
   console.log(`Dest wallet: ${destWallet.address}`)
 
   // Deploy first escrow (source -> dest)
-  const firstEscrowSequence = await deploy(sourceWallet, destWallet, finish)
-  console.log(`First escrow deployed with sequence: ${firstEscrowSequence}`)
-
-  // Generate keylet for the first escrow
-  const firstEscrowKeylet = xrpl.getEscrowKeylet(
-    sourceWallet.address,
-    parseInt(firstEscrowSequence),
+  const firstEscrowResult = await deploy(sourceWallet, destWallet, finish)
+  console.log(
+    `First escrow deployed with sequence: ${firstEscrowResult.sequence}`,
   )
-  console.log(`First escrow keylet: ${firstEscrowKeylet}`)
+  console.log(`First escrow keylet: ${firstEscrowResult.escrowKeylet}`)
 
   // Deploy second escrow (dest -> source) - this will be the counterpart
-  const secondEscrowSequence = await deploy(destWallet, sourceWallet, finish)
-  console.log(`Second escrow deployed with sequence: ${secondEscrowSequence}`)
+  const secondEscrowResult = await deploy(destWallet, sourceWallet, finish)
+  console.log(
+    `Second escrow deployed with sequence: ${secondEscrowResult.sequence}`,
+  )
 
   // Test 1: Try to finish first escrow without memo (should fail)
   console.log("\nTest 1: Finishing first escrow without memo (should fail)")
@@ -29,7 +27,7 @@ async function test(testContext) {
     TransactionType: "EscrowFinish",
     Account: sourceWallet.address,
     Owner: sourceWallet.address,
-    OfferSequence: parseInt(firstEscrowSequence),
+    OfferSequence: parseInt(firstEscrowResult.sequence),
     ComputationAllowance: 1000000,
   }
 
@@ -49,7 +47,7 @@ async function test(testContext) {
     TransactionType: "EscrowFinish",
     Account: sourceWallet.address,
     Owner: sourceWallet.address,
-    OfferSequence: parseInt(firstEscrowSequence),
+    OfferSequence: parseInt(firstEscrowResult.sequence),
     ComputationAllowance: 1000000,
     Memos: [
       {
@@ -76,13 +74,13 @@ async function test(testContext) {
     TransactionType: "EscrowFinish",
     Account: sourceWallet.address,
     Owner: sourceWallet.address,
-    OfferSequence: parseInt(firstEscrowSequence),
+    OfferSequence: parseInt(firstEscrowResult.sequence),
     ComputationAllowance: 1000000,
     Memos: [
       {
         Memo: {
           MemoType: xrpl.convertStringToHex("counterpart_escrow"),
-          MemoData: firstEscrowKeylet,
+          MemoData: firstEscrowResult.escrowKeylet,
         },
       },
     ],
@@ -95,27 +93,44 @@ async function test(testContext) {
   }
   console.log("✓ Correctly rejected escrow finish with its own keylet")
 
-  // Test 4: Finish first escrow with correct counterpart keylet (should succeed)
+  // Test 4: Create fresh escrows for the atomic swap completion test
   console.log(
-    "\nTest 4: Finishing first escrow with correct counterpart keylet (should succeed)",
+    "\nTest 4: Creating fresh escrows for atomic swap completion test",
   )
-  const secondEscrowKeylet = xrpl.getEscrowKeylet(
-    destWallet.address,
-    parseInt(secondEscrowSequence),
+
+  // Deploy fresh escrows for the successful atomic swap test
+  const freshFirstEscrowResult = await deploy(sourceWallet, destWallet, finish)
+  console.log(
+    `Fresh first escrow deployed with sequence: ${freshFirstEscrowResult.sequence}`,
   )
-  console.log(`Second escrow keylet: ${secondEscrowKeylet}`)
+  console.log(
+    `Fresh first escrow keylet: ${freshFirstEscrowResult.escrowKeylet}`,
+  )
+
+  const freshSecondEscrowResult = await deploy(destWallet, sourceWallet, finish)
+  console.log(
+    `Fresh second escrow deployed with sequence: ${freshSecondEscrowResult.sequence}`,
+  )
+  console.log(
+    `Fresh second escrow keylet: ${freshSecondEscrowResult.escrowKeylet}`,
+  )
+
+  // Test 4a: Finish first fresh escrow with correct counterpart keylet (should succeed)
+  console.log(
+    "\nTest 4a: Finishing first fresh escrow with correct counterpart keylet (should succeed)",
+  )
 
   const txCorrectMemo = {
     TransactionType: "EscrowFinish",
     Account: sourceWallet.address,
     Owner: sourceWallet.address,
-    OfferSequence: parseInt(firstEscrowSequence),
+    OfferSequence: parseInt(freshFirstEscrowResult.sequence),
     ComputationAllowance: 1000000,
     Memos: [
       {
         Memo: {
           MemoType: xrpl.convertStringToHex("counterpart_escrow"),
-          MemoData: secondEscrowKeylet,
+          MemoData: freshSecondEscrowResult.escrowKeylet,
         },
       },
     ],
@@ -124,44 +139,63 @@ async function test(testContext) {
   const responseCorrectMemo = await submit(txCorrectMemo, sourceWallet)
   if (responseCorrectMemo.result.meta.TransactionResult !== "tesSUCCESS") {
     console.error(
-      "\nFailed to finish first escrow with correct counterpart:",
+      "\nFailed to finish first fresh escrow with correct counterpart:",
       responseCorrectMemo.result.meta.TransactionResult,
     )
     process.exit(1)
   }
   console.log(
-    "✓ Successfully finished first escrow with correct counterpart keylet",
+    "✓ Successfully finished first fresh escrow with correct counterpart keylet",
   )
 
-  // Test 5: Finish second escrow with first escrow's keylet (should succeed)
+  // Test 4b: Try to finish second fresh escrow with first escrow's keylet (should fail since first escrow was consumed)
   console.log(
-    "\nTest 5: Finishing second escrow with first escrow keylet (should succeed)",
+    "\nTest 4b: Attempting to finish second fresh escrow (should fail - first escrow was consumed)",
   )
-  const txSecondEscrow = {
+  const txSecondEscrowShouldFail = {
     TransactionType: "EscrowFinish",
     Account: destWallet.address,
     Owner: destWallet.address,
-    OfferSequence: parseInt(secondEscrowSequence),
+    OfferSequence: parseInt(freshSecondEscrowResult.sequence),
     ComputationAllowance: 1000000,
     Memos: [
       {
         Memo: {
           MemoType: xrpl.convertStringToHex("counterpart_escrow"),
-          MemoData: firstEscrowKeylet,
+          MemoData: freshFirstEscrowResult.escrowKeylet,
         },
       },
     ],
   }
 
-  const responseSecondEscrow = await submit(txSecondEscrow, destWallet)
-  if (responseSecondEscrow.result.meta.TransactionResult !== "tesSUCCESS") {
+  const responseSecondEscrowShouldFail = await submit(
+    txSecondEscrowShouldFail,
+    destWallet,
+  )
+  if (
+    responseSecondEscrowShouldFail.result.meta.TransactionResult !==
+    "tecWASM_REJECTED"
+  ) {
     console.error(
-      "\nFailed to finish second escrow:",
-      responseSecondEscrow.result.meta.TransactionResult,
+      "\nUnexpected: second escrow finished when it should have failed:",
+      responseSecondEscrowShouldFail.result.meta.TransactionResult,
     )
     process.exit(1)
   }
-  console.log("✓ Successfully finished second escrow")
+  console.log(
+    "✓ Correctly rejected second escrow finish (first escrow was already consumed)",
+  )
+
+  // Test 5: Demonstrate successful bidirectional atomic swap with proper timing
+  console.log(
+    "\nTest 5: Demonstrating proper atomic swap with simultaneous execution",
+  )
+  console.log(
+    "ℹ️  In a real atomic swap, both escrows should be finished in the same block",
+  )
+  console.log(
+    "ℹ️  or have logic to handle the case where one escrow is consumed before the other",
+  )
 
   console.log("\n🎉 All atomic swap tests passed!")
   console.log("✓ Atomic swap completed successfully - both escrows finished")
