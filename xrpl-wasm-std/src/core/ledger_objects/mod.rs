@@ -433,7 +433,7 @@ impl FieldGetter for Hash256 {
     }
 }
 
-const BLOB_BUFFER_SIZE: usize = 1024;
+const BLOB_BUFFER_SIZE: usize = 102400;
 
 /// Implementation of `FieldGetter` for variable-length binary data.
 ///

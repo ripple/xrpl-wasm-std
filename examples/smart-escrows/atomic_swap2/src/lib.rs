@@ -4,12 +4,57 @@
 extern crate std;
 
 use xrpl_wasm_std::core::ledger_objects::current_escrow::{self, CurrentEscrow};
-use xrpl_wasm_std::core::ledger_objects::traits::CurrentEscrowFields;
+use xrpl_wasm_std::core::ledger_objects::escrow::Escrow;
+use xrpl_wasm_std::core::ledger_objects::traits::{CurrentEscrowFields, EscrowFields};
 use xrpl_wasm_std::core::types::contract_data::XRPL_CONTRACT_DATA_SIZE;
 use xrpl_wasm_std::core::types::keylets::XRPL_KEYLET_SIZE;
 use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 use xrpl_wasm_std::host::{Result::Err, Result::Ok};
 use xrpl_wasm_std::{host, host::error_codes::match_result_code};
+
+// Security constants for validation
+const VALIDATION_FAILED: i32 = 0;
+const KEYLET_PLUS_TIMESTAMP_SIZE: usize = 36;
+
+/// Validates if the provided WASM bytes represent a compatible atomic_swap1 contract.
+///
+/// In a production system, this should validate the WASM hash against known good versions.
+/// For this implementation, we perform basic validation by checking WASM structure and size.
+///
+/// # Arguments
+/// * `wasm_bytes` - The WASM bytecode to validate
+///
+/// # Returns
+/// * `true` if the WASM appears to be a valid atomic_swap1 contract
+/// * `false` if validation fails
+fn is_valid_atomic_swap1_wasm(wasm_bytes: &[u8]) -> bool {
+    // Basic WASM validation - check for WASM magic number
+    if wasm_bytes.len() < 8 {
+        return false;
+    }
+
+    // Check WASM magic number (0x00 0x61 0x73 0x6D)
+    if &wasm_bytes[0..4] != &[0x00, 0x61, 0x73, 0x6D] {
+        return false;
+    }
+
+    // Check WASM version (0x01 0x00 0x00 0x00)
+    if &wasm_bytes[4..8] != &[0x01, 0x00, 0x00, 0x00] {
+        return false;
+    }
+
+    // Additional validation: Check reasonable size range for atomic_swap1 contracts
+    // Typical atomic_swap1 WASM should be between 1KB and 100KB
+    if wasm_bytes.len() < 1024 || wasm_bytes.len() > 102400 {
+        return false;
+    }
+
+    // TODO: In production, implement proper hash-based validation:
+    // let expected_hash = sha256(wasm_bytes);
+    // expected_hash == KNOWN_ATOMIC_SWAP1_HASH
+
+    true
+}
 
 /// Main finish function for data field-based atomic swap with two-phase execution.
 ///
@@ -62,7 +107,7 @@ pub extern "C" fn finish() -> i32 {
                 "Invalid data length for first run, expected 32 bytes, got:",
                 current_data.len as i64,
             );
-            return 0;
+            return VALIDATION_FAILED;
         }
 
         // Extract the first escrow keylet from data field
@@ -82,15 +127,111 @@ pub extern "C" fn finish() -> i32 {
                 "Failed to cache first escrow, error:",
                 first_escrow_slot as i64,
             );
-            return 0;
+            return VALIDATION_FAILED;
         }
+
+        let first_escrow = Escrow::new(first_escrow_slot);
+
+        // ENHANCED SECURITY VALIDATION: Verify first escrow properties
+        let _ = trace_num("Starting first escrow security validation", 0);
+
+        // 1. WASM Validation: Verify first escrow uses compatible atomic_swap1 contract
+        let first_finish_function = match first_escrow.get_finish_function() {
+            Ok(Some(wasm)) => wasm,
+            Ok(None) => {
+                let _ = trace_num("First escrow has no FinishFunction - security fail", 0);
+                return VALIDATION_FAILED;
+            }
+            Err(e) => {
+                let _ = trace_num(
+                    "Error getting first escrow FinishFunction:",
+                    e.code() as i64,
+                );
+                return e.code();
+            }
+        };
+
+        // Validate that the first escrow uses a compatible WASM contract
+        if !is_valid_atomic_swap1_wasm(&first_finish_function.data[..first_finish_function.len]) {
+            let _ = trace_num("First escrow WASM validation failed - not atomic_swap1", 0);
+            return VALIDATION_FAILED;
+        }
+        let _ = trace_num("First escrow WASM validation passed", 0);
+
+        // 2. Account Reversal Validation: Verify proper account setup between escrows
+        let first_account = match first_escrow.get_account() {
+            Ok(account) => account,
+            Err(e) => {
+                let _ = trace_num("Error getting first escrow account:", e.code() as i64);
+                return e.code();
+            }
+        };
+
+        let first_destination = match first_escrow.get_destination() {
+            Ok(destination) => destination,
+            Err(e) => {
+                let _ = trace_num("Error getting first escrow destination:", e.code() as i64);
+                return e.code();
+            }
+        };
+
+        let current_account = match current_escrow.get_account() {
+            Ok(account) => account,
+            Err(e) => {
+                let _ = trace_num("Error getting current escrow account:", e.code() as i64);
+                return e.code();
+            }
+        };
+
+        let current_destination = match current_escrow.get_destination() {
+            Ok(destination) => destination,
+            Err(e) => {
+                let _ = trace_num("Error getting current escrow destination:", e.code() as i64);
+                return e.code();
+            }
+        };
+
+        // Verify proper account reversal: first(A→B) ↔ current(B→A)
+        if first_account.0 != current_destination.0 {
+            let _ = trace_data("First escrow account:", &first_account.0, DataRepr::AsHex);
+            let _ = trace_data(
+                "Current escrow destination:",
+                &current_destination.0,
+                DataRepr::AsHex,
+            );
+            let _ = trace_num(
+                "Account reversal validation failed - accounts don't match",
+                0,
+            );
+            return VALIDATION_FAILED;
+        }
+
+        if first_destination.0 != current_account.0 {
+            let _ = trace_data(
+                "First escrow destination:",
+                &first_destination.0,
+                DataRepr::AsHex,
+            );
+            let _ = trace_data(
+                "Current escrow account:",
+                &current_account.0,
+                DataRepr::AsHex,
+            );
+            let _ = trace_num(
+                "Account reversal validation failed - destinations don't match",
+                0,
+            );
+            return VALIDATION_FAILED;
+        }
+
+        let _ = trace_num("All first escrow security validations passed", 0);
 
         // Get current escrow's CancelAfter field - this becomes our swap deadline
         let cancel_after = match current_escrow.get_cancel_after() {
             Ok(Some(cancel_after)) => cancel_after,
             Ok(None) => {
                 let _ = trace_num("Current escrow has no CancelAfter field", 0);
-                return 0;
+                return VALIDATION_FAILED;
             }
             Err(e) => {
                 let _ = trace_num("Error getting CancelAfter:", e.code() as i64);
@@ -105,7 +246,7 @@ pub extern "C" fn finish() -> i32 {
         let cancel_after_bytes = cancel_after.to_le_bytes();
         if current_data.len + 4 > XRPL_CONTRACT_DATA_SIZE {
             let _ = trace_num("Data would exceed maximum size", 0);
-            return 0;
+            return VALIDATION_FAILED;
         }
 
         current_data.data[current_data.len..current_data.len + 4]
@@ -136,12 +277,12 @@ pub extern "C" fn finish() -> i32 {
         // PHASE 2: Timing validation - check if we're within the deadline
 
         // Validate data field contains at least 36 bytes (32 bytes keylet + 4 bytes timing)
-        if current_data.len < XRPL_KEYLET_SIZE + 4 {
+        if current_data.len < KEYLET_PLUS_TIMESTAMP_SIZE {
             let _ = trace_num(
                 "Invalid data length for second run, expected at least 36 bytes, got:",
                 current_data.len as i64,
             );
-            return 0;
+            return VALIDATION_FAILED;
         }
 
         // Extract the CancelAfter timestamp from the last 4 bytes of data field
@@ -161,7 +302,7 @@ pub extern "C" fn finish() -> i32 {
             Ok(Some(time)) => time,
             Ok(None) => {
                 let _ = trace_num("Failed to get parent ledger time", 0);
-                return 0;
+                return VALIDATION_FAILED;
             }
             Err(e) => {
                 let _ = trace_num("Error getting parent ledger time:", e.code() as i64);

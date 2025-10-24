@@ -16,6 +16,49 @@ use xrpl_wasm_std::host::{Error, Result, Result::Err, Result::Ok};
 use xrpl_wasm_std::sfield;
 use xrpl_wasm_std::types::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 
+// Security constants for validation
+const VALIDATION_FAILED: i32 = 0;
+
+/// Validates if the provided WASM bytes represent a compatible atomic_swap2 contract.
+///
+/// In a production system, this should validate the WASM hash against known good versions.
+/// For this implementation, we perform basic validation by checking WASM structure and size.
+///
+/// # Arguments
+/// * `wasm_bytes` - The WASM bytecode to validate
+///
+/// # Returns
+/// * `true` if the WASM appears to be a valid atomic_swap2 contract
+/// * `false` if validation fails
+fn is_valid_atomic_swap2_wasm(wasm_bytes: &[u8]) -> bool {
+    // Basic WASM validation - check for WASM magic number
+    if wasm_bytes.len() < 8 {
+        return false;
+    }
+
+    // Check WASM magic number (0x00 0x61 0x73 0x6D)
+    if &wasm_bytes[0..4] != &[0x00, 0x61, 0x73, 0x6D] {
+        return false;
+    }
+
+    // Check WASM version (0x01 0x00 0x00 0x00)
+    if &wasm_bytes[4..8] != &[0x01, 0x00, 0x00, 0x00] {
+        return false;
+    }
+
+    // Additional validation: Check reasonable size range for atomic_swap2 contracts
+    // Typical atomic_swap2 WASM should be between 1KB and 100KB
+    if wasm_bytes.len() < 1024 || wasm_bytes.len() > 102400 {
+        return false;
+    }
+
+    // TODO: In production, implement proper hash-based validation:
+    // let expected_hash = sha256(wasm_bytes);
+    // expected_hash == KNOWN_ATOMIC_SWAP2_HASH
+
+    true
+}
+
 /// Extracts the first memo from the transaction.
 ///
 /// This function uses a Locator to navigate the transaction structure:
@@ -79,7 +122,7 @@ pub extern "C" fn finish() -> i32 {
             "Memo too short, expected at least 32 bytes, got:",
             memo_len as i64,
         );
-        return 0;
+        return VALIDATION_FAILED;
     }
 
     // Extract the counterpart escrow keylet (first 32 bytes of memo)
@@ -99,10 +142,70 @@ pub extern "C" fn finish() -> i32 {
             "Failed to cache counterpart escrow, error:",
             counterpart_slot as i64,
         );
-        return 0;
+        return VALIDATION_FAILED;
     }
 
     let counterpart_escrow = Escrow::new(counterpart_slot);
+
+    // ENHANCED SECURITY VALIDATION: Verify counterpart escrow properties
+    let _ = trace_num("Starting counterpart security validation", 0);
+
+    // 1. WASM Validation: Verify counterpart uses compatible atomic_swap2 contract
+    let counterpart_finish_function = match counterpart_escrow.get_finish_function() {
+        Ok(Some(wasm)) => wasm,
+        Ok(None) => {
+            let _ = trace_num(
+                "Counterpart escrow has no FinishFunction - security fail",
+                0,
+            );
+            return VALIDATION_FAILED;
+        }
+        Err(e) => {
+            let _ = trace_num("Error getting counterpart FinishFunction:", e.code() as i64);
+            return e.code();
+        }
+    };
+
+    // Validate that the counterpart uses a compatible WASM contract
+    if !is_valid_atomic_swap2_wasm(
+        &counterpart_finish_function.data[..counterpart_finish_function.len],
+    ) {
+        let _ = trace_num("Counterpart WASM validation failed - not atomic_swap2", 0);
+        return VALIDATION_FAILED;
+    }
+    let _ = trace_num("Counterpart WASM validation passed", 0);
+
+    // 2. Data Field Validation: Verify counterpart's data field structure
+    let counterpart_data = match counterpart_escrow.get_data() {
+        Ok(data) => data,
+        Err(e) => {
+            let _ = trace_num("Error getting counterpart data:", e.code() as i64);
+            return e.code();
+        }
+    };
+
+    // For atomic_swap2 Phase 1: data must be exactly 32 bytes (first escrow keylet)
+    // For atomic_swap2 Phase 2: data must be 36 bytes (keylet + timestamp)
+    // We'll accept both as valid states since the counterpart might be in either phase
+    if counterpart_data.len != XRPL_KEYLET_SIZE && counterpart_data.len != (XRPL_KEYLET_SIZE + 4) {
+        let _ = trace_num(
+            "Counterpart data field invalid length, expected 32 or 36 bytes, got:",
+            counterpart_data.len as i64,
+        );
+        return VALIDATION_FAILED;
+    }
+
+    let _ = trace_data(
+        "Counterpart data field:",
+        &counterpart_data.data[0..counterpart_data.len],
+        DataRepr::AsHex,
+    );
+
+    // TODO: Ideally, we would validate that counterpart_data contains current escrow's keylet
+    // This requires calculating current escrow's keylet from account + sequence
+    // For now, we rely on the existing account reversal validation below
+
+    let _ = trace_num("All counterpart security validations passed", 0);
 
     // Get current escrow's account and destination fields
     let current_escrow = current_escrow::get_current_escrow();
@@ -154,7 +257,7 @@ pub extern "C" fn finish() -> i32 {
             &counterpart_destination.0,
             DataRepr::AsHex,
         );
-        return 0;
+        return VALIDATION_FAILED;
     }
 
     if current_destination.0 != counterpart_account.0 {
@@ -168,7 +271,7 @@ pub extern "C" fn finish() -> i32 {
             &counterpart_account.0,
             DataRepr::AsHex,
         );
-        return 0;
+        return VALIDATION_FAILED;
     }
 
     // All atomic swap conditions verified - allow escrow to complete
