@@ -97,7 +97,7 @@ pub extern "C" fn finish() -> i32 {
         }
         Err(e) => {
             let _ = trace_num("Error checking NFT ownership:", e.code() as i64);
-            0 // <-- Do not execute the escrow
+            e.code() // <-- Do not execute the escrow
         }
     }
 }

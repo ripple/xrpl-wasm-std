@@ -14,12 +14,7 @@ pub const EMPTY_BLOB: Blob = Blob {
 
 impl Blob {
     /// Creates a new Blob from a buffer and length.
-    ///
-    /// # Panics
-    ///
-    /// Panics if len > data.len()
     pub fn new(data: [u8; 1024], len: usize) -> Self {
-        assert!(len <= data.len(), "Blob length exceeds buffer size");
         Blob { data, len }
     }
 
