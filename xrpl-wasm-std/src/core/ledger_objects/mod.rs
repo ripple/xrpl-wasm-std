@@ -1,7 +1,6 @@
 pub mod account_root;
 pub mod current_escrow;
 pub mod escrow;
-pub mod nft;
 pub mod traits;
 
 pub mod current_ledger_object {

@@ -19,6 +19,7 @@
 
 use crate::core::types::account_id::{AccountID, ACCOUNT_ID_SIZE};
 use crate::core::types::blob::Blob;
+use crate::core::types::contract_data::XRPL_CONTRACT_DATA_SIZE;
 use crate::host;
 use crate::host::{Error, Result};
 
@@ -96,6 +97,7 @@ impl NFToken {
 
     /// Returns the length of the NFTokenID (always 32 bytes).
     #[inline]
+    #[allow(clippy::len_without_is_empty)]
     pub const fn len(&self) -> usize {
         NFTID_SIZE
     }
@@ -311,17 +313,35 @@ impl NFToken {
 
     /// Checks if the specified owner owns this NFToken.
     ///
+    /// This is an optimized ownership check that doesn't retrieve the full URI data.
+    ///
     /// # Arguments
     ///
     /// * `owner` - The account to check for ownership
     ///
     /// # Returns
     ///
-    /// * `true` - The owner possesses this NFToken
-    /// * `false` - The owner does not possess this NFToken
+    /// * `Ok(true)` - The owner possesses this NFToken
+    /// * `Ok(false)` - The owner does not possess this NFToken (NFT not found)
+    /// * `Err(Error)` - If the host function fails with an error other than "not found"
     ///
-    pub fn is_owned_by(&self, owner: &AccountID) -> bool {
-        self.uri(owner).is_ok()
+    pub fn is_owned_by(&self, owner: &AccountID) -> Result<bool> {
+        let mut data = [0u8; XRPL_CONTRACT_DATA_SIZE];
+        let result_code = unsafe {
+            host::get_nft(
+                owner.0.as_ptr(),
+                owner.0.len(),
+                self.as_ptr(),
+                self.len(),
+                data.as_mut_ptr(),
+                data.len(),
+            )
+        };
+
+        match result_code {
+            code if code > 0 => Result::Ok(true),
+            code => Result::Err(Error::from_code(code)),
+        }
     }
 }
 
