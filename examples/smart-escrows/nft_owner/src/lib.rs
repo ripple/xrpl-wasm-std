@@ -6,7 +6,7 @@ extern crate std;
 use xrpl_wasm_std::core::ledger_objects::current_escrow;
 use xrpl_wasm_std::core::ledger_objects::traits::CurrentEscrowFields;
 use xrpl_wasm_std::core::locator::Locator;
-use xrpl_wasm_std::core::types::nft::{NFToken, NFTID_SIZE};
+use xrpl_wasm_std::core::types::nft::{NFTID_SIZE, NFToken};
 use xrpl_wasm_std::host::Error::InternalError;
 use xrpl_wasm_std::host::get_tx_nested_field;
 use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
