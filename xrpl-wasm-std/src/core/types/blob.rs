@@ -11,3 +11,20 @@ pub const EMPTY_BLOB: Blob = Blob {
     data: [0u8; 1024], // TODO: Consider an optional?
     len: 0usize,
 };
+
+impl Blob {
+    /// Creates a new Blob from a buffer and length.
+    ///
+    /// # Panics
+    ///
+    /// Panics if len > data.len()
+    pub fn new(data: [u8; 1024], len: usize) -> Self {
+        assert!(len <= data.len(), "Blob length exceeds buffer size");
+        Blob { data, len }
+    }
+
+    /// Returns a slice of the actual data (only the valid bytes).
+    pub fn as_slice(&self) -> &[u8] {
+        &self.data[..self.len]
+    }
+}

@@ -4,7 +4,7 @@
 extern crate std;
 
 use xrpl_wasm_std::core::ledger_objects::current_escrow;
-use xrpl_wasm_std::core::ledger_objects::nft::get_nft;
+use xrpl_wasm_std::core::ledger_objects::nft;
 use xrpl_wasm_std::core::ledger_objects::traits::CurrentEscrowFields;
 use xrpl_wasm_std::core::locator::Locator;
 use xrpl_wasm_std::host::Error::InternalError;
@@ -12,7 +12,9 @@ use xrpl_wasm_std::host::get_tx_nested_field;
 use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
 use xrpl_wasm_std::host::{Error, Result, Result::Err, Result::Ok};
 use xrpl_wasm_std::sfield;
-use xrpl_wasm_std::types::{ContractData, XRPL_CONTRACT_DATA_SIZE, XRPL_NFTID_SIZE};
+use xrpl_wasm_std::types::{ContractData, XRPL_CONTRACT_DATA_SIZE};
+
+const NFTID_SIZE: usize = 32;
 
 #[unsafe(no_mangle)]
 pub fn get_first_memo() -> Result<Option<ContractData>> {
@@ -54,8 +56,9 @@ pub extern "C" fn finish() -> i32 {
         }
     };
 
-    let nft: [u8; XRPL_NFTID_SIZE] = memo[0..32].try_into().unwrap();
-    let _ = trace_data("NFT ID from memo:", &nft, DataRepr::AsHex);
+    // Extract NFT ID from memo (first 32 bytes)
+    let nft_id: [u8; NFTID_SIZE] = memo[0..32].try_into().unwrap();
+    let _ = trace_data("NFT ID from memo:", &nft_id, DataRepr::AsHex);
 
     let current_escrow = current_escrow::get_current_escrow();
     let destination = match current_escrow.get_destination() {
@@ -66,11 +69,12 @@ pub extern "C" fn finish() -> i32 {
         }
     };
 
-    match get_nft(&destination, &nft) {
-        Ok(_) => 1, // <-- Finish the escrow to indicate a successful outcome
-        Err(e) => {
-            let _ = trace_num("Error getting NFT:", e.code() as i64);
-            e.code() // <-- Do not execute the escrow.
-        }
+    // Check if destination owns the NFT using the new API
+    if nft::is_nft_owned_by(&destination, &nft_id) {
+        let _ = trace_data("NFT is owned by destination", &[], DataRepr::AsHex);
+        1 // <-- Finish the escrow successfully
+    } else {
+        let _ = trace_data("NFT is NOT owned by destination", &[], DataRepr::AsHex);
+        0 // <-- Do not execute the escrow
     }
 }
