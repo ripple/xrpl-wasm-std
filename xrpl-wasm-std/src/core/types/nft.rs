@@ -19,7 +19,6 @@
 
 use crate::core::types::account_id::{AccountID, ACCOUNT_ID_SIZE};
 use crate::core::types::blob::Blob;
-use crate::core::types::contract_data::XRPL_CONTRACT_DATA_SIZE;
 use crate::host;
 use crate::host::{Error, Result};
 
@@ -326,15 +325,15 @@ impl NFToken {
     /// * `Err(Error)` - If the host function fails with an error other than "not found"
     ///
     pub fn is_owned_by(&self, owner: &AccountID) -> Result<bool> {
-        let mut data = [0u8; XRPL_CONTRACT_DATA_SIZE];
+        let mut uri_buf = [0u8; NFT_URI_MAX_SIZE];
         let result_code = unsafe {
             host::get_nft(
                 owner.0.as_ptr(),
                 owner.0.len(),
                 self.as_ptr(),
                 self.len(),
-                data.as_mut_ptr(),
-                data.len(),
+                uri_buf.as_mut_ptr(),
+                uri_buf.len(),
             )
         };
 
