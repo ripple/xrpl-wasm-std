@@ -17,7 +17,7 @@
 //! └─> Flags (16 bits)
 //! ```
 
-use crate::core::types::account_id::{AccountID, ACCOUNT_ID_SIZE};
+use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
 use crate::core::types::blob::Blob;
 use crate::host;
 use crate::host::{Error, Result};
