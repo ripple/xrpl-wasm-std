@@ -17,18 +17,6 @@ impl<const N: usize> UInt<N> {
     }
 }
 
-// Type aliases for common sizes
-pub type UInt128 = UInt<16>;
-pub type UInt160 = UInt<20>;
-pub type UInt192 = UInt<24>;
-pub type UInt256 = UInt<32>;
-
-// Alias for Hash types
-pub type Hash128 = UInt128;
-pub type Hash160 = UInt160;
-pub type Hash192 = UInt192;
-pub type Hash256 = UInt256;
-
 // Keep the existing constants for compatibility
 pub const UINT128_SIZE: usize = 16;
 pub const UINT160_SIZE: usize = 20;
@@ -40,6 +28,18 @@ pub const HASH128_SIZE: usize = UINT128_SIZE;
 pub const HASH160_SIZE: usize = UINT160_SIZE;
 pub const HASH192_SIZE: usize = UINT192_SIZE;
 pub const HASH256_SIZE: usize = UINT256_SIZE;
+
+// Type aliases for common sizes
+pub type UInt128 = UInt<UINT128_SIZE>;
+pub type UInt160 = UInt<UINT160_SIZE>;
+pub type UInt192 = UInt<UINT192_SIZE>;
+pub type UInt256 = UInt<UINT256_SIZE>;
+
+// Alias for Hash types
+pub type Hash128 = UInt128;
+pub type Hash160 = UInt160;
+pub type Hash192 = UInt192;
+pub type Hash256 = UInt256;
 
 #[cfg(test)]
 mod tests {
