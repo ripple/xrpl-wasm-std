@@ -267,11 +267,19 @@ let nft_token = NFToken::new(nft_id_bytes);
 let is_owned = nft_token.is_owned_by(&owner);
 
 // Get NFT metadata
-let flags = nft_token.flags()?;
+let nft_flags = nft_token.flags()?;
 let transfer_fee = nft_token.transfer_fee()?;
 let issuer = nft_token.issuer()?;
 let taxon = nft_token.taxon()?;
 let serial = nft_token.serial()?;
+
+// Check individual flags efficiently (no additional host calls)
+if nft_flags.is_burnable() {
+    // NFT can be burned by issuer
+}
+if nft_flags.is_transferable() {
+    // NFT can be transferred
+}
 
 // Get NFT URI
 let uri = nft_token.uri(&owner)?;

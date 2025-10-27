@@ -60,8 +60,20 @@ pub extern "C" fn finish() -> i32 {
     let _ = trace_data("NFT ID from memo:", nft_token.as_bytes(), DataRepr::AsHex);
 
     // Demonstrate NFToken field extraction
-    if let Ok(flags) = nft_token.flags() {
-        let _ = trace_num("NFT Flags:", flags as i64);
+    if let Ok(nft_flags) = nft_token.flags() {
+        let _ = trace_num("NFT Flags:", nft_flags.as_u16() as i64);
+        if nft_flags.is_burnable() {
+            let _ = trace_num("  - BURNABLE:", 1);
+        }
+        if nft_flags.is_only_xrp() {
+            let _ = trace_num("  - ONLY_XRP:", 1);
+        }
+        if nft_flags.is_trust_line() {
+            let _ = trace_num("  - TRUST_LINE:", 1);
+        }
+        if nft_flags.is_transferable() {
+            let _ = trace_num("  - TRANSFERABLE:", 1);
+        }
     }
     if let Ok(transfer_fee) = nft_token.transfer_fee() {
         let _ = trace_num("NFT Transfer Fee:", transfer_fee as i64);
@@ -92,7 +104,10 @@ pub extern "C" fn finish() -> i32 {
             1 // <-- Finish the escrow successfully
         }
         Err(e) => {
-            let _ = trace_num("NFT is NOT owned by destination. Error code:", e.code() as i64);
+            let _ = trace_num(
+                "NFT is NOT owned by destination. Error code:",
+                e.code() as i64,
+            );
             0 // <-- Do not execute the escrow
         }
     }

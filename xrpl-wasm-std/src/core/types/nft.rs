@@ -49,6 +49,71 @@ pub mod flags {
     pub const TRANSFERABLE: u16 = 0x0008;
 }
 
+// A wrapper around NFToken flags that provides efficient helper methods.
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub struct NftFlags(u16);
+
+impl NftFlags {
+    /// Creates a new NftFlags from a raw flags value.
+    #[inline]
+    pub const fn new(flags: u16) -> Self {
+        NftFlags(flags)
+    }
+
+    /// Returns the raw flags value.
+    #[inline]
+    pub const fn as_u16(&self) -> u16 {
+        self.0
+    }
+
+    /// Checks if the NFToken has the `BURNABLE` flag set.
+    ///
+    /// If this flag is set, the issuer (or an entity authorized by the issuer)
+    /// may destroy the token even if they don't currently hold it.
+    #[inline]
+    pub const fn is_burnable(&self) -> bool {
+        self.0 & flags::BURNABLE != 0
+    }
+
+    /// Checks if the NFToken has the `ONLY_XRP` flag set.
+    ///
+    /// If this flag is set, the token may only be bought or sold for XRP.
+    #[inline]
+    pub const fn is_only_xrp(&self) -> bool {
+        self.0 & flags::ONLY_XRP != 0
+    }
+
+    /// Checks if the NFToken has the `TRUST_LINE` flag set.
+    ///
+    /// If this flag is set, trust lines are automatically created to hold
+    /// transfer fees.
+    #[inline]
+    pub const fn is_trust_line(&self) -> bool {
+        self.0 & flags::TRUST_LINE != 0
+    }
+
+    /// Checks if the NFToken has the `TRANSFERABLE` flag set.
+    ///
+    /// If this flag is set, the token may be transferred to others.
+    /// If not set, the token can only be transferred back to the issuer.
+    #[inline]
+    pub const fn is_transferable(&self) -> bool {
+        self.0 & flags::TRANSFERABLE != 0
+    }
+}
+
+impl From<u16> for NftFlags {
+    fn from(value: u16) -> Self {
+        NftFlags(value)
+    }
+}
+
+impl From<NftFlags> for u16 {
+    fn from(value: NftFlags) -> Self {
+        value.0
+    }
+}
+
 /// Represents an NFToken (Non-Fungible Token) on the XRP Ledger.
 ///
 /// The `NFToken` type wraps a 32-byte NFTokenID and provides methods to extract
@@ -104,46 +169,18 @@ impl NFToken {
     /// Retrieves the flags associated with this NFToken.
     ///
     /// Flags are stored in the first 2 bytes of the NFTokenID (big-endian).
-    /// Use the constants in the [`flags`] module to check for specific flags.
     ///
     /// # Returns
     ///
-    /// * `Ok(u16)` - The flags bitmask
+    /// * `Ok(NftFlags)` - A flags wrapper with helper methods
     /// * `Err(Error)` - If the host function fails
     ///
-    pub fn flags(&self) -> Result<u16> {
+    pub fn flags(&self) -> Result<NftFlags> {
         let result = unsafe { host::get_nft_flags(self.as_ptr(), self.len()) };
 
         match result {
-            code if code >= 0 => Result::Ok(code as u16),
+            code if code >= 0 => Result::Ok(NftFlags::new(code as u16)),
             code => Result::Err(Error::from_code(code)),
-        }
-    }
-
-    /// Checks if the NFToken has the `BURNABLE` flag set.
-    ///
-    pub fn is_burnable(&self) -> Result<bool> {
-        match self.flags() {
-            Result::Ok(flags) => Result::Ok(flags & flags::BURNABLE != 0),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    /// Checks if the NFToken has the `ONLY_XRP` flag set.
-    ///
-    pub fn is_only_xrp(&self) -> Result<bool> {
-        match self.flags() {
-            Result::Ok(flags) => Result::Ok(flags & flags::ONLY_XRP != 0),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    /// Checks if the NFToken has the `TRANSFERABLE` flag set.
-    ///
-    pub fn is_transferable(&self) -> Result<bool> {
-        match self.flags() {
-            Result::Ok(flags) => Result::Ok(flags & flags::TRANSFERABLE != 0),
-            Result::Err(e) => Result::Err(e),
         }
     }
 
@@ -342,5 +379,112 @@ mod tests {
         let nft_id = [0u8; 32];
         let nft: NFToken = nft_id.into();
         assert_eq!(nft.as_bytes(), &nft_id);
+    }
+
+    // NftFlags tests
+    #[test]
+    fn test_nft_flags_no_flags_set() {
+        let nft_flags = NftFlags::new(0);
+        assert!(!nft_flags.is_burnable());
+        assert!(!nft_flags.is_only_xrp());
+        assert!(!nft_flags.is_trust_line());
+        assert!(!nft_flags.is_transferable());
+        assert_eq!(nft_flags.as_u16(), 0);
+    }
+
+    #[test]
+    fn test_nft_flags_burnable() {
+        let nft_flags = NftFlags::new(flags::BURNABLE);
+        assert!(nft_flags.is_burnable());
+        assert!(!nft_flags.is_only_xrp());
+        assert!(!nft_flags.is_trust_line());
+        assert!(!nft_flags.is_transferable());
+        assert_eq!(nft_flags.as_u16(), flags::BURNABLE);
+    }
+
+    #[test]
+    fn test_nft_flags_only_xrp() {
+        let nft_flags = NftFlags::new(flags::ONLY_XRP);
+        assert!(!nft_flags.is_burnable());
+        assert!(nft_flags.is_only_xrp());
+        assert!(!nft_flags.is_trust_line());
+        assert!(!nft_flags.is_transferable());
+        assert_eq!(nft_flags.as_u16(), flags::ONLY_XRP);
+    }
+
+    #[test]
+    fn test_nft_flags_trust_line() {
+        let nft_flags = NftFlags::new(flags::TRUST_LINE);
+        assert!(!nft_flags.is_burnable());
+        assert!(!nft_flags.is_only_xrp());
+        assert!(nft_flags.is_trust_line());
+        assert!(!nft_flags.is_transferable());
+        assert_eq!(nft_flags.as_u16(), flags::TRUST_LINE);
+    }
+
+    #[test]
+    fn test_nft_flags_transferable() {
+        let nft_flags = NftFlags::new(flags::TRANSFERABLE);
+        assert!(!nft_flags.is_burnable());
+        assert!(!nft_flags.is_only_xrp());
+        assert!(!nft_flags.is_trust_line());
+        assert!(nft_flags.is_transferable());
+        assert_eq!(nft_flags.as_u16(), flags::TRANSFERABLE);
+    }
+
+    #[test]
+    fn test_nft_flags_multiple_flags() {
+        let nft_flags = NftFlags::new(flags::BURNABLE | flags::TRANSFERABLE);
+        assert!(nft_flags.is_burnable());
+        assert!(!nft_flags.is_only_xrp());
+        assert!(!nft_flags.is_trust_line());
+        assert!(nft_flags.is_transferable());
+        assert_eq!(nft_flags.as_u16(), flags::BURNABLE | flags::TRANSFERABLE);
+    }
+
+    #[test]
+    fn test_nft_flags_all_flags_set() {
+        let all_flags = flags::BURNABLE | flags::ONLY_XRP | flags::TRUST_LINE | flags::TRANSFERABLE;
+        let nft_flags = NftFlags::new(all_flags);
+        assert!(nft_flags.is_burnable());
+        assert!(nft_flags.is_only_xrp());
+        assert!(nft_flags.is_trust_line());
+        assert!(nft_flags.is_transferable());
+        assert_eq!(nft_flags.as_u16(), all_flags);
+    }
+
+    #[test]
+    fn test_nft_flags_from_u16() {
+        let flags_value: u16 = flags::BURNABLE | flags::ONLY_XRP;
+        let nft_flags: NftFlags = flags_value.into();
+        assert!(nft_flags.is_burnable());
+        assert!(nft_flags.is_only_xrp());
+        assert_eq!(nft_flags.as_u16(), flags_value);
+    }
+
+    #[test]
+    fn test_nft_flags_into_u16() {
+        let nft_flags = NftFlags::new(flags::TRANSFERABLE | flags::TRUST_LINE);
+        let flags_value: u16 = nft_flags.into();
+        assert_eq!(flags_value, flags::TRANSFERABLE | flags::TRUST_LINE);
+    }
+
+    #[test]
+    fn test_nft_flags_equality() {
+        let nft_flags1 = NftFlags::new(flags::BURNABLE);
+        let nft_flags2 = NftFlags::new(flags::BURNABLE);
+        let nft_flags3 = NftFlags::new(flags::ONLY_XRP);
+
+        assert_eq!(nft_flags1, nft_flags2);
+        assert_ne!(nft_flags1, nft_flags3);
+    }
+
+    #[test]
+    fn test_nft_flags_clone() {
+        let nft_flags1 = NftFlags::new(flags::TRANSFERABLE);
+        let nft_flags2 = nft_flags1;
+
+        assert_eq!(nft_flags1, nft_flags2);
+        assert!(nft_flags2.is_transferable());
     }
 }
