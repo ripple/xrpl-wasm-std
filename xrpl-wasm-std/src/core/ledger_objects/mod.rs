@@ -256,7 +256,7 @@ pub mod ledger_object {
     use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
     use crate::core::types::amount::Amount;
     use crate::core::types::blob::Blob;
-    use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256, UInt256};
+    use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
     use crate::host::error_codes::{
         match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
         match_result_code_with_expected_bytes_optional,
@@ -500,7 +500,7 @@ pub mod ledger_object {
         };
 
         match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Some(UInt256::from(buffer)) // <-- Move the buffer into an Hash256
+            Some(Hash256::from(buffer)) // <-- Move the buffer into an Hash256
         })
     }
 
