@@ -14,6 +14,20 @@ This comprehensive guide covers everything you need to develop smart escrows usi
       - [Smart Escrow Basics](#smart-escrow-basics)
       - [Contract Structure](#contract-structure)
       - [Host Environment](#host-environment)
+  - [Smart Contract Functions](#smart-contract-functions)
+    - [Parameters](#parameters)
+      - [Using the #[wasm_export] Macro](#using-the-wasm_export-macro)
+      - [Manual Parameter Extraction](#manual-parameter-extraction)
+    - [Contract Data](#contract-data)
+      - [Storage Operations](#storage-operations)
+      - [Best Practices](#best-practices-1)
+    - [Emit Transactions](#emit-transactions)
+      - [Transaction Emission](#transaction-emission)
+      - [Example Usage](#example-usage)
+    - [Emit Events](#emit-events)
+      - [Event System](#event-system)
+      - [Event Best Practices](#event-best-practices-1)
+    - [Complete Token Contract Example](#complete-token-contract-example)
   - [API Reference](#api-reference)
     - [Transaction Access](#transaction-access)
       - [EscrowFinish Transaction](#escrowfinish-transaction)
@@ -181,6 +195,699 @@ Smart escrows run in a constrained WebAssembly environment:
 - No file system or network access
 - Limited execution time and memory
 - Read-only ledger access (except for escrow state updates)
+
+---
+
+## Smart Contract Functions
+
+Beyond basic escrow logic, XRPL smart contracts support advanced features including parameter handling, persistent storage, transaction emission, and event logging. This section covers these powerful capabilities.
+
+### Parameters
+
+Contracts can receive two types of parameters: **function parameters** (passed when calling a specific contract function) and **instance parameters** (set when the contract is deployed and remain constant).
+
+#### Using the #[wasm_export] Macro
+
+The `#[wasm_export]` macro simplifies parameter handling by automatically extracting both instance and function parameters. This eliminates boilerplate code and makes contracts cleaner.
+
+**Quick Reference:**
+
+| Scenario | Macro Syntax |
+|----------|-------------|
+| Function params only | `#[wasm_export]`<br/>`fn my_func(param1: u32, param2: AccountID) -> i32` |
+| With custom exit | `#[wasm_export(exit = my_exit)]`<br/>`fn my_func(param: u32) -> i32` |
+| With instance params | `#[wasm_export(instance(owner: AccountID, limit: u64))]`<br/>`fn my_func(param: u32) -> i32` |
+| Both exit and instance | `#[wasm_export(exit = my_exit, instance(owner: AccountID))]`<br/>`fn my_func(param: u32) -> i32` |
+
+**Setup:**
+
+Add the macro dependency:
+
+```toml
+[dependencies]
+xrpl-wasm-std = { path = "../xrpl-wasm-std" }
+xrpl-wasm-macros = { path = "../xrpl-wasm-macros" }
+```
+
+Import the macro:
+
+```rust
+use xrpl_wasm_macros::wasm_export;
+```
+
+**Basic Usage:**
+
+The macro automatically extracts function parameters based on your function signature:
+
+```rust
+use xrpl_wasm_macros::wasm_export;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+
+#[wasm_export]
+fn transfer(from: AccountID, to: AccountID, amount: u64) -> i32 {
+    // Parameters are automatically extracted and available
+    // No manual get_function_param() calls needed!
+    
+    // Your contract logic here
+    
+    0
+}
+```
+
+The macro generates the wrapper code that:
+1. Creates a `#[no_mangle] pub extern "C"` function
+2. Extracts each parameter using `get_function_param()`
+3. Calls your internal function with the extracted values
+
+**Instance Parameters:**
+
+Declare instance parameters that persist across all function calls:
+
+```rust
+#[wasm_export(instance(owner: AccountID, max_supply: u64))]
+fn mint(recipient: AccountID, amount: u64) -> i32 {
+    // Both instance parameters (owner, max_supply) and 
+    // function parameters (recipient, amount) are available
+    
+    // Validate using instance parameter
+    if amount > max_supply {
+        return -1;
+    }
+    
+    // Check authorization using instance parameter
+    // ... (check if caller is owner)
+    
+    0
+}
+```
+
+Instance parameters are:
+- Extracted once at the start of each function call
+- Available to all functions that declare them
+- Set when the contract is deployed and remain constant
+
+**Custom Exit Handler:**
+
+Provide a custom error handler for parameter extraction failures:
+
+```rust
+use xrpl_wasm_std::host::trace::{trace, trace_num};
+
+// Define your custom exit function
+fn my_exit(message: &str, code: i32) -> i32 {
+    trace(message);
+    trace_num("Error code:", code as i64);
+    code
+}
+
+#[wasm_export(exit = my_exit)]
+fn transfer(from: AccountID, to: AccountID, amount: u64) -> i32 {
+    // If parameter extraction fails, my_exit() will be called
+    // with an error message and code
+    
+    0
+}
+```
+
+Without a custom exit handler, the macro uses `expect()` which will panic on parameter errors.
+
+**Complete Example with Instance Parameters and Custom Exit:**
+
+```rust
+use xrpl_wasm_macros::wasm_export;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::host::trace::{trace, trace_num};
+
+fn contract_exit(message: &str, code: i32) -> i32 {
+    trace("Contract error:");
+    trace(message);
+    trace_num("Error code:", code as i64);
+    code
+}
+
+#[wasm_export(
+    exit = contract_exit,
+    instance(owner: AccountID, max_supply: u64, fee_rate: u32)
+)]
+fn transfer(from: AccountID, to: AccountID, amount: u64) -> i32 {
+    // All parameters are automatically available:
+    // - owner (instance param)
+    // - max_supply (instance param)
+    // - fee_rate (instance param)
+    // - from (function param)
+    // - to (function param)
+    // - amount (function param)
+    
+    trace("Transfer initiated");
+    
+    // Validate amount
+    if amount == 0 {
+        return contract_exit("Amount must be greater than 0", -1);
+    }
+    
+    // Check supply limit
+    if amount > max_supply {
+        return contract_exit("Amount exceeds max supply", -2);
+    }
+    
+    // Your transfer logic here
+    
+    0
+}
+```
+
+#### Manual Parameter Extraction
+
+If you prefer not to use macros, you can manually extract parameters:
+
+**When to Use Manual Extraction:**
+
+- **Learning/Understanding**: When you want to understand how parameters work under the hood
+- **Fine-grained Control**: When you need custom error handling for specific parameters
+- **Minimal Dependencies**: When you want to avoid macro dependencies
+- **Debugging**: When you need to trace exactly what's happening at each step
+
+**Function Parameters:**
+
+```rust
+use xrpl_wasm_std::core::params::function::get_function_param;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+
+#[unsafe(no_mangle)]
+pub extern "C" fn transfer() -> i32 {
+    // Extract first parameter (AccountID)
+    let from = match get_function_param::<AccountID>(0) {
+        Ok(acc) => acc,
+        Err(err) => {
+            trace_num("Failed to get 'from' parameter:", err as i64);
+            return -1;
+        }
+    };
+    
+    // Extract second parameter (AccountID)
+    let to = match get_function_param::<AccountID>(1) {
+        Ok(acc) => acc,
+        Err(err) => {
+            trace_num("Failed to get 'to' parameter:", err as i64);
+            return -1;
+        }
+    };
+    
+    // Extract third parameter (u64)
+    let amount = match get_function_param::<u64>(2) {
+        Ok(amt) => amt,
+        Err(err) => {
+            trace_num("Failed to get 'amount' parameter:", err as i64);
+            return -1;
+        }
+    };
+    
+    // Your contract logic here
+    
+    0
+}
+```
+
+**Instance Parameters:**
+
+```rust
+use xrpl_wasm_std::core::params::instance::get_instance_param;
+
+#[unsafe(no_mangle)]
+pub extern "C" fn mint() -> i32 {
+    // Extract instance parameters (set at deployment)
+    let owner = match get_instance_param::<AccountID>(0) {
+        Ok(acc) => acc,
+        Err(err) => {
+            trace_num("Failed to get owner:", err as i64);
+            return -1;
+        }
+    };
+    
+    let max_supply = match get_instance_param::<u64>(1) {
+        Ok(supply) => supply,
+        Err(err) => {
+            trace_num("Failed to get max_supply:", err as i64);
+            return -1;
+        }
+    };
+    
+    // Extract function parameters
+    let recipient = match get_function_param::<AccountID>(0) {
+        Ok(acc) => acc,
+        Err(err) => return -1,
+    };
+    
+    let amount = match get_function_param::<u64>(1) {
+        Ok(amt) => amt,
+        Err(err) => return -1,
+    };
+    
+    // Validate against instance parameters
+    if amount > max_supply {
+        trace("Amount exceeds max supply");
+        return -2;
+    }
+    
+    // Your minting logic here
+    
+    0
+}
+```
+
+### Contract Data
+
+Smart contracts can store and retrieve persistent data that survives across function calls. This enables stateful applications like token balances, allowances, and configuration settings.
+
+#### Storage Operations
+
+**Store Data:**
+
+```rust
+use xrpl_wasm_std::core::data::codec::set_data;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+
+// Store a u64 balance for an account
+let account = AccountID(/* account bytes */);
+let balance: u64 = 1000000;
+
+match set_data::<u64>(&account, "balance", balance) {
+    Ok(_) => {
+        trace("Balance stored successfully");
+    }
+    Err(e) => {
+        trace_num("Failed to store balance:", e as i64);
+        return e;
+    }
+}
+```
+
+**Retrieve Data:**
+
+```rust
+use xrpl_wasm_std::core::data::codec::get_data;
+
+// Retrieve a balance, default to 0 if not found
+let balance = get_data::<u64>(&account, "balance").unwrap_or(0);
+
+// Or handle missing data explicitly
+let balance = match get_data::<u64>(&account, "balance") {
+    Some(bal) => bal,
+    None => {
+        trace("No balance found for account");
+        return -1;
+    }
+};
+```
+
+**Supported Data Types:**
+
+- `u32`, `u64` - Unsigned integers
+- `i32`, `i64` - Signed integers
+- `AccountID` - XRPL account identifiers
+- `[u8; N]` - Fixed-size byte arrays
+- Custom types implementing the required traits
+
+**Storage Keys:**
+
+Keys are strings that identify stored values. Use descriptive keys:
+
+```rust
+set_data::<u64>(&account, "balance", balance)?;
+set_data::<u64>(&account, "allowance", allowance)?;
+set_data::<u32>(&account, "nonce", nonce)?;
+```
+
+#### Best Practices
+
+**1. Efficient Storage Operations:**
+
+```rust
+// Good: Read once, modify, write once
+let mut balance = get_data::<u64>(&account, "balance").unwrap_or(0);
+balance += amount;
+set_data::<u64>(&account, "balance", balance)?;
+
+// Bad: Multiple reads/writes
+let balance = get_data::<u64>(&account, "balance").unwrap_or(0);
+set_data::<u64>(&account, "balance", balance + amount)?;
+```
+
+**2. Handle Missing Data:**
+
+```rust
+// Use unwrap_or for defaults
+let balance = get_data::<u64>(&account, "balance").unwrap_or(0);
+
+// Or handle explicitly when needed
+let balance = match get_data::<u64>(&account, "balance") {
+    Some(bal) => bal,
+    None => {
+        trace("Account not initialized");
+        return -1;
+    }
+};
+```
+
+**3. Atomic Updates:**
+
+```rust
+// Update multiple related values together
+let sender_balance = get_data::<u64>(&from, "balance").unwrap_or(0);
+let receiver_balance = get_data::<u64>(&to, "balance").unwrap_or(0);
+
+if sender_balance < amount {
+    return -1; // Check before any writes
+}
+
+// Update both balances
+set_data::<u64>(&from, "balance", sender_balance - amount)?;
+set_data::<u64>(&to, "balance", receiver_balance + amount)?;
+```
+
+### Emit Transactions
+
+Smart contracts can emit transactions to be executed on the XRP Ledger. This allows contracts to trigger payments, trust lines, NFT operations, and other XRPL transactions.
+
+#### Transaction Emission
+
+**Basic Structure:**
+
+```rust
+use xrpl_wasm_std::core::emit::tx_codec::{TxEmitBuffer, tx_add};
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::core::types::amount::Amount;
+use xrpl_wasm_std::sfield;
+
+let mut buf = TxEmitBuffer::new();
+
+// Add transaction type
+if tx_add::<u16>(&mut buf, sfield::TransactionType, &/* transaction type */).is_err() {
+    return -1;
+}
+
+// Add account field
+let account = AccountID(/* account bytes */);
+if tx_add::<AccountID>(&mut buf, sfield::Account, &account).is_err() {
+    return -1;
+}
+
+// Add destination
+let destination = AccountID(/* destination bytes */);
+if tx_add::<AccountID>(&mut buf, sfield::Destination, &destination).is_err() {
+    return -1;
+}
+
+// Add amount
+let amount = Amount::xrp_drops(1000000);
+if tx_add::<Amount>(&mut buf, sfield::Amount, &amount).is_err() {
+    return -1;
+}
+
+// Emit the transaction
+if buf.emit().is_err() {
+    return -1;
+}
+```
+
+**Transaction Types:**
+
+Common transaction type codes:
+
+```rust
+const TT_PAYMENT: u16 = 0;
+const TT_ESCROW_CREATE: u16 = 1;
+const TT_ESCROW_FINISH: u16 = 2;
+const TT_ACCOUNT_SET: u16 = 3;
+const TT_TRUST_SET: u16 = 20;
+const TT_OFFER_CREATE: u16 = 7;
+// ... and more
+```
+
+#### Example Usage
+
+**Emit a Payment Transaction:**
+
+```rust
+use xrpl_wasm_std::core::emit::tx_codec::{TxEmitBuffer, tx_add};
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::core::types::amount::Amount;
+use xrpl_wasm_std::sfield;
+
+const TT_PAYMENT: u16 = 0;
+
+fn emit_payment(from: &AccountID, to: &AccountID, amount: u64) -> i32 {
+    let mut buf = TxEmitBuffer::new();
+    
+    // Transaction type: Payment
+    if tx_add::<u16>(&mut buf, sfield::TransactionType, &TT_PAYMENT).is_err() {
+        return -1;
+    }
+    
+    // Source account
+    if tx_add::<AccountID>(&mut buf, sfield::Account, from).is_err() {
+        return -1;
+    }
+    
+    // Destination account
+    if tx_add::<AccountID>(&mut buf, sfield::Destination, to).is_err() {
+        return -1;
+    }
+    
+    // Amount to send
+    let xrp_amount = Amount::xrp_drops(amount);
+    if tx_add::<Amount>(&mut buf, sfield::Amount, &xrp_amount).is_err() {
+        return -1;
+    }
+    
+    // Emit the transaction
+    if buf.emit().is_err() {
+        trace("Failed to emit transaction");
+        return -1;
+    }
+    
+    trace("Payment transaction emitted successfully");
+    0
+}
+```
+
+**Best Practices:**
+
+1. **Always Check Return Values** - Every `tx_add()` and `emit()` call can fail
+2. **Validate Before Emitting** - Check all parameters before constructing the transaction
+3. **Use Correct Types** - Ensure field types match XRPL specifications
+4. **Emit Once** - Call `emit()` only once per transaction buffer
+
+### Emit Events
+
+Events allow smart contracts to log important state changes and actions. These events can be monitored by off-chain applications to track contract activity.
+
+#### Event System
+
+**Basic Event Emission:**
+
+```rust
+use xrpl_wasm_std::core::event::codec_v3::{EventBuffer, event_add};
+use xrpl_wasm_std::core::types::account_id::AccountID;
+
+let mut event = EventBuffer::new();
+
+// Add event fields
+let account = AccountID(/* account bytes */);
+if event_add::<AccountID>(&mut event, "from", &account).is_err() {
+    return -1;
+}
+
+let amount: u64 = 1000000;
+if event_add::<u64>(&mut event, "amount", &amount).is_err() {
+    return -1;
+}
+
+// Emit the event with a name
+if event.emit("Transfer").is_err() {
+    return -1;
+}
+```
+
+**Supported Field Types:**
+
+- `u32`, `u64` - Numeric values
+- `i32`, `i64` - Signed integers  
+- `AccountID` - Account identifiers
+- `[u8; N]` - Fixed-size byte arrays
+- Strings (as byte arrays)
+
+**Complete Event Example:**
+
+```rust
+use xrpl_wasm_std::core::event::codec_v3::{EventBuffer, event_add};
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::host::trace::trace;
+
+fn emit_transfer_event(from: &AccountID, to: &AccountID, amount: u64) -> i32 {
+    let mut buf = EventBuffer::new();
+    
+    // Sender account
+    if event_add::<AccountID>(&mut buf, "from", from).is_err() {
+        trace("Failed to add 'from' field");
+        return -1;
+    }
+    
+    // Receiver account
+    if event_add::<AccountID>(&mut buf, "to", to).is_err() {
+        trace("Failed to add 'to' field");
+        return -1;
+    }
+    
+    // Transfer amount
+    if event_add::<u64>(&mut buf, "amount", &amount).is_err() {
+        trace("Failed to add 'amount' field");
+        return -1;
+    }
+    
+    // Emit the event
+    if buf.emit("Transfer").is_err() {
+        trace("Failed to emit event");
+        return -1;
+    }
+    
+    trace("Transfer event emitted successfully");
+    0
+}
+```
+
+#### Event Best Practices
+
+1. **Descriptive Names** - Use clear event names like "Transfer", "Approval", "StateChanged"
+2. **Essential Data Only** - Include only necessary information to keep events small
+3. **Error Handling** - Always check return values from `event_add()` and `emit()`
+4. **Consistent Schema** - Keep event structure consistent across calls
+5. **Document Events** - Document what each event means and when it's emitted
+
+### Complete Token Contract Example
+
+Here's a complete example combining parameters, storage, transactions, and events:
+
+```rust
+#![cfg_attr(target_arch = "wasm32", no_std)]
+
+#[cfg(not(target_arch = "wasm32"))]
+extern crate std;
+
+use xrpl_wasm_macros::wasm_export;
+use xrpl_wasm_std::core::types::account_id::AccountID;
+use xrpl_wasm_std::core::data::codec::{get_data, set_data};
+use xrpl_wasm_std::core::event::codec_v3::{EventBuffer, event_add};
+use xrpl_wasm_std::host::trace::{trace, trace_num};
+
+// Custom exit handler for contract errors
+fn contract_exit(message: &str, code: i32) -> i32 {
+    trace("Contract error:");
+    trace(message);
+    trace_num("Error code:", code as i64);
+    code
+}
+
+/// Transfer tokens from one account to another
+#[wasm_export(exit = contract_exit, instance(owner: AccountID, max_supply: u64))]
+fn transfer(from: AccountID, to: AccountID, amount: u64) -> i32 {
+    trace("Starting transfer");
+    
+    // Validate amount against max supply
+    if amount > max_supply {
+        return contract_exit("Amount exceeds max supply", -1);
+    }
+    
+    // Check sender balance
+    let sender_balance = match get_data::<u64>(&from, "balance") {
+        Some(bal) => bal,
+        None => {
+            return contract_exit("Sender has no balance", -2);
+        }
+    };
+    
+    if sender_balance < amount {
+        return contract_exit("Insufficient balance", -3);
+    }
+    
+    // Get receiver balance (default to 0 if not found)
+    let receiver_balance = get_data::<u64>(&to, "balance").unwrap_or(0);
+    
+    // Update balances
+    if let Err(e) = set_data::<u64>(&from, "balance", sender_balance - amount) {
+        return e;
+    }
+    
+    if let Err(e) = set_data::<u64>(&to, "balance", receiver_balance + amount) {
+        return e;
+    }
+    
+    // Emit transfer event
+    let mut event = EventBuffer::new();
+    event_add::<AccountID>(&mut event, "from", &from).ok();
+    event_add::<AccountID>(&mut event, "to", &to).ok();
+    event_add::<u64>(&mut event, "amount", &amount).ok();
+    event.emit("Transfer").ok();
+    
+    trace_num("Transfer completed, amount:", amount as i64);
+    0
+}
+
+/// Get balance for an account
+#[wasm_export(exit = contract_exit)]
+fn balance_of(account: AccountID) -> i32 {
+    let balance = get_data::<u64>(&account, "balance").unwrap_or(0);
+    trace_num("Balance:", balance as i64);
+    0
+}
+
+/// Mint new tokens (owner only)
+#[wasm_export(exit = contract_exit, instance(owner: AccountID, max_supply: u64))]
+fn mint(recipient: AccountID, amount: u64) -> i32 {
+    // Get current caller from transaction
+    use xrpl_wasm_std::core::current_tx::contract_call::{ContractCall, get_current_contract_call};
+    use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
+    
+    let contract_call: ContractCall = get_current_contract_call();
+    let caller = contract_call.get_account().unwrap();
+    
+    // Only owner can mint
+    if caller != owner {
+        return contract_exit("Only owner can mint", -1);
+    }
+    
+    // Check against max supply
+    if amount > max_supply {
+        return contract_exit("Mint amount exceeds max supply", -2);
+    }
+    
+    // Get current balance
+    let current_balance = get_data::<u64>(&recipient, "balance").unwrap_or(0);
+    
+    // Update balance
+    if let Err(e) = set_data::<u64>(&recipient, "balance", current_balance + amount) {
+        return e;
+    }
+    
+    // Emit mint event
+    let mut event = EventBuffer::new();
+    event_add::<AccountID>(&mut event, "to", &recipient).ok();
+    event_add::<u64>(&mut event, "amount", &amount).ok();
+    event.emit("Mint").ok();
+    
+    trace_num("Minted tokens:", amount as i64);
+    0
+}
+```
+
+**Key Features Demonstrated:**
+
+1. **Parameter Handling** - Uses `#[wasm_export]` macro for clean parameter extraction
+2. **Instance Parameters** - Owner and max_supply persist across all calls
+3. **Storage Operations** - Reads and writes token balances efficiently
+4. **Event Emission** - Logs Transfer and Mint events
+5. **Error Handling** - Custom exit handler with descriptive messages
+6. **Authorization** - Checks caller permissions for mint function
 
 ---
 
