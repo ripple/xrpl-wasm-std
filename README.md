@@ -4,7 +4,7 @@ The XRPL Standard Library provides safe, type-safe access to XRPL host functions
 
 ## Quick Start
 
-There is an interface available at https://ripple.github.io/xrpl-wasm-std/ui/ for local or Devnet testing.
+There is an interface available at <https://ripple.github.io/xrpl-wasm-std/ui/> for local or Devnet testing.
 
 ### Examples Overview
 
