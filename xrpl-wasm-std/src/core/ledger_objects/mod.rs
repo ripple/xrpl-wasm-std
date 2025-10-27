@@ -257,8 +257,6 @@ pub mod ledger_object {
     use crate::core::types::amount::Amount;
     use crate::core::types::blob::Blob;
     use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256, UInt256};
-    // use crate::core::types::hash_128::{HASH128_SIZE, Hash128};
-    // use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
     use crate::host::error_codes::{
         match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
         match_result_code_with_expected_bytes_optional,
