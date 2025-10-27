@@ -726,6 +726,18 @@ For additional help:
 - Join the XRPL developer community
 - Submit issues or questions on GitHub
 
+### SDK Support
+
+For testing purposes, the following XRPL SDKs can be used to deploy and test Smart Escrow contracts:
+
+| SDK     | Website                               | Github Repo                           | Smart Escrow Support |
+| ------- | ------------------------------------- | ------------------------------------- | -------------------- |
+| xrpl.js | https://js.xrpl.org/                  | https://github.com/XRPLF/xrpl.js      | ✅                   |
+| xrpl-py | https://xrpl-py.readthedocs.io/       | https://github.com/XRPLF/xrpl-py      | ✅                   |
+| xrpl4j  | https://github.com/XRPLF/xrpl4j       | https://github.com/XRPLF/xrpl4j       | ❌                   |
+| Go      | https://github.com/XRPLF/xrpl-go      | https://github.com/XRPLF/xrpl-go      | ❌                   |
+| Rust    | https://github.com/sephynox/xrpl-rust | https://github.com/sephynox/xrpl-rust | ❌                   |
+
 ## Contributing
 
 If you're interested in contributing to the XRPL WebAssembly Standard Library, please see our [CONTRIBUTING.md](https://github.com/ripple/xrpl-wasm-std/blob/main/CONTRIBUTING.md) for detailed guidelines on:

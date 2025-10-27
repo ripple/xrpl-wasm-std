@@ -1,0 +1,1 @@
+pre-commit run prettier --all-files
