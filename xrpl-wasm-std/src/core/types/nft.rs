@@ -487,4 +487,53 @@ mod tests {
         assert_eq!(nft_flags1, nft_flags2);
         assert!(nft_flags2.is_transferable());
     }
+
+    // NFToken additional tests
+    #[test]
+    fn test_nft_as_ptr() {
+        let nft_id = [42u8; 32];
+        let nft = NFToken::new(nft_id);
+
+        let ptr = nft.as_ptr();
+        assert!(!ptr.is_null());
+
+        // Verify the pointer points to the correct data
+        unsafe {
+            assert_eq!(*ptr, 42u8);
+        }
+    }
+
+    #[test]
+    fn test_nft_as_ref() {
+        let nft_id = [7u8; 32];
+        let nft = NFToken::new(nft_id);
+
+        let slice: &[u8] = nft.as_ref();
+        assert_eq!(slice.len(), 32);
+        assert_eq!(slice, &nft_id);
+    }
+
+    #[test]
+    fn test_nft_equality() {
+        let nft_id1 = [5u8; 32];
+        let nft_id2 = [5u8; 32];
+        let nft_id3 = [6u8; 32];
+
+        let nft1 = NFToken::new(nft_id1);
+        let nft2 = NFToken::new(nft_id2);
+        let nft3 = NFToken::new(nft_id3);
+
+        assert_eq!(nft1, nft2);
+        assert_ne!(nft1, nft3);
+    }
+
+    #[test]
+    fn test_nft_clone() {
+        let nft_id = [9u8; 32];
+        let nft1 = NFToken::new(nft_id);
+        let nft2 = nft1;
+
+        assert_eq!(nft1, nft2);
+        assert_eq!(nft1.as_bytes(), nft2.as_bytes());
+    }
 }
