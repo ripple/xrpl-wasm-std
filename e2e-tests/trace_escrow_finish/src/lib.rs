@@ -9,9 +9,9 @@ use xrpl_wasm_std::core::current_tx::traits::{EscrowFinishFields, TransactionCom
 use xrpl_wasm_std::core::locator::Locator;
 use xrpl_wasm_std::core::types::account_id::AccountID;
 use xrpl_wasm_std::core::types::blob::Blob;
-use xrpl_wasm_std::core::types::hash_256::Hash256;
 use xrpl_wasm_std::core::types::public_key::PublicKey;
 use xrpl_wasm_std::core::types::transaction_type::TransactionType;
+use xrpl_wasm_std::core::types::uint::Hash256;
 use xrpl_wasm_std::host;
 use xrpl_wasm_std::host::trace::{
     DataRepr, trace, trace_account, trace_account_buf, trace_amount, trace_data, trace_num,

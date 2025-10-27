@@ -61,8 +61,8 @@
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
 use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
-use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
 use crate::core::types::public_key::PublicKey;
+use crate::core::types::uint::{HASH256_SIZE, Hash256};
 use crate::host::error_codes::{
     match_result_code, match_result_code_with_expected_bytes,
     match_result_code_with_expected_bytes_optional,
@@ -261,7 +261,7 @@ fn get_hash_256_field_optional(field_code: i32) -> Result<Option<Hash256>> {
     let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
 
     match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-        Some(Hash256(buffer)) // <-- Move the buffer into an Hash256
+        Some(Hash256::from(buffer)) // <-- Move the buffer into an Hash256
     })
 }
 

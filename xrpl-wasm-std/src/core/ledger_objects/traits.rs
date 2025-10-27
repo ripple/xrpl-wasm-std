@@ -4,8 +4,7 @@ use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 use crate::core::types::crypto_condition::Condition;
-use crate::core::types::hash_128::Hash128;
-use crate::core::types::hash_256::Hash256;
+use crate::core::types::uint::{Hash128, Hash256};
 /// This module provides traits for interacting with XRP Ledger objects.
 ///
 /// It defines common interfaces for accessing and manipulating different types of ledger objects,

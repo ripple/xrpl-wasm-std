@@ -8,7 +8,7 @@ pub mod current_ledger_object {
     use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
     use crate::core::types::amount::Amount;
     use crate::core::types::blob::Blob;
-    use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
+    use crate::core::types::uint::{HASH256_SIZE, Hash256, UINT256_SIZE};
     use crate::host::error_codes::{
         match_result_code, match_result_code_with_expected_bytes,
         match_result_code_with_expected_bytes_optional,
@@ -204,8 +204,8 @@ pub mod current_ledger_object {
         let result_code =
             unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
 
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Some(Hash256(buffer)) // <-- Move the buffer into a Hash256
+        match_result_code_with_expected_bytes(result_code, UINT256_SIZE, || {
+            Some(Hash256::from(buffer)) // <-- Move the buffer into a Hash256
         })
     }
 
@@ -256,8 +256,9 @@ pub mod ledger_object {
     use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
     use crate::core::types::amount::Amount;
     use crate::core::types::blob::Blob;
-    use crate::core::types::hash_128::{HASH128_SIZE, Hash128};
-    use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
+    use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256, UInt256};
+    // use crate::core::types::hash_128::{HASH128_SIZE, Hash128};
+    // use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
     use crate::host::error_codes::{
         match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
         match_result_code_with_expected_bytes_optional,
@@ -480,7 +481,7 @@ pub mod ledger_object {
         };
 
         match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
-            Some(Hash128(buffer)) // <-- Move the buffer into a Hash128
+            Some(Hash128::from(buffer)) // <-- Move the buffer into a Hash128
         })
     }
 
@@ -501,7 +502,7 @@ pub mod ledger_object {
         };
 
         match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Some(Hash256(buffer)) // <-- Move the buffer into an Hash256
+            Some(UInt256::from(buffer)) // <-- Move the buffer into an Hash256
         })
     }
 
