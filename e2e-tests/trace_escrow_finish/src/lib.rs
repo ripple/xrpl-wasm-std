@@ -3,20 +3,20 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::core::constants::{ACCOUNT_ONE, ACCOUNT_ZERO};
-use xrpl_wasm_std::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
-use xrpl_wasm_std::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
-use xrpl_wasm_std::core::locator::Locator;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::blob::Blob;
-use xrpl_wasm_std::core::types::public_key::PublicKey;
-use xrpl_wasm_std::core::types::transaction_type::TransactionType;
-use xrpl_wasm_std::core::types::uint::Hash256;
-use xrpl_wasm_std::host;
-use xrpl_wasm_std::host::trace::{
-    DataRepr, trace, trace_account, trace_account_buf, trace_amount, trace_data, trace_num,
+use xrpl_wasm_stdlib::core::constants::{ACCOUNT_ONE, ACCOUNT_ZERO};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{get_current_escrow_finish, EscrowFinish};
+use xrpl_wasm_stdlib::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
+use xrpl_wasm_stdlib::core::locator::Locator;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::blob::Blob;
+use xrpl_wasm_stdlib::core::types::public_key::PublicKey;
+use xrpl_wasm_stdlib::core::types::transaction_type::TransactionType;
+use xrpl_wasm_stdlib::core::types::uint::Hash256;
+use xrpl_wasm_stdlib::host;
+use xrpl_wasm_stdlib::host::trace::{
+    trace, trace_account, trace_account_buf, trace_amount, trace_data, trace_num, DataRepr,
 };
-use xrpl_wasm_std::{assert_eq, sfield};
+use xrpl_wasm_stdlib::{assert_eq, sfield};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {

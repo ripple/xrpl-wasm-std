@@ -51,8 +51,8 @@
 //! Get sender Account and optional flags:
 //!
 //! ```no_run
-//! use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-//! use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
+//! use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
+//! use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
 //! let tx = EscrowFinish;
 //! let account = tx.get_account().unwrap_or_panic();
 //! let _flags = tx.get_flags().unwrap_or_panic();
@@ -89,11 +89,11 @@ use crate::host::{Result, get_tx_field};
 /// ## Usage Patterns
 ///
 /// ```rust,no_run
-/// use xrpl_wasm_std::core::current_tx::{get_field, get_field_optional};
-/// use xrpl_wasm_std::core::types::account_id::AccountID;
-/// use xrpl_wasm_std::core::types::amount::Amount;
-/// use xrpl_wasm_std::core::types::blob::Blob;
-/// use xrpl_wasm_std::sfield;
+/// use xrpl_wasm_stdlib::core::current_tx::{get_field, get_field_optional};
+/// use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+/// use xrpl_wasm_stdlib::core::types::amount::Amount;
+/// use xrpl_wasm_stdlib::core::types::blob::Blob;
+/// use xrpl_wasm_stdlib::sfield;
 /// # fn example() {
 /// // Get required fields from the current transaction
 /// let account: AccountID = get_field(sfield::Account).unwrap();
