@@ -10,10 +10,7 @@ use crate::core::types::uint::{Hash128, Hash256};
 /// It defines common interfaces for accessing and manipulating different types of ledger objects,
 /// particularly focusing on Escrow objects. The traits provide methods to get and set various
 /// fields of ledger objects, with separate traits for current ledger objects and general ledger objects.
-use crate::host::error_codes::{
-    match_result_code, match_result_code_with_expected_bytes,
-    match_result_code_with_expected_bytes_optional,
-};
+use crate::host::error_codes::{match_result_code, match_result_code_with_expected_bytes_optional};
 use crate::host::{Error, get_current_ledger_obj_field, get_ledger_obj_field, update_data};
 use crate::host::{Result, Result::Err, Result::Ok};
 use crate::sfield;
@@ -241,7 +238,7 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
         // length to be `data.len` (e.g., if the developer writes 2 bytes, then that's the new
         // length and any old bytes are lost).
         let result_code = unsafe { update_data(data.data.as_ptr(), data.len) };
-        match_result_code_with_expected_bytes(result_code, data.len, || ())
+        match_result_code(result_code, || ())
     }
 }
 
