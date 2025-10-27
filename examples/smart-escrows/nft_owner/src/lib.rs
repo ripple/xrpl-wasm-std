@@ -85,19 +85,15 @@ pub extern "C" fn finish() -> i32 {
         }
     };
 
-    // Check if destination owns the NFT using the NFToken type
-    match nft_token.is_owned_by(&destination) {
-        Ok(true) => {
+    // Check if destination owns the NFT by attempting to retrieve its URI
+    match nft_token.uri(&destination) {
+        Ok(_uri) => {
             let _ = trace_data("NFT is owned by destination", &[], DataRepr::AsHex);
             1 // <-- Finish the escrow successfully
         }
-        Ok(false) => {
-            let _ = trace_data("NFT is NOT owned by destination", &[], DataRepr::AsHex);
-            0 // <-- Do not execute the escrow
-        }
         Err(e) => {
-            let _ = trace_num("Error checking NFT ownership:", e.code() as i64);
-            e.code() // <-- Do not execute the escrow
+            let _ = trace_num("NFT is NOT owned by destination. Error code:", e.code() as i64);
+            0 // <-- Do not execute the escrow
         }
     }
 }

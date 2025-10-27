@@ -275,6 +275,7 @@ impl NFToken {
     }
 
     /// Retrieves the URI of this NFToken for a given owner.
+    ///
     /// # Arguments
     ///
     /// * `owner` - The account that owns this NFToken
@@ -283,6 +284,7 @@ impl NFToken {
     ///
     /// * `Ok(Blob)` - The URI data (variable length, up to 256 bytes)
     /// * `Err(Error)` - If the NFT is not found or the host function fails
+    ///
     ///
     pub fn uri(&self, owner: &AccountID) -> Result<Blob> {
         let mut uri_buf = [0u8; NFT_URI_MAX_SIZE];
@@ -306,39 +308,6 @@ impl NFToken {
                 blob_data[..copy_len].copy_from_slice(&uri_buf[..copy_len]);
                 Result::Ok(Blob::new(blob_data, copy_len))
             }
-            code => Result::Err(Error::from_code(code)),
-        }
-    }
-
-    /// Checks if the specified owner owns this NFToken.
-    ///
-    /// This is an optimized ownership check that doesn't retrieve the full URI data.
-    ///
-    /// # Arguments
-    ///
-    /// * `owner` - The account to check for ownership
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(true)` - The owner possesses this NFToken
-    /// * `Ok(false)` - The owner does not possess this NFToken (NFT not found)
-    /// * `Err(Error)` - If the host function fails with an error other than "not found"
-    ///
-    pub fn is_owned_by(&self, owner: &AccountID) -> Result<bool> {
-        let mut uri_buf = [0u8; NFT_URI_MAX_SIZE];
-        let result_code = unsafe {
-            host::get_nft(
-                owner.0.as_ptr(),
-                owner.0.len(),
-                self.as_ptr(),
-                self.len(),
-                uri_buf.as_mut_ptr(),
-                uri_buf.len(),
-            )
-        };
-
-        match result_code {
-            code if code > 0 => Result::Ok(true),
             code => Result::Err(Error::from_code(code)),
         }
     }
