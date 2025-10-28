@@ -206,24 +206,6 @@ impl NFToken {
         }
     }
 
-    /// Calculates the transfer fee as a percentage.
-    ///
-    /// This is a convenience method that converts the raw transfer fee value
-    /// into a human-readable percentage.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(f64)` - The transfer fee as a percentage (0.0 to 50.0)
-    /// * `Err(Error)` - If the host function fails
-    ///
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn transfer_fee_percentage(&self) -> Result<f64> {
-        match self.transfer_fee() {
-            Result::Ok(fee) => Result::Ok((fee as f64) / 1000.0),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
     /// Retrieves the issuer account of this NFToken.
     ///
     /// The issuer is encoded in bytes 4-23 of the NFTokenID (160 bits / 20 bytes).
