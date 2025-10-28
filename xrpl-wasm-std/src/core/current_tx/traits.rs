@@ -43,9 +43,9 @@ use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
 use crate::core::types::crypto_condition::{Condition, Fulfillment};
-use crate::core::types::hash_256::Hash256;
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::transaction_type::TransactionType;
+use crate::core::types::uint::Hash256;
 use crate::host::error_codes::{
     match_result_code_optional, match_result_code_with_expected_bytes_optional,
 };
