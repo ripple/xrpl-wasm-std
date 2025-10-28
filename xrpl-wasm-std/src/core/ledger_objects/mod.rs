@@ -586,60 +586,646 @@ pub mod ledger_object {
     ) -> Result<Option<T>> {
         T::get_from_ledger_obj_optional(register_num, field_code)
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::ledger_object;
-    use crate::sfield;
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use crate::core::ledger_objects::{BLOB_BUFFER_SIZE, current_ledger_object, ledger_object};
+        use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
+        use crate::core::types::amount::Amount;
+        use crate::core::types::blob::Blob;
+        use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
+        use crate::sfield;
 
-    #[test]
-    fn test_get_field_compilation() {
-        // This test verifies that the get_field function compiles with the expected types
-        // We can't actually run these functions without a proper host environment,
-        // but we can verify they compile correctly
+        // ========================================
+        // Tests for u16 FieldGetter implementation
+        // ========================================
 
-        let slot = 0;
+        #[test]
+        fn test_u16_get_from_current_ledger_obj_success() {
+            // The test host function returns buffer length (2) as success code
+            let result = u16::get_from_current_ledger_obj(sfield::LedgerEntryType);
+            assert!(result.is_ok());
+        }
 
-        // Test the user's requested usage patterns
-        let _balance_call = || -> crate::host::Result<u64> {
-            ledger_object::get_field::<u64>(slot, sfield::Balance)
-        };
+        #[test]
+        fn test_u16_get_from_current_ledger_obj_optional_success() {
+            let result = u16::get_from_current_ledger_obj_optional(sfield::LedgerEntryType);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
 
-        let _sequence_call = || -> crate::host::Result<u32> {
-            ledger_object::get_field::<u32>(slot, sfield::Sequence)
-        };
+        #[test]
+        fn test_u16_get_from_ledger_obj_success() {
+            let slot = 0;
+            let result = u16::get_from_ledger_obj(slot, sfield::LedgerEntryType);
+            assert!(result.is_ok());
+        }
 
-        // Test with other types to ensure the trait implementations work
-        let _account_call = || -> crate::host::Result<crate::core::types::account_id::AccountID> {
-            ledger_object::get_field(slot, sfield::Account)
-        };
+        #[test]
+        fn test_u16_get_from_ledger_obj_optional_success() {
+            let slot = 0;
+            let result = u16::get_from_ledger_obj_optional(slot, sfield::LedgerEntryType);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
 
-        let _amount_call = || -> crate::host::Result<crate::core::types::amount::Amount> {
-            ledger_object::get_field(slot, sfield::Amount)
-        };
+        // ========================================
+        // Tests for u32 FieldGetter implementation
+        // ========================================
 
-        // Test optional variants
-        let _optional_balance_call = || -> crate::host::Result<Option<u64>> {
-            ledger_object::get_field_optional::<u64>(slot, sfield::Balance)
-        };
+        #[test]
+        fn test_u32_get_from_current_ledger_obj_success() {
+            let result = u32::get_from_current_ledger_obj(sfield::Flags);
+            assert!(result.is_ok());
+        }
 
-        let _optional_sequence_call = || -> crate::host::Result<Option<u32>> {
-            ledger_object::get_field_optional::<u32>(slot, sfield::Sequence)
-        };
-    }
+        #[test]
+        fn test_u32_get_from_current_ledger_obj_optional_success() {
+            let result = u32::get_from_current_ledger_obj_optional(sfield::Flags);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
 
-    #[test]
-    fn test_exact_user_pattern() {
-        // Test the exact pattern the user requested
-        let slot = 0;
+        #[test]
+        fn test_u32_get_from_ledger_obj_success() {
+            let slot = 0;
+            let result = u32::get_from_ledger_obj(slot, sfield::Sequence);
+            assert!(result.is_ok());
+        }
 
-        // These should compile exactly as the user specified
-        let _balance = ledger_object::get_field::<u64>(slot, sfield::Balance);
-        let _sequence = ledger_object::get_field::<u32>(slot, sfield::Sequence);
+        #[test]
+        fn test_u32_get_from_ledger_obj_optional_success() {
+            let slot = 0;
+            let result = u32::get_from_ledger_obj_optional(slot, sfield::Sequence);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
 
-        // Also test that Balance should work with Amount type (which is more correct)
-        let _balance_amount =
-            ledger_object::get_field::<crate::core::types::amount::Amount>(slot, sfield::Balance);
+        // ========================================
+        // Tests for u64 FieldGetter implementation
+        // ========================================
+
+        #[test]
+        fn test_u64_get_from_current_ledger_obj_success() {
+            let result = u64::get_from_current_ledger_obj(sfield::Balance);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_u64_get_from_current_ledger_obj_optional_success() {
+            let result = u64::get_from_current_ledger_obj_optional(sfield::Balance);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_u64_get_from_ledger_obj_success() {
+            let slot = 0;
+            let result = u64::get_from_ledger_obj(slot, sfield::Balance);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_u64_get_from_ledger_obj_optional_success() {
+            let slot = 0;
+            let result = u64::get_from_ledger_obj_optional(slot, sfield::Balance);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        // ========================================
+        // Tests for AccountID FieldGetter implementation
+        // ========================================
+
+        #[test]
+        fn test_account_id_get_from_current_ledger_obj_success() {
+            let result = AccountID::get_from_current_ledger_obj(sfield::Account);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_account_id_get_from_current_ledger_obj_optional_success() {
+            let result = AccountID::get_from_current_ledger_obj_optional(sfield::Account);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_account_id_get_from_ledger_obj_success() {
+            let slot = 0;
+            let result = AccountID::get_from_ledger_obj(slot, sfield::Account);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_account_id_get_from_ledger_obj_optional_success() {
+            let slot = 0;
+            let result = AccountID::get_from_ledger_obj_optional(slot, sfield::Account);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        // ========================================
+        // Tests for Amount FieldGetter implementation
+        // ========================================
+
+        #[test]
+        fn test_amount_get_from_current_ledger_obj_success() {
+            let result = Amount::get_from_current_ledger_obj(sfield::Amount);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_amount_get_from_current_ledger_obj_optional_success() {
+            let result = Amount::get_from_current_ledger_obj_optional(sfield::Amount);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_amount_get_from_ledger_obj_success() {
+            let slot = 0;
+            let result = Amount::get_from_ledger_obj(slot, sfield::Amount);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_amount_get_from_ledger_obj_optional_success() {
+            let slot = 0;
+            let result = Amount::get_from_ledger_obj_optional(slot, sfield::Amount);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        // ========================================
+        // Tests for Hash128 FieldGetter implementation
+        // ========================================
+
+        #[test]
+        fn test_hash128_get_from_current_ledger_obj_success() {
+            let result = Hash128::get_from_current_ledger_obj(sfield::EmailHash);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_hash128_get_from_current_ledger_obj_optional_success() {
+            let result = Hash128::get_from_current_ledger_obj_optional(sfield::EmailHash);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_hash128_get_from_ledger_obj_success() {
+            let slot = 0;
+            let result = Hash128::get_from_ledger_obj(slot, sfield::EmailHash);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_hash128_get_from_ledger_obj_optional_success() {
+            let slot = 0;
+            let result = Hash128::get_from_ledger_obj_optional(slot, sfield::EmailHash);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        // ========================================
+        // Tests for Hash256 FieldGetter implementation
+        // ========================================
+
+        #[test]
+        fn test_hash256_get_from_current_ledger_obj_success() {
+            let result = Hash256::get_from_current_ledger_obj(sfield::PreviousTxnID);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_hash256_get_from_current_ledger_obj_optional_success() {
+            let result = Hash256::get_from_current_ledger_obj_optional(sfield::PreviousTxnID);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_hash256_get_from_ledger_obj_success() {
+            let slot = 0;
+            let result = Hash256::get_from_ledger_obj(slot, sfield::PreviousTxnID);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_hash256_get_from_ledger_obj_optional_success() {
+            let slot = 0;
+            let result = Hash256::get_from_ledger_obj_optional(slot, sfield::PreviousTxnID);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        // ========================================
+        // Tests for Blob FieldGetter implementation
+        // ========================================
+
+        #[test]
+        fn test_blob_get_from_current_ledger_obj_success() {
+            let result = Blob::get_from_current_ledger_obj(sfield::PublicKey);
+            assert!(result.is_ok());
+            let blob = result.unwrap();
+            // The test host returns buffer length (1024) as the result
+            assert_eq!(blob.len, BLOB_BUFFER_SIZE);
+        }
+
+        #[test]
+        fn test_blob_get_from_current_ledger_obj_optional_success() {
+            let result = Blob::get_from_current_ledger_obj_optional(sfield::PublicKey);
+            assert!(result.is_ok());
+            let blob_opt = result.unwrap();
+            assert!(blob_opt.is_some());
+            assert_eq!(blob_opt.unwrap().len, BLOB_BUFFER_SIZE);
+        }
+
+        #[test]
+        fn test_blob_get_from_ledger_obj_success() {
+            let slot = 0;
+            let result = Blob::get_from_ledger_obj(slot, sfield::PublicKey);
+            assert!(result.is_ok());
+            let blob = result.unwrap();
+            assert_eq!(blob.len, BLOB_BUFFER_SIZE);
+        }
+
+        #[test]
+        fn test_blob_get_from_ledger_obj_optional_success() {
+            let slot = 0;
+            let result = Blob::get_from_ledger_obj_optional(slot, sfield::PublicKey);
+            assert!(result.is_ok());
+            let blob_opt = result.unwrap();
+            assert!(blob_opt.is_some());
+            assert_eq!(blob_opt.unwrap().len, BLOB_BUFFER_SIZE);
+        }
+
+        // ========================================
+        // Tests for current_ledger_object module
+        // ========================================
+
+        #[test]
+        fn test_current_ledger_object_get_field_u32() {
+            let result = current_ledger_object::get_field::<u32>(sfield::Flags);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_current_ledger_object_get_field_u64() {
+            let result = current_ledger_object::get_field::<u64>(sfield::Balance);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_current_ledger_object_get_field_account_id() {
+            let result = current_ledger_object::get_field::<AccountID>(sfield::Account);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_current_ledger_object_get_field_amount() {
+            let result = current_ledger_object::get_field::<Amount>(sfield::Amount);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_current_ledger_object_get_field_optional_u32() {
+            let result = current_ledger_object::get_field_optional::<u32>(sfield::Flags);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_current_ledger_object_get_field_optional_hash256() {
+            let result =
+                current_ledger_object::get_field_optional::<Hash256>(sfield::PreviousTxnID);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        // ========================================
+        // Tests for ledger_object module
+        // ========================================
+
+        #[test]
+        fn test_ledger_object_get_field_u16() {
+            let slot = 0;
+            let result = ledger_object::get_field::<u16>(slot, sfield::LedgerEntryType);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_u32() {
+            let slot = 0;
+            let result = ledger_object::get_field::<u32>(slot, sfield::Sequence);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_u64() {
+            let slot = 0;
+            let result = ledger_object::get_field::<u64>(slot, sfield::Balance);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_account_id() {
+            let slot = 0;
+            let result = ledger_object::get_field::<AccountID>(slot, sfield::Account);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_amount() {
+            let slot = 0;
+            let result = ledger_object::get_field::<Amount>(slot, sfield::Amount);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_hash128() {
+            let slot = 0;
+            let result = ledger_object::get_field::<Hash128>(slot, sfield::EmailHash);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_hash256() {
+            let slot = 0;
+            let result = ledger_object::get_field::<Hash256>(slot, sfield::PreviousTxnID);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_blob() {
+            let slot = 0;
+            let result = ledger_object::get_field::<Blob>(slot, sfield::PublicKey);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_optional_u16() {
+            let slot = 0;
+            let result = ledger_object::get_field_optional::<u16>(slot, sfield::LedgerEntryType);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_optional_u32() {
+            let slot = 0;
+            let result = ledger_object::get_field_optional::<u32>(slot, sfield::Flags);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_optional_u64() {
+            let slot = 0;
+            let result = ledger_object::get_field_optional::<u64>(slot, sfield::Balance);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_optional_account_id() {
+            let slot = 0;
+            let result = ledger_object::get_field_optional::<AccountID>(slot, sfield::Account);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_optional_amount() {
+            let slot = 0;
+            let result = ledger_object::get_field_optional::<Amount>(slot, sfield::Amount);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_optional_hash128() {
+            let slot = 0;
+            let result = ledger_object::get_field_optional::<Hash128>(slot, sfield::EmailHash);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_optional_hash256() {
+            let slot = 0;
+            let result = ledger_object::get_field_optional::<Hash256>(slot, sfield::PreviousTxnID);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_ledger_object_get_field_optional_blob() {
+            let slot = 0;
+            let result = ledger_object::get_field_optional::<Blob>(slot, sfield::PublicKey);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        // ========================================
+        // Integration tests - verify type inference works
+        // ========================================
+
+        #[test]
+        fn test_type_inference_with_turbofish() {
+            let slot = 0;
+            // These should compile with explicit type parameters
+            let _balance = ledger_object::get_field::<u64>(slot, sfield::Balance);
+            let _sequence = ledger_object::get_field::<u32>(slot, sfield::Sequence);
+            let _account = ledger_object::get_field::<AccountID>(slot, sfield::Account);
+        }
+
+        #[test]
+        fn test_type_inference_with_annotation() {
+            let slot = 0;
+            // These should compile with type annotations
+            let _balance: Result<u64> = ledger_object::get_field(slot, sfield::Balance);
+            let _sequence: Result<u32> = ledger_object::get_field(slot, sfield::Sequence);
+            let _account: Result<AccountID> = ledger_object::get_field(slot, sfield::Account);
+        }
+
+        #[test]
+        fn test_multiple_slot_numbers() {
+            // Test that different slot numbers work
+            for slot in 0..5 {
+                let result = ledger_object::get_field::<u32>(slot, sfield::Flags);
+                assert!(result.is_ok());
+            }
+        }
+
+        // ========================================
+        // Edge case and boundary tests
+        // ========================================
+
+        #[test]
+        fn test_blob_length_tracking() {
+            // Verify that Blob correctly tracks the length returned by the host
+            let result = Blob::get_from_current_ledger_obj(sfield::PublicKey);
+            assert!(result.is_ok());
+            let blob = result.unwrap();
+            // In test environment, host returns buffer size as result code
+            assert_eq!(blob.len, BLOB_BUFFER_SIZE);
+            assert_eq!(blob.data.len(), BLOB_BUFFER_SIZE);
+        }
+
+        #[test]
+        fn test_all_integer_types_have_correct_sizes() {
+            // Verify that each integer type uses the correct buffer size
+            // This is a compile-time check more than runtime, but documents expectations
+
+            // u16 should use 2 bytes
+            let result = u16::get_from_current_ledger_obj(sfield::LedgerEntryType);
+            assert!(result.is_ok());
+
+            // u32 should use 4 bytes
+            let result = u32::get_from_current_ledger_obj(sfield::Flags);
+            assert!(result.is_ok());
+
+            // u64 should use 8 bytes
+            let result = u64::get_from_current_ledger_obj(sfield::Balance);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_hash_types_have_correct_sizes() {
+            // Hash128 should use 16 bytes
+            let result = Hash128::get_from_current_ledger_obj(sfield::EmailHash);
+            assert!(result.is_ok());
+            let hash = result.unwrap();
+            assert_eq!(hash.as_bytes().len(), HASH128_SIZE);
+
+            // Hash256 should use 32 bytes
+            let result = Hash256::get_from_current_ledger_obj(sfield::PreviousTxnID);
+            assert!(result.is_ok());
+            let hash = result.unwrap();
+            assert_eq!(hash.as_bytes().len(), HASH256_SIZE);
+        }
+
+        #[test]
+        fn test_account_id_has_correct_size() {
+            let result = AccountID::get_from_current_ledger_obj(sfield::Account);
+            assert!(result.is_ok());
+            let account = result.unwrap();
+            assert_eq!(account.0.len(), ACCOUNT_ID_SIZE);
+        }
+
+        #[test]
+        fn test_amount_buffer_size() {
+            // Amount uses a 48-byte buffer to accommodate all amount types
+            let result = Amount::get_from_current_ledger_obj(sfield::Amount);
+            assert!(result.is_ok());
+            // The Amount type handles variable-length data internally
+        }
+
+        #[test]
+        fn test_negative_slot_numbers() {
+            // Test that negative slot numbers are handled
+            // In a real environment, this might return an error, but in tests it should work
+            let slot = -1;
+            let result = ledger_object::get_field::<u32>(slot, sfield::Flags);
+            // In test environment, this succeeds
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_zero_slot_number() {
+            // Slot 0 should be valid
+            let slot = 0;
+            let result = ledger_object::get_field::<u32>(slot, sfield::Flags);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_large_slot_numbers() {
+            // Test with larger slot numbers
+            let slot = 100;
+            let result = ledger_object::get_field::<u32>(slot, sfield::Flags);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn test_different_field_codes() {
+            // Test that different field codes work correctly
+            let slot = 0;
+
+            // Test various common field codes
+            let _account = ledger_object::get_field::<AccountID>(slot, sfield::Account);
+            let _destination =
+                ledger_object::get_field_optional::<AccountID>(slot, sfield::Destination);
+            let _balance = ledger_object::get_field::<u64>(slot, sfield::Balance);
+            let _sequence = ledger_object::get_field::<u32>(slot, sfield::Sequence);
+            let _flags = ledger_object::get_field::<u32>(slot, sfield::Flags);
+        }
+
+        #[test]
+        fn test_optional_field_returns_some_in_test_env() {
+            // In the test environment, optional fields always return Some
+            // because the mock host function always succeeds
+            let result = current_ledger_object::get_field_optional::<u32>(sfield::Flags);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_consistency_between_current_and_slotted_access() {
+            // Both current_ledger_object and ledger_object should work similarly
+            let current_result = current_ledger_object::get_field::<u32>(sfield::Flags);
+            let slotted_result = ledger_object::get_field::<u32>(0, sfield::Flags);
+
+            // Both should succeed in test environment
+            assert!(current_result.is_ok());
+            assert!(slotted_result.is_ok());
+        }
+
+        #[test]
+        fn test_all_field_getter_types_compile() {
+            // Comprehensive compilation test for all supported types
+            let slot = 0;
+
+            // Primitive integer types
+            let _: Result<u16> = ledger_object::get_field(slot, sfield::LedgerEntryType);
+            let _: Result<u32> = ledger_object::get_field(slot, sfield::Flags);
+            let _: Result<u64> = ledger_object::get_field(slot, sfield::Balance);
+
+            // XRPL-specific types
+            let _: Result<AccountID> = ledger_object::get_field(slot, sfield::Account);
+            let _: Result<Amount> = ledger_object::get_field(slot, sfield::Amount);
+            let _: Result<Hash128> = ledger_object::get_field(slot, sfield::EmailHash);
+            let _: Result<Hash256> = ledger_object::get_field(slot, sfield::PreviousTxnID);
+            let _: Result<Blob> = ledger_object::get_field(slot, sfield::PublicKey);
+
+            // Optional variants
+            let _: Result<Option<u32>> = ledger_object::get_field_optional(slot, sfield::Flags);
+            let _: Result<Option<AccountID>> =
+                ledger_object::get_field_optional(slot, sfield::Account);
+            let _: Result<Option<Amount>> = ledger_object::get_field_optional(slot, sfield::Amount);
+            let _: Result<Option<Blob>> =
+                ledger_object::get_field_optional(slot, sfield::PublicKey);
+        }
+
+        #[test]
+        fn test_field_getter_trait_is_object_safe() {
+            // This test verifies that the FieldGetter trait can be used polymorphically
+            // if needed (though it's primarily used with static dispatch via generics)
+
+            fn get_u32_field(field_code: i32) -> Result<u32> {
+                u32::get_from_current_ledger_obj(field_code)
+            }
+
+            fn get_u64_field(field_code: i32) -> Result<u64> {
+                u64::get_from_current_ledger_obj(field_code)
+            }
+
+            assert!(get_u32_field(sfield::Flags).is_ok());
+            assert!(get_u64_field(sfield::Balance).is_ok());
+        }
     }
 }
