@@ -523,7 +523,7 @@ pub mod current_ledger_object {
     /// Returns a `Result<T>` where:
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
-    #[inline(always)]
+    #[inline]
     pub fn get_field<T: FieldGetter>(field_code: i32) -> Result<T> {
         T::get_from_current_ledger_obj(field_code)
     }
