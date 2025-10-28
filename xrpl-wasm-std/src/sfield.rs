@@ -204,6 +204,7 @@ pub const AttestationRewardAccount: i32 = 524309;
 pub const LockingChainDoor: i32 = 524310;
 pub const IssuingChainDoor: i32 = 524311;
 pub const Subject: i32 = 524312;
+pub const ContractAccount: i32 = 524313;
 pub const Number: i32 = 589825;
 pub const TransactionMetaData: i32 = 917506;
 pub const CreatedNode: i32 = 917507;

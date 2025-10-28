@@ -7,6 +7,7 @@ pub use xrpl_address_macro::r_address;
 pub mod core;
 pub mod host;
 pub mod sfield;
+pub mod sflags;
 pub mod types;
 
 /// Complete Developer Guide

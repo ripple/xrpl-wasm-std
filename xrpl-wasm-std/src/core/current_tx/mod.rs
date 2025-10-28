@@ -70,6 +70,7 @@ use crate::host::error_codes::{
 use crate::host::{Result, get_tx_field, to_non_optional};
 
 pub mod escrow_finish;
+pub mod contract_call;
 pub mod traits;
 
 /// Retrieves an AccountID field from the current transaction.

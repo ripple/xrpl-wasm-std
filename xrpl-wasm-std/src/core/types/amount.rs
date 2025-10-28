@@ -4,7 +4,11 @@ use crate::core::types::mpt_id::MptId;
 use crate::core::types::opaque_float::OpaqueFloat;
 use crate::host;
 use crate::host::Error::InternalError;
-use crate::host::trace::trace_num;
+use crate::core::types::transaction_type::TransactionType;
+use crate::sfield;
+use crate::host::{add_txn_field, build_txn, emit_built_txn};
+use crate::host::trace::{trace_num};
+
 
 pub const AMOUNT_SIZE: usize = 48;
 
@@ -116,11 +120,15 @@ impl Amount {
 
         match self {
             Amount::XRP { num_drops } => {
-                // For tracing, XRP uses raw drop amount without flag bits
-                // The host function will interpret this as XRP based on the format
-                let abs_drops = num_drops.unsigned_abs();
-                bytes[0..8].copy_from_slice(&abs_drops.to_be_bytes());
-                // Remaining 40 bytes stay as zeros (padding)
+                if *num_drops >= 0 {
+                    // Set the positive bit (0x40) and clear the currency bit (0x80)
+                    let positive_drops = (*num_drops as u64) | 0x4000000000000000u64; // Set positive bit
+                    bytes[0..8].copy_from_slice(&positive_drops.to_be_bytes());
+                } else {
+                    // Clear the positive bit
+                    let negative_drops = ((-*num_drops) as u64) & 0x3FFFFFFFFFFFFFFFu64; // Clear positive bit
+                    bytes[0..8].copy_from_slice(&negative_drops.to_be_bytes());
+                }
             }
 
             Amount::MPT {
@@ -173,9 +181,7 @@ impl Amount {
     ///
     /// Returns None if the byte array is not a valid Amount.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, host::Error> {
-        // TODO: Move to trait!
-
-        if bytes.len() != 48 {
+        if bytes.is_empty() {
             return Err(InternalError);
         }
 
@@ -190,7 +196,11 @@ impl Amount {
 
         if is_xrp_or_mpt {
             if is_xrp {
-                // If we get here, we'll have 8 bytes.
+                // XRP requires exactly 8 bytes
+                if bytes.len() != 8 {
+                    return Err(InternalError);
+                }
+
                 let mut amount_bytes = [0u8; 8];
                 amount_bytes.copy_from_slice(&bytes[0..8]);
 
@@ -198,18 +208,22 @@ impl Amount {
                 // and then use the remaining 7 bytes as is.
                 let num_drops_abs = u64::from_be_bytes(amount_bytes) & MASK_57_BIT;
 
-                let amount = Amount::XRP {
+                let token_amount = Amount::XRP {
                     num_drops: match is_positive {
                         true => num_drops_abs as i64,
                         false => -(num_drops_abs as i64),
                     },
                 };
 
-                Ok(amount)
+                Ok(token_amount)
             }
             // is_mpt
             else {
-                // If we get here, we'll have 33 bytes.
+                // MPT requires exactly 33 bytes
+                if bytes.len() != 33 {
+                    return Err(InternalError);
+                }
+
                 // MPT amount: [0/type][1/sign][1/is-mpt][5/reserved][64/value]
                 let mut num_units_bytes = [0u8; 8];
                 // Skip the first MPT byte, which is control bytes. Grab the next 8 for the u64
@@ -221,26 +235,25 @@ impl Amount {
                 mpt_id_bytes.copy_from_slice(&bytes[9..33]);
                 let mpt_id = MptId::from(mpt_id_bytes);
 
-                let amount = Amount::MPT {
+                let token_amount = Amount::MPT {
                     num_units,
                     is_positive,
                     mpt_id,
                 };
 
-                Ok(amount)
+                Ok(token_amount)
             }
         }
         // is_iou
         else {
-            // If we get here, we'll have 48 bytes.
+            // IOU requires exactly 48 bytes
+            if bytes.len() != 48 {
+                return Err(InternalError);
+            }
 
             // IOU amount: [1/type][1/sign][8/exponent][54/mantissa]
             let opaque_float_amount_bytes: [u8; 8] = bytes[0..8].try_into().unwrap();
             let opaque_float: OpaqueFloat = opaque_float_amount_bytes.into();
-
-            // Parse the Amount::IOU from the first 9 bytes
-            // let mut amount_bytes = [0u8; 9];
-            // amount_bytes.copy_from_slice(&bytes[0..9]);
 
             // Parse the Currency from the next 20 bytes
             let mut currency_bytes = [0u8; 20];
@@ -252,24 +265,76 @@ impl Amount {
             issuer_bytes.copy_from_slice(&bytes[28..48]);
             let issuer = AccountID::from(issuer_bytes);
 
-            let amount = Amount::IOU {
+            let token_amount = Amount::IOU {
                 amount: opaque_float,
                 issuer,
                 currency,
             };
 
-            Ok(amount)
+            Ok(token_amount)
         }
     }
+
+    /// Transfer any token type (XRP, IOU, MPT) to a recipient
+    /// Equivalent to Solidity's payable(recipient).transfer(amount) or token.transfer(recipient, amount)
+    pub fn transfer(&self, recipient: &AccountID) -> i32 {
+        unsafe {
+            // Build Payment transaction
+            let txn_index = build_txn(TransactionType::Payment as i32);
+            if txn_index < 0 {
+                return -100; // Build error
+            }
+            
+            // Get the encoded amount from Amount
+            let (amount_bytes, _) = self.to_stamount_bytes();
+            
+            // Add Amount field
+            if add_txn_field(
+                txn_index,
+                sfield::Amount,
+                amount_bytes.as_ptr(),
+                amount_bytes.len()
+            ) < 0 {
+                return -101; // Field error
+            }
+            
+            // Add Destination field (21 bytes: 1 byte prefix + 20 byte account)
+            let mut dest_buffer = [0u8; 21];
+            dest_buffer[0] = 0x14; // Account ID type prefix
+            dest_buffer[1..21].copy_from_slice(&recipient.0);
+            
+            if add_txn_field(
+                txn_index,
+                sfield::Destination,
+                dest_buffer.as_ptr(),
+                dest_buffer.len()
+            ) < 0 {
+                return -102; // Field error
+            }
+            
+            // Emit the transaction
+            let emission_result = emit_built_txn(txn_index);
+            return emission_result;
+        }
+    }
+
+    // pub fn safe_transfer(&self, recipient: &AccountID) -> i32 {
+    //     let result: i32 = self.transfer(recipient);
+    //     if result < 0 {
+    //         result
+    //     } else {
+    //         0
+    //     }
+    // }
 }
 
 impl From<[u8; AMOUNT_SIZE]> for Amount {
     fn from(bytes: [u8; AMOUNT_SIZE]) -> Self {
         // Use the existing from_bytes method with a slice reference
         match Self::from_bytes(&bytes) {
-            Ok(amount) => amount,
+            Ok(token_amount) => token_amount,
             Err(error) => {
-                let _ = trace_num("Error parsing amount", error.code() as i64);
+                let _ = trace_num("Error parsing token_amount", error.code() as i64);
                 panic!("Invalid Amount byte array");
             }
         }
@@ -292,10 +357,10 @@ mod tests {
         bytes[1..8].copy_from_slice(&1_000_000u64.to_be_bytes()[1..8]);
 
         // Parse the Amount
-        let amount = Amount::from_bytes(&bytes).unwrap();
+        let token_amount = Amount::from_bytes(&bytes).unwrap();
 
         // Verify it's an XRP amount with the correct value
-        match amount {
+        match token_amount {
             Amount::XRP { num_drops } => {
                 assert_eq!(num_drops, 1_000_000);
             }
@@ -324,10 +389,10 @@ mod tests {
         bytes[13..33].copy_from_slice(&ISSUER_BYTES);
 
         // Parse the Amount
-        let amount = Amount::from_bytes(&bytes).unwrap();
+        let token_amount = Amount::from_bytes(&bytes).unwrap();
 
         // Verify it's an MPT amount with the correct values
-        match amount {
+        match token_amount {
             Amount::MPT {
                 num_units,
                 is_positive,
@@ -399,10 +464,10 @@ mod tests {
         bytes[28..48].copy_from_slice(&ISSUER_BYTES);
 
         // Parse the Amount
-        let amount = Amount::from_bytes(&bytes).unwrap();
+        let token_amount = Amount::from_bytes(&bytes).unwrap();
 
         // Verify it's an IOU amount with the correct values
-        match amount {
+        match token_amount {
             Amount::IOU {
                 amount,
                 issuer,
