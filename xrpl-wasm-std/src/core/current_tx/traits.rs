@@ -47,8 +47,7 @@ use crate::core::types::hash_256::Hash256;
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::transaction_type::TransactionType;
 use crate::host::error_codes::{
-    match_result_code_optional, match_result_code_with_expected_bytes,
-    match_result_code_with_expected_bytes_optional,
+    match_result_code_optional, match_result_code_with_expected_bytes_optional,
 };
 use crate::host::{Result, get_tx_field};
 use crate::sfield;
@@ -87,12 +86,7 @@ pub trait TransactionCommonFields {
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size
     ///
     fn get_transaction_type(&self) -> Result<TransactionType> {
-        let mut buffer = [0u8; 2]; // Allocate memory to read into (this is an i32)
-
-        let result_code =
-            unsafe { get_tx_field(sfield::TransactionType, buffer.as_mut_ptr(), buffer.len()) };
-
-        match_result_code_with_expected_bytes(result_code, 2, || i16::from_le_bytes(buffer).into())
+        get_field(sfield::TransactionType)
     }
 
     /// Retrieves the computation allowance from the current transaction.

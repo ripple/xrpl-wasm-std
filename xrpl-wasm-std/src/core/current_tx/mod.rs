@@ -63,6 +63,7 @@ use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
 use crate::core::types::hash_256::{HASH256_SIZE, Hash256};
 use crate::core::types::public_key::PublicKey;
+use crate::core::types::transaction_type::TransactionType;
 use crate::host::error_codes::{
     match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
     match_result_code_with_expected_bytes_optional,
@@ -320,6 +321,27 @@ impl CurrentTxFieldGetter for Blob {
                 len: result_code as usize,
             })
         })
+    }
+}
+
+/// Implementation of `CurrentTxFieldGetter` for XRPL TransactionType enums.
+///
+/// This implementation handles 2byte transaction type fields in XRPL transactions.
+///
+/// # Buffer Management
+///
+/// Uses a 2-byte buffer and validates that exactly 2 bytes are returned from the host function.
+impl CurrentTxFieldGetter for TransactionType {
+    fn get_from_current_tx(field_code: i32) -> Result<Self> {
+        let mut buffer = [0u8; 2]; // Allocate memory to read into (this is an i32)
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_with_expected_bytes(result_code, 2, || i16::from_le_bytes(buffer).into())
+    }
+
+    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = [0u8; 2]; // Allocate memory to read into (this is an i32)
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        match_result_code_with_expected_bytes_optional(result_code, 2, || Some(buffer.into()))
     }
 }
 
