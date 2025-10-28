@@ -518,4 +518,74 @@ mod tests {
         assert_eq!(nft1, nft2);
         assert_eq!(nft1.as_bytes(), nft2.as_bytes());
     }
+
+    // NFToken method tests
+    #[test]
+    fn test_nft_flags_method() {
+        let nft_id = [0u8; 32];
+        let nft = NFToken::new(nft_id);
+
+        // Positive case: should return Ok with flags value
+        let result = nft.flags();
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().as_u16(), 0);
+    }
+
+    #[test]
+    fn test_nft_transfer_fee_method() {
+        let nft_id = [0u8; 32];
+        let nft = NFToken::new(nft_id);
+
+        // Positive case: should return Ok with transfer fee value
+        let result = nft.transfer_fee();
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 0);
+    }
+
+    #[test]
+    fn test_nft_issuer_method() {
+        let nft_id = [0u8; 32];
+        let nft = NFToken::new(nft_id);
+
+        // Positive case: should return Ok with issuer account
+        let result = nft.issuer();
+        assert!(result.is_ok());
+        let issuer = result.unwrap();
+        assert_eq!(issuer.0.len(), ACCOUNT_ID_SIZE);
+    }
+
+    #[test]
+    fn test_nft_taxon_method() {
+        let nft_id = [0u8; 32];
+        let nft = NFToken::new(nft_id);
+
+        // Positive case: should return Ok with taxon value
+        let result = nft.taxon();
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 0);
+    }
+
+    #[test]
+    fn test_nft_serial_method() {
+        let nft_id = [0u8; 32];
+        let nft = NFToken::new(nft_id);
+
+        // Positive case: should return Ok with serial value
+        let result = nft.serial();
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 0);
+    }
+
+    #[test]
+    fn test_nft_uri_method() {
+        let nft_id = [0u8; 32];
+        let nft = NFToken::new(nft_id);
+        let owner = AccountID([0u8; ACCOUNT_ID_SIZE]);
+
+        // Positive case: should return Ok with URI blob
+        let result = nft.uri(&owner);
+        assert!(result.is_ok());
+        let uri = result.unwrap();
+        assert!(uri.len <= NFT_URI_MAX_SIZE);
+    }
 }
