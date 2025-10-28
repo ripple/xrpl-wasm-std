@@ -40,34 +40,38 @@ async function fundWallet(wallet = undefined) {
 }
 
 async function main() {
-  console.log("🧪 Setting up accounts...")
-  await client.connect()
-  console.log("connected")
+  try {
+    console.log("🧪 Setting up accounts...")
+    await client.connect()
+    console.log("connected")
 
-  let interval
-  if (client.url.includes("localhost") || client.url.includes("127.0.0.1")) {
-    interval = setInterval(() => {
-      if (client.isConnected()) client.request({ command: "ledger_accept" })
-    }, 1000)
+    let interval
+    if (client.url.includes("localhost") || client.url.includes("127.0.0.1")) {
+      interval = setInterval(() => {
+        if (client.isConnected()) client.request({ command: "ledger_accept" })
+      }, 1000)
+    }
+
+    const wallets = []
+    for (let i = 0; i < 5; i++) {
+      const wallet = await fundWallet()
+      wallets.push({
+        address: wallet.address,
+        seed: wallet.seed,
+        publicKey: wallet.publicKey,
+      })
+    }
+
+    const filePath = path.join(__dirname, "wallets.json")
+    fs.writeFileSync(filePath, JSON.stringify(wallets, null, 2))
+    console.log(`Saved ${wallets.length} wallets to wallets.json`)
+
+    if (interval) clearInterval(interval)
+  } catch (error) {
+    console.error("Error:", error.message)
+  } finally {
+    await client.disconnect()
   }
-
-  const wallets = []
-  for (let i = 0; i < 5; i++) {
-    const wallet = await fundWallet()
-    wallets.push({
-      address: wallet.address,
-      seed: wallet.seed,
-      publicKey: wallet.publicKey,
-    })
-  }
-
-  const filePath = path.join(__dirname, "wallets.json")
-  fs.writeFileSync(filePath, JSON.stringify(wallets, null, 2))
-  console.log(`Saved ${wallets.length} wallets to wallets.json`)
-
-  if (interval) clearInterval(interval)
-
-  await client.disconnect()
 }
 
 main().catch(console.error)
