@@ -38,10 +38,7 @@
 //! - **PublicKey**: 33-byte compressed public keys
 //! - **TransactionType**: Enumerated transaction type identifiers
 
-use crate::core::current_tx::{
-    get_account_id_field, get_amount_field, get_blob_field, get_hash_256_field,
-    get_hash_256_field_optional, get_public_key_field, get_u32_field, get_u32_field_optional,
-};
+use crate::core::current_tx::{get_field, get_field_optional};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
@@ -50,8 +47,7 @@ use crate::core::types::hash_256::Hash256;
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::transaction_type::TransactionType;
 use crate::host::error_codes::{
-    match_result_code_optional, match_result_code_with_expected_bytes,
-    match_result_code_with_expected_bytes_optional,
+    match_result_code_optional, match_result_code_with_expected_bytes_optional,
 };
 use crate::host::{Result, get_tx_field};
 use crate::sfield;
@@ -75,7 +71,7 @@ pub trait TransactionCommonFields {
     /// * `Ok(AccountID)` - The 20-byte account identifier of the transaction sender
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size
     fn get_account(&self) -> Result<AccountID> {
-        get_account_id_field(sfield::Account)
+        get_field(sfield::Account)
     }
 
     /// Retrieves the transaction type from the current transaction.
@@ -90,12 +86,7 @@ pub trait TransactionCommonFields {
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size
     ///
     fn get_transaction_type(&self) -> Result<TransactionType> {
-        let mut buffer = [0u8; 2]; // Allocate memory to read into (this is an i32)
-
-        let result_code =
-            unsafe { get_tx_field(sfield::TransactionType, buffer.as_mut_ptr(), buffer.len()) };
-
-        match_result_code_with_expected_bytes(result_code, 2, || i16::from_le_bytes(buffer).into())
+        get_field(sfield::TransactionType)
     }
 
     /// Retrieves the computation allowance from the current transaction.
@@ -110,7 +101,7 @@ pub trait TransactionCommonFields {
     /// * `Ok(u32)` - The computation allowance value in platform-defined units
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size
     fn get_computation_allowance(&self) -> Result<u32> {
-        get_u32_field(sfield::ComputationAllowance)
+        get_field(sfield::ComputationAllowance)
     }
 
     /// Retrieves the fee amount from the current transaction.
@@ -131,7 +122,7 @@ pub trait TransactionCommonFields {
     /// Returns XRP amounts only (for now). Future versions may support other token types
     /// when the underlying amount handling is enhanced.
     fn get_fee(&self) -> Result<Amount> {
-        get_amount_field(sfield::Fee)
+        get_field(sfield::Fee)
     }
 
     /// Retrieves the sequence number from the current transaction.
@@ -152,7 +143,7 @@ pub trait TransactionCommonFields {
     /// If the transaction uses tickets instead of sequence numbers, this field may not
     /// be present. In such cases, use `get_ticket_sequence()` instead.
     fn get_sequence(&self) -> Result<u32> {
-        get_u32_field(sfield::Sequence)
+        get_field(sfield::Sequence)
     }
 
     /// Retrieves the account transaction ID from the current transaction.
@@ -168,7 +159,7 @@ pub trait TransactionCommonFields {
     /// * `Ok(None)` - If no previous transaction requirement is specified
     /// * `Err(Error)` - If an error occurred during field retrieval
     fn get_account_txn_id(&self) -> Result<Option<Hash256>> {
-        get_hash_256_field_optional(sfield::AccountTxnID)
+        get_field_optional(sfield::AccountTxnID)
     }
 
     /// Retrieves the `flags` field from the current transaction.
@@ -183,7 +174,7 @@ pub trait TransactionCommonFields {
     /// * `Ok(None)` - If no flags are specified (equivalent to flags = 0)
     /// * `Err(Error)` - If an error occurred during field retrieval
     fn get_flags(&self) -> Result<Option<u32>> {
-        get_u32_field_optional(sfield::Flags)
+        get_field_optional(sfield::Flags)
     }
 
     /// Retrieves the last ledger sequence from the current transaction.
@@ -199,7 +190,7 @@ pub trait TransactionCommonFields {
     /// * `Ok(None)` - If no expiration is specified (transaction never expires)
     /// * `Err(Error)` - If an error occurred during field retrieval
     fn get_last_ledger_sequence(&self) -> Result<Option<u32>> {
-        get_u32_field_optional(sfield::LastLedgerSequence)
+        get_field_optional(sfield::LastLedgerSequence)
     }
 
     /// Retrieves the network ID from the current transaction.
@@ -215,7 +206,7 @@ pub trait TransactionCommonFields {
     /// * `Ok(None)` - If no specific network is specified (uses default network)
     /// * `Err(Error)` - If an error occurred during field retrieval
     fn get_network_id(&self) -> Result<Option<u32>> {
-        get_u32_field_optional(sfield::NetworkID)
+        get_field_optional(sfield::NetworkID)
     }
 
     /// Retrieves the source tag from the current transaction.
@@ -231,7 +222,7 @@ pub trait TransactionCommonFields {
     /// * `Ok(None)` - If no source tag is specified
     /// * `Err(Error)` - If an error occurred during field retrieval
     fn get_source_tag(&self) -> Result<Option<u32>> {
-        get_u32_field_optional(sfield::SourceTag)
+        get_field_optional(sfield::SourceTag)
     }
 
     /// Retrieves the signing public key from the current transaction.
@@ -252,7 +243,7 @@ pub trait TransactionCommonFields {
     /// only provides the key claimed to be used for signing. The XRPL network performs signature
     /// validation before transaction execution.
     fn get_signing_pub_key(&self) -> Result<PublicKey> {
-        get_public_key_field(sfield::SigningPubKey)
+        get_field(sfield::SigningPubKey)
     }
 
     /// Retrieves the ticket sequence from the current transaction.
@@ -272,7 +263,7 @@ pub trait TransactionCommonFields {
     /// Transactions use either `Sequence` or `TicketSequence`, but not both. Check this
     /// field when `get_sequence()` fails or when implementing ticket-aware logic.
     fn get_ticket_sequence(&self) -> Result<Option<u32>> {
-        get_u32_field_optional(sfield::TicketSequence)
+        get_field_optional(sfield::TicketSequence)
     }
 
     /// Retrieves the transaction signature from the current transaction.
@@ -292,7 +283,7 @@ pub trait TransactionCommonFields {
     /// In the programmability context, you can access the signature for logging or
     /// analysis purposes, but signature validation has already been performed.
     fn get_txn_signature(&self) -> Result<Blob> {
-        get_blob_field(sfield::TxnSignature)
+        get_field(sfield::TxnSignature)
     }
 }
 
@@ -322,7 +313,7 @@ pub trait EscrowFinishFields: TransactionCommonFields {
     /// * `Ok(Hash256)` - The 256-bit transaction hash identifier
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size
     fn get_id(&self) -> Result<Hash256> {
-        get_hash_256_field(sfield::hash)
+        get_field(sfield::hash)
     }
 
     /// Retrieves the owner account from the current EscrowFinish transaction.
@@ -337,7 +328,7 @@ pub trait EscrowFinishFields: TransactionCommonFields {
     /// * `Ok(AccountID)` - The 20-byte account identifier of the escrow owner
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size
     fn get_owner(&self) -> Result<AccountID> {
-        get_account_id_field(sfield::Owner)
+        get_field(sfield::Owner)
     }
 
     /// Retrieves the offer sequence from the current EscrowFinish transaction.
@@ -353,7 +344,7 @@ pub trait EscrowFinishFields: TransactionCommonFields {
     /// * `Ok(u32)` - The sequence number of the EscrowCreate transaction
     /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size
     fn get_offer_sequence(&self) -> Result<u32> {
-        get_u32_field(sfield::OfferSequence)
+        get_field(sfield::OfferSequence)
     }
 
     /// Retrieves the cryptographic condition from the current EscrowFinish transaction.
