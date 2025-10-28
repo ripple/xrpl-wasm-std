@@ -1289,4 +1289,52 @@ unsafe extern "C" {
         amount_ptr: *const u8,
         amount_len: usize,
     ) -> i32;
+
+    // instanceParam
+    pub fn instance_param(index: i32, st_type_id: i32, out_buff_ptr: *mut u8, out_buff_len: usize) -> i32;
+
+    // functionParam
+    pub fn function_param(index: i32, st_type_id: i32, out_buff_ptr: *mut u8, out_buff_len: usize) -> i32;
+
+    // getDataObjectField
+    pub fn get_data_object_field(account_ptr: *const u8, account_len: usize, key_ptr: *const u8, key_len: usize, out_buff_ptr: *const u8, out_buff_len: usize) -> i32;
+
+    // getDataNestedObjectField
+    pub fn get_data_nested_object_field(account_ptr: *const u8, account_len: usize, key_ptr: *const u8, key_len: usize, nst_ptr: *const u8, nst_len: usize, out_buff_ptr: *const u8, out_buff_len: usize) -> i32;
+
+    // getDataArrayElementField
+    pub fn get_data_array_element_field(account_ptr: *const u8, account_len: usize, key_ptr: *const u8, key_len: usize, index: i32, out_buff_ptr: *const u8, out_buff_len: usize) -> i32;
+
+    // getDataNestedArrayElementField
+    pub fn get_data_nested_array_element_field(account_ptr: *const u8, account_len: usize, key_ptr: *const u8, key_len: usize, index: i32, nst_ptr: *const u8, nst_len: usize, out_buff_ptr: *const u8, out_buff_len: usize) -> i32;
+
+    // setDataObjectField
+    pub fn set_data_object_field(account_ptr: *const u8, account_len: usize, key_ptr: *const u8, key_len: usize, data_ptr: *const u8, data_len: usize) -> i32;
+
+    // setDataNestedObjectField
+    pub fn set_data_nested_object_field(account_ptr: *const u8, account_len: usize, key_ptr: *const u8, key_len: usize, nst_ptr: *const u8, nst_len: usize, data_ptr: *const u8, data_len: usize) -> i32;
+
+    // setDataArrayElementField
+    pub fn set_data_array_element_field(account_ptr: *const u8, account_len: usize, key_ptr: *const u8, key_len: usize, index: i32, data_ptr: *const u8, data_len: usize) -> i32;
+
+    // setDataNestedArrayElementField
+    pub fn set_data_nested_array_element_field(account_ptr: *const u8, account_len: usize, key_ptr: *const u8, key_len: usize, index: i32, nst_ptr: *const u8, nst_len: usize, data_ptr: *const u8, data_len: usize) -> i32;
+
+    // buildTxn
+    pub fn build_txn(txn_type: i32) -> i32;
+
+    // addTxnField
+    pub fn add_txn_field(index: i32, field: i32, write_ptr: *const u8, write_len: usize) -> i32;
+
+    // emitBuiltTxn
+    pub fn emit_built_txn(index: i32) -> i32;
+
+    // emitTxn
+    pub fn emit_txn(txn_read_ptr: *const u8, txn_read_len: usize) -> i32;
+
+    // emitEvent
+    pub fn emit_event(name_ptr: *const u8, name_len: usize, data_ptr: *const u8, data_len: usize) -> i32;
+
+    // exit
+    pub fn exit(code: i32, msg_read_ptr: *const u8, msg_read_len: usize);
 }

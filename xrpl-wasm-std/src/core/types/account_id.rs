@@ -14,3 +14,10 @@ impl From<[u8; ACCOUNT_ID_SIZE]> for AccountID {
         AccountID(value)
     }
 }
+
+impl AccountID {    
+    /// Get a reference to the underlying bytes
+    pub const fn as_bytes(&self) -> &[u8; ACCOUNT_ID_SIZE] {
+        &self.0
+    }
+}
