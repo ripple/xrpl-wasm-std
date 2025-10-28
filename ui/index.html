@@ -1300,9 +1300,14 @@
               result.result.hash,
             )
           } else {
-            log(
-              `❌ Escrow finish failed: ${result.result.meta.TransactionResult}`,
-            )
+            const transactionResult = result.result.meta.TransactionResult
+            log(`❌ Escrow finish failed: ${transactionResult}`)
+            if (transactionResult.startsWith("tec")) {
+              logWithExplorer(
+                `Transaction hash: ${result.result.hash}`,
+                result.result.hash,
+              )
+            }
           }
 
           await updateAccountsList()
@@ -1345,9 +1350,14 @@
               result.result.hash,
             )
           } else {
-            log(
-              `❌ Transaction failed: ${result.result.meta.TransactionResult}`,
-            )
+            const transactionResult = result.result.meta.TransactionResult
+            log(`❌ Transaction failed: ${transactionResult}`)
+            if (transactionResult.startsWith("tec")) {
+              logWithExplorer(
+                `Transaction hash: ${result.result.hash}`,
+                result.result.hash,
+              )
+            }
           }
 
           await updateAccountsList()
@@ -1487,9 +1497,14 @@
             document.getElementById("finishSourceAccount").value = destIndex
             document.getElementById("ownerAccount").value = sourceIndex
           } else {
-            log(
-              `❌ Smart Escrow deployment failed: ${result.result.meta.TransactionResult}`,
-            )
+            const transactionResult = result.result.meta.TransactionResult
+            log(`❌ Smart Escrow deployment failed: ${transactionResult}`)
+            if (transactionResult.startsWith("tec")) {
+              logWithExplorer(
+                `Transaction hash: ${result.result.hash}`,
+                result.result.hash,
+              )
+            }
           }
 
           await updateAccountsList()

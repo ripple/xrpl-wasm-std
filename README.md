@@ -4,7 +4,7 @@ The XRPL Standard Library provides safe, type-safe access to XRPL host functions
 
 ## Quick Start
 
-There is an interface available at https://ripple.github.io/xrpl-wasm-std/ui/ for local or Devnet testing.
+There is an interface available at <https://ripple.github.io/xrpl-wasm-std/ui/> for local or Devnet testing.
 
 ### Examples Overview
 
@@ -17,10 +17,10 @@ There is an interface available at https://ripple.github.io/xrpl-wasm-std/ui/ fo
 
 ## Documentation
 
-| Section                                                                     | Description                                     |
-| --------------------------------------------------------------------------- | ----------------------------------------------- |
-| **[Complete Developer Guide](./target/doc/xrpl_wasm_std/guide/index.html)** | Comprehensive guide with working internal links |
-| **[Rust API Docs](https://ripple.github.io/xrpl-wasm-std)**                 | Generated API documentation (`cargo doc`)       |
+| Section                                                                                               | Description                                     |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| **[Complete Developer Guide](https://ripple.github.io/xrpl-wasm-std/xrpl_wasm_std/guide/index.html)** | Comprehensive guide with working internal links |
+| **[Rust API Docs](https://ripple.github.io/xrpl-wasm-std)**                                           | Generated API documentation (`cargo doc`)       |
 
 The complete developer guide includes:
 

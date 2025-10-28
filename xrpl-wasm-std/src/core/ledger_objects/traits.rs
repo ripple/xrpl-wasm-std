@@ -4,8 +4,7 @@ use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 use crate::core::types::crypto_condition::Condition;
-use crate::core::types::hash_128::Hash128;
-use crate::core::types::hash_256::Hash256;
+use crate::core::types::uint::{Hash128, Hash256};
 /// This module provides traits for interacting with XRP Ledger objects.
 ///
 /// It defines common interfaces for accessing and manipulating different types of ledger objects,
@@ -44,7 +43,7 @@ pub trait LedgerObjectCommonFields {
     ///
     /// The ledger index as a Hash256 value
     fn get_ledger_index(&self) -> Result<Hash256> {
-        ledger_object::get_hash_256_field(self.get_slot_num(), sfield::LedgerIndex)
+        ledger_object::get_field(self.get_slot_num(), sfield::LedgerIndex)
     }
 
     /// Retrieves the flags field of the ledger object.
@@ -57,7 +56,7 @@ pub trait LedgerObjectCommonFields {
     ///
     /// The flags as a u32 value
     fn get_flags(&self) -> Result<u32> {
-        ledger_object::get_u32_field(self.get_slot_num(), sfield::Flags)
+        ledger_object::get_field(self.get_slot_num(), sfield::Flags)
     }
 
     /// Retrieves the ledger entry type of the object.
@@ -68,7 +67,7 @@ pub trait LedgerObjectCommonFields {
     ///
     /// The ledger entry type as a u16 value
     fn get_ledger_entry_type(&self) -> Result<u16> {
-        current_ledger_object::get_u16_field(sfield::LedgerEntryType)
+        current_ledger_object::get_field(sfield::LedgerEntryType)
     }
 }
 
@@ -84,7 +83,7 @@ pub trait CurrentLedgerObjectCommonFields {
     ///
     /// The ledger index as a Hash256 value
     fn get_ledger_index(&self) -> Result<Hash256> {
-        current_ledger_object::get_hash_256_field(sfield::LedgerIndex)
+        current_ledger_object::get_field(sfield::LedgerIndex)
     }
 
     /// Retrieves the flags field of the current ledger object.
@@ -93,7 +92,7 @@ pub trait CurrentLedgerObjectCommonFields {
     ///
     /// The flags as a u32 value
     fn get_flags(&self) -> Result<u32> {
-        current_ledger_object::get_u32_field(sfield::Flags)
+        current_ledger_object::get_field(sfield::Flags)
     }
 
     /// Retrieves the ledger entry type of the current ledger object.
@@ -104,7 +103,7 @@ pub trait CurrentLedgerObjectCommonFields {
     ///
     /// The ledger entry type as a u16 value
     fn get_ledger_entry_type(&self) -> Result<u16> {
-        current_ledger_object::get_u16_field(sfield::LedgerEntryType)
+        current_ledger_object::get_field(sfield::LedgerEntryType)
     }
 }
 
@@ -116,19 +115,19 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
     /// The address of the owner (sender) of this escrow. This is the account that provided the XRP
     /// and gets it back if the escrow is canceled.
     fn get_account(&self) -> Result<AccountID> {
-        current_ledger_object::get_account_id_field(sfield::Account)
+        current_ledger_object::get_field(sfield::Account)
     }
 
     /// The amount currently held in the escrow (could be XRP, IOU, or MPT).
     fn get_amount(&self) -> Result<Amount> {
-        current_ledger_object::get_amount_field(sfield::Amount)
+        current_ledger_object::get_field(sfield::Amount)
     }
 
     /// The escrow can be canceled if and only if this field is present and the time it specifies
     /// has passed. Specifically, this is specified as seconds since the Ripple Epoch and it
     /// "has passed" if it's earlier than the close time of the previous validated ledger.
     fn get_cancel_after(&self) -> Result<Option<u32>> {
-        current_ledger_object::get_u32_field_optional(sfield::CancelAfter)
+        current_ledger_object::get_field_optional(sfield::CancelAfter)
     }
 
     /// A PREIMAGE-SHA-256 crypto-condition, as hexadecimal. If present, the EscrowFinish
@@ -145,26 +144,26 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
 
     /// The destination address where the XRP is paid if the escrow is successful.
     fn get_destination(&self) -> Result<AccountID> {
-        current_ledger_object::get_account_id_field(sfield::Destination)
+        current_ledger_object::get_field(sfield::Destination)
     }
 
     /// A hint indicating which page of the destination's owner directory links to this object, in
     /// case the directory consists of multiple pages. Omitted on escrows created before enabling the fix1523 amendment.
     fn get_destination_node(&self) -> Result<Option<u64>> {
-        current_ledger_object::get_u64_field_optional(sfield::DestinationNode)
+        current_ledger_object::get_field_optional(sfield::DestinationNode)
     }
 
     /// An arbitrary tag to further specify the destination for this escrow, such as a hosted
     /// recipient at the destination address.
     fn get_destination_tag(&self) -> Result<Option<u32>> {
-        current_ledger_object::get_u32_field_optional(sfield::DestinationTag)
+        current_ledger_object::get_field_optional(sfield::DestinationTag)
     }
 
     /// The time, in seconds since the Ripple Epoch, after which this escrow can be finished. Any
     /// EscrowFinish transaction before this time fails. (Specifically, this is compared with the
     /// close time of the previous validated ledger.)
     fn get_finish_after(&self) -> Result<Option<u32>> {
-        current_ledger_object::get_u32_field_optional(sfield::FinishAfter)
+        current_ledger_object::get_field_optional(sfield::FinishAfter)
     }
 
     // TODO: Implement this function.
@@ -176,29 +175,29 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
     /// A hint indicating which page of the sender's owner directory links to this entry, in case
     /// the directory consists of multiple pages.
     fn get_owner_node(&self) -> Result<u64> {
-        current_ledger_object::get_u64_field(sfield::OwnerNode)
+        current_ledger_object::get_field(sfield::OwnerNode)
     }
 
     /// The identifying hash of the transaction that most recently modified this entry.
     fn get_previous_txn_id(&self) -> Result<Hash256> {
-        current_ledger_object::get_hash_256_field(sfield::PreviousTxnID)
+        current_ledger_object::get_field(sfield::PreviousTxnID)
     }
 
     /// The index of the ledger that contains the transaction that most recently modified this
     /// entry.
     fn get_previous_txn_lgr_seq(&self) -> Result<u32> {
-        current_ledger_object::get_u32_field(sfield::PreviousTxnLgrSeq)
+        current_ledger_object::get_field(sfield::PreviousTxnLgrSeq)
     }
 
     /// An arbitrary tag to further specify the source for this escrow, such as a hosted recipient
     /// at the owner's address.
     fn get_source_tag(&self) -> Result<Option<u32>> {
-        current_ledger_object::get_u32_field_optional(sfield::SourceTag)
+        current_ledger_object::get_field_optional(sfield::SourceTag)
     }
 
     /// The WASM code that is executing.
     fn get_finish_function(&self) -> Result<Option<Blob>> {
-        current_ledger_object::get_blob_field_optional(sfield::FinishFunction)
+        current_ledger_object::get_field_optional(sfield::FinishFunction)
     }
 
     /// Retrieves the contract `data` from the current escrow object.
@@ -255,7 +254,7 @@ pub trait EscrowFields: LedgerObjectCommonFields {
     /// The address of the owner (sender) of this escrow. This is the account that provided the XRP
     /// and gets it back if the escrow is canceled.
     fn get_account(&self) -> Result<AccountID> {
-        ledger_object::get_account_id_field(self.get_slot_num(), sfield::Account)
+        ledger_object::get_field(self.get_slot_num(), sfield::Account)
     }
 
     /// The amount of XRP, in drops, currently held in the escrow.
@@ -280,7 +279,7 @@ pub trait EscrowFields: LedgerObjectCommonFields {
     /// has passed. Specifically, this is specified as seconds since the Ripple Epoch and it
     /// "has passed" if it's earlier than the close time of the previous validated ledger.
     fn get_cancel_after(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::CancelAfter)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::CancelAfter)
     }
 
     /// A PREIMAGE-SHA-256 crypto-condition, as hexadecimal. If present, the EscrowFinish
@@ -302,26 +301,26 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 
     /// The destination address where the XRP is paid if the escrow is successful.
     fn get_destination(&self) -> Result<AccountID> {
-        ledger_object::get_account_id_field(self.get_slot_num(), sfield::Destination)
+        ledger_object::get_field(self.get_slot_num(), sfield::Destination)
     }
 
     /// A hint indicating which page of the destination's owner directory links to this object, in
     /// case the directory consists of multiple pages. Omitted on escrows created before enabling the fix1523 amendment.
     fn get_destination_node(&self) -> Result<Option<Hash256>> {
-        ledger_object::get_hash_256_field_optional(self.get_slot_num(), sfield::DestinationNode)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::DestinationNode)
     }
 
     /// An arbitrary tag to further specify the destination for this escrow, such as a hosted
     /// recipient at the destination address.
     fn get_destination_tag(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::DestinationTag)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::DestinationTag)
     }
 
     /// The time, in seconds since the Ripple Epoch, after which this escrow can be finished. Any
     /// EscrowFinish transaction before this time fails. (Specifically, this is compared with the
     /// close time of the previous validated ledger.)
     fn get_finish_after(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::FinishAfter)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::FinishAfter)
     }
 
     // TODO: Implement this function.
@@ -333,29 +332,29 @@ pub trait EscrowFields: LedgerObjectCommonFields {
     /// A hint indicating which page of the sender's owner directory links to this entry, in case
     /// the directory consists of multiple pages.
     fn get_owner_node(&self) -> Result<Hash256> {
-        ledger_object::get_hash_256_field(self.get_slot_num(), sfield::OwnerNode)
+        ledger_object::get_field(self.get_slot_num(), sfield::OwnerNode)
     }
 
     /// The identifying hash of the transaction that most recently modified this entry.
     fn get_previous_txn_id(&self) -> Result<Hash256> {
-        ledger_object::get_hash_256_field(self.get_slot_num(), sfield::PreviousTxnID)
+        ledger_object::get_field(self.get_slot_num(), sfield::PreviousTxnID)
     }
 
     /// The index of the ledger that contains the transaction that most recently modified this
     /// entry.
     fn get_previous_txn_lgr_seq(&self) -> Result<u32> {
-        ledger_object::get_u32_field(self.get_slot_num(), sfield::PreviousTxnLgrSeq)
+        ledger_object::get_field(self.get_slot_num(), sfield::PreviousTxnLgrSeq)
     }
 
     /// An arbitrary tag to further specify the source for this escrow, such as a hosted recipient
     /// at the owner's address.
     fn get_source_tag(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::SourceTag)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::SourceTag)
     }
 
     /// The WASM code that is executing.
     fn get_finish_function(&self) -> Result<Option<Blob>> {
-        ledger_object::get_blob_field_optional(self.get_slot_num(), sfield::FinishFunction)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::FinishFunction)
     }
 
     /// Retrieves the contract data from the specified ledger object.
@@ -403,124 +402,124 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 pub trait AccountFields: LedgerObjectCommonFields {
     /// The identifying address of the account.
     fn get_account(&self) -> Result<AccountID> {
-        ledger_object::get_account_id_field(self.get_slot_num(), sfield::Account)
+        ledger_object::get_field(self.get_slot_num(), sfield::Account)
     }
 
     /// AccountTxnID field for the account.
     fn account_txn_id(&self) -> Result<Option<Hash256>> {
-        ledger_object::get_hash_256_field_optional(self.get_slot_num(), sfield::AccountTxnID)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::AccountTxnID)
     }
 
     /// The ledger entry ID of the corresponding AMM ledger entry. Set during account creation; cannot be modified.
     /// If present, indicates that this is a special AMM AccountRoot; always omitted on non-AMM accounts.
     /// (Added by the AMM amendment)
     fn amm_id(&self) -> Result<Option<Hash256>> {
-        ledger_object::get_hash_256_field_optional(self.get_slot_num(), sfield::AMMID)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::AMMID)
     }
 
     /// The account's current XRP balance in drops.
     fn balance(&self) -> Result<Option<Amount>> {
-        ledger_object::get_amount_field_optional(self.get_slot_num(), sfield::Balance)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::Balance)
     }
 
     /// How many total of this account's issued non-fungible tokens have been burned.
     /// This number is always equal or less than MintedNFTokens.
     fn burned_nf_tokens(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::BurnedNFTokens)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::BurnedNFTokens)
     }
 
     /// A domain associated with this account. In JSON, this is the hexadecimal for the ASCII representation of the
     /// domain. Cannot be more than 256 bytes in length.
     fn domain(&self) -> Result<Option<Blob>> {
-        ledger_object::get_blob_field_optional(self.get_slot_num(), sfield::Domain)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::Domain)
     }
 
     /// The MD5 hash of an email address. Clients can use this to look up an avatar through services such as Gravatar.
     fn email_hash(&self) -> Result<Option<Hash128>> {
-        ledger_object::get_hash_128_field_optional(self.get_slot_num(), sfield::EmailHash)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::EmailHash)
     }
 
     /// The account's Sequence Number at the time it minted its first non-fungible-token.
     /// (Added by the fixNFTokenRemint amendment)
     fn first_nf_token_sequence(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::FirstNFTokenSequence)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::FirstNFTokenSequence)
     }
 
     /// The value 0x0061, mapped to the string AccountRoot, indicates that this is an AccountRoot object.
     fn ledger_entry_type(&self) -> Result<u16> {
-        ledger_object::get_u16_field(self.get_slot_num(), sfield::LedgerEntryType)
+        ledger_object::get_field(self.get_slot_num(), sfield::LedgerEntryType)
     }
 
     /// A public key that may be used to send encrypted messages to this account. In JSON, uses hexadecimal.
     /// Must be exactly 33 bytes, with the first byte indicating the key type: 0x02 or 0x03 for secp256k1 keys,
     /// 0xED for Ed25519 keys.
     fn message_key(&self) -> Result<Option<Blob>> {
-        ledger_object::get_blob_field_optional(self.get_slot_num(), sfield::MessageKey)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::MessageKey)
     }
 
     /// How many total non-fungible tokens have been minted by and on behalf of this account.
     /// (Added by the NonFungibleTokensV1_1 amendment)
     fn minted_nf_tokens(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::MintedNFTokens)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::MintedNFTokens)
     }
 
     /// Another account that can mint non-fungible tokens on behalf of this account.
     /// (Added by the NonFungibleTokensV1_1 amendment)
     fn nf_token_minter(&self) -> Result<Option<AccountID>> {
-        ledger_object::get_account_id_field_optional(self.get_slot_num(), sfield::NFTokenMinter)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::NFTokenMinter)
     }
 
     /// The number of objects this account owns in the ledger, which contributes to its owner reserve.
     fn owner_count(&self) -> Result<u32> {
-        ledger_object::get_u32_field(self.get_slot_num(), sfield::OwnerCount)
+        ledger_object::get_field(self.get_slot_num(), sfield::OwnerCount)
     }
 
     /// The identifying hash of the transaction that most recently modified this object.
     fn previous_txn_id(&self) -> Result<Hash256> {
-        ledger_object::get_hash_256_field(self.get_slot_num(), sfield::PreviousTxnID)
+        ledger_object::get_field(self.get_slot_num(), sfield::PreviousTxnID)
     }
 
     /// The index of the ledger that contains the transaction that most recently modified this object.
     fn previous_txn_lgr_seq(&self) -> Result<u32> {
-        ledger_object::get_u32_field(self.get_slot_num(), sfield::PreviousTxnLgrSeq)
+        ledger_object::get_field(self.get_slot_num(), sfield::PreviousTxnLgrSeq)
     }
 
     /// The address of a key pair that can be used to sign transactions for this account instead of the master key.
     /// Use a SetRegularKey transaction to change this value.
     fn regular_key(&self) -> Result<Option<AccountID>> {
-        ledger_object::get_account_id_field_optional(self.get_slot_num(), sfield::RegularKey)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::RegularKey)
     }
 
     /// The sequence number of the next valid transaction for this account.
     fn sequence(&self) -> Result<u32> {
-        ledger_object::get_u32_field(self.get_slot_num(), sfield::Sequence)
+        ledger_object::get_field(self.get_slot_num(), sfield::Sequence)
     }
 
     /// How many Tickets this account owns in the ledger. This is updated automatically to ensure that
     /// the account stays within the hard limit of 250 Tickets at a time. This field is omitted if the account has zero
     /// Tickets. (Added by the TicketBatch amendment.)
     fn ticket_count(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::TicketCount)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::TicketCount)
     }
 
     /// How many significant digits to use for exchange rates of Offers involving currencies issued by this address.
     /// Valid values are 3 to 15, inclusive. (Added by the TickSize amendment.)
     fn tick_size(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::TickSize)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::TickSize)
     }
 
     /// A transfer fee to charge other users for sending currency issued by this account to each other.
     fn transfer_rate(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::TransferRate)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::TransferRate)
     }
 
     /// An arbitrary 256-bit value that users can set.
     fn wallet_locator(&self) -> Result<Option<Hash256>> {
-        ledger_object::get_hash_256_field_optional(self.get_slot_num(), sfield::WalletLocator)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::WalletLocator)
     }
 
     /// Unused. (The code supports this field but there is no way to set it.)
     fn wallet_size(&self) -> Result<Option<u32>> {
-        ledger_object::get_u32_field_optional(self.get_slot_num(), sfield::WalletSize)
+        ledger_object::get_field_optional(self.get_slot_num(), sfield::WalletSize)
     }
 }
