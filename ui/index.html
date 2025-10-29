@@ -160,39 +160,52 @@
       </div>
 
       <div class="grid">
-        <!-- Account Management -->
-        <div class="card">
-          <h2>Account Management</h2>
-          <div class="form-group">
-            <button
-              id="generateBtn"
-              class="btn btn-success"
-              onclick="generateAccount()"
-            >
-              Generate New Account
-            </button>
-            <button
-              id="fundBtn"
-              class="btn btn-warning"
-              onclick="fundSelectedAccount()"
+        <!-- Account and Escrow Management Wrapper -->
+        <div class="sidebar-column">
+          <!-- Account Management -->
+          <div class="card">
+            <h2>Account Management</h2>
+            <div class="form-group">
+              <button
+                id="generateBtn"
+                class="btn btn-success"
+                onclick="generateAccount()"
+              >
+                Generate New Account
+              </button>
+              <button
+                id="fundBtn"
+                class="btn btn-warning"
+                onclick="fundSelectedAccount()"
+                style="display: none"
+              >
+                Fund Selected
+              </button>
+            </div>
+            <div
+              id="accountLoading"
+              class="account-loading"
               style="display: none"
             >
-              Fund Selected
-            </button>
-          </div>
-          <div
-            id="accountLoading"
-            class="account-loading"
-            style="display: none"
-          >
-            <div class="loading-container">
-              <div class="spinner"></div>
-              <span id="loadingText">Generating account...</span>
+              <div class="loading-container">
+                <div class="spinner"></div>
+                <span id="loadingText">Generating account...</span>
+              </div>
+            </div>
+            <div class="accounts-list" id="accountsList">
+              <div class="empty-state">
+                No accounts loaded. Generate or load accounts to get started.
+              </div>
             </div>
           </div>
-          <div class="accounts-list" id="accountsList">
-            <div class="empty-state">
-              No accounts loaded. Generate or load accounts to get started.
+
+          <!-- Escrow Management -->
+          <div class="card">
+            <h2>Escrow Management</h2>
+            <div class="escrows-list" id="escrowsList">
+              <div class="empty-state">
+                No escrows created. Deploy WASM to create escrows.
+              </div>
             </div>
           </div>
         </div>
@@ -438,16 +451,6 @@
             <button class="btn btn-success" onclick="submitCustomTransaction()">
               Submit Transaction
             </button>
-          </div>
-        </div>
-
-        <!-- Escrow Management -->
-        <div class="card">
-          <h2>Escrow Management</h2>
-          <div class="escrows-list" id="escrowsList">
-            <div class="empty-state">
-              No escrows created. Deploy WASM to create escrows.
-            </div>
           </div>
         </div>
       </div>

@@ -64,6 +64,12 @@ body {
   margin-bottom: 20px;
 }
 
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .card {
   background: white;
   padding: 20px;
