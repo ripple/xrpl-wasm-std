@@ -1269,6 +1269,13 @@
               `Transaction hash: ${result.result.hash}`,
               result.result.hash,
             )
+
+            // Remove the finished escrow from the list
+            const sequenceNum = parseInt(sequence)
+            escrows = escrows.filter(
+              (escrow) => escrow.sequence !== sequenceNum,
+            )
+            await updateEscrowsList()
           } else {
             const transactionResult = result.result.meta.TransactionResult
             log(`❌ Escrow finish failed: ${transactionResult}`)
