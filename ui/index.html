@@ -484,8 +484,15 @@
           const logEntry = document.createElement("div")
           logEntry.innerHTML = `[${timestamp}] ${message}`
           logArea.appendChild(logEntry)
+          // Add a newline after HTML content
+          const newline = document.createElement("div")
+          newline.textContent = ""
+          logArea.appendChild(newline)
         } else {
-          logArea.textContent += `[${timestamp}] ${message}\n`
+          // Use innerHTML to preserve existing content and avoid mixing textContent/innerHTML
+          const logEntry = document.createElement("div")
+          logEntry.textContent = `[${timestamp}] ${message}`
+          logArea.appendChild(logEntry)
         }
 
         logArea.scrollTop = logArea.scrollHeight
