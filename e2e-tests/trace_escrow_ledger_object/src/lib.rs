@@ -3,13 +3,13 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::assert_eq;
-use xrpl_wasm_std::core::ledger_objects::current_escrow::{CurrentEscrow, get_current_escrow};
-use xrpl_wasm_std::core::ledger_objects::traits::{
+use xrpl_wasm_stdlib::assert_eq;
+use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::{CurrentEscrow, get_current_escrow};
+use xrpl_wasm_stdlib::core::ledger_objects::traits::{
     CurrentEscrowFields, CurrentLedgerObjectCommonFields,
 };
-use xrpl_wasm_std::host::trace::{DataRepr, trace, trace_amount, trace_data, trace_num};
-use xrpl_wasm_std::host::{Result::Err, Result::Ok};
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_amount, trace_data, trace_num};
+use xrpl_wasm_stdlib::host::{Result::Err, Result::Ok};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {

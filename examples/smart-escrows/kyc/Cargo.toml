@@ -9,4 +9,4 @@ license = "ISC"
 crate-type = ["cdylib"]
 
 [dependencies]
-xrpl-wasm-std = { path = "../../../xrpl-wasm-std" }
+xrpl-wasm-stdlib = { path = "../../../xrpl-wasm-stdlib" }

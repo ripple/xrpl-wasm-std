@@ -1,5 +1,5 @@
 {
-  "name": "xrpl-wasm-std",
+  "name": "xrpl-wasm-stdlib",
   "version": "1.0.0",
   "description": "XRPL WASM standard library",
   "scripts": {
