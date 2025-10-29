@@ -4,7 +4,7 @@
 extern crate std;
 
 use xrpl_wasm_stdlib::core::constants::{ACCOUNT_ONE, ACCOUNT_ZERO};
-use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{get_current_escrow_finish, EscrowFinish};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
 use xrpl_wasm_stdlib::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
 use xrpl_wasm_stdlib::core::locator::Locator;
 use xrpl_wasm_stdlib::core::types::account_id::AccountID;
@@ -14,7 +14,7 @@ use xrpl_wasm_stdlib::core::types::transaction_type::TransactionType;
 use xrpl_wasm_stdlib::core::types::uint::Hash256;
 use xrpl_wasm_stdlib::host;
 use xrpl_wasm_stdlib::host::trace::{
-    trace, trace_account, trace_account_buf, trace_amount, trace_data, trace_num, DataRepr,
+    DataRepr, trace, trace_account, trace_account_buf, trace_amount, trace_data, trace_num,
 };
 use xrpl_wasm_stdlib::{assert_eq, sfield};
 

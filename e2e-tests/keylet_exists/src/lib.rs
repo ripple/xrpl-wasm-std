@@ -4,8 +4,8 @@
 extern crate std;
 
 use crate::host::{Error, Result, Result::Err, Result::Ok};
-use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::get_current_escrow;
 use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::CurrentEscrow;
+use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::get_current_escrow;
 use xrpl_wasm_stdlib::core::ledger_objects::ledger_object;
 use xrpl_wasm_stdlib::core::ledger_objects::traits::CurrentEscrowFields;
 use xrpl_wasm_stdlib::core::types::account_id::AccountID;
@@ -15,7 +15,7 @@ use xrpl_wasm_stdlib::core::types::keylets;
 use xrpl_wasm_stdlib::core::types::mpt_id::MptId;
 use xrpl_wasm_stdlib::core::types::uint::Hash256;
 use xrpl_wasm_stdlib::host;
-use xrpl_wasm_stdlib::host::trace::{trace, trace_account, trace_data, trace_num, DataRepr};
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_account, trace_data, trace_num};
 use xrpl_wasm_stdlib::sfield;
 
 #[unsafe(no_mangle)]
