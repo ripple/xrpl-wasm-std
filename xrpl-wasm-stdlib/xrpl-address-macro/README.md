@@ -2,7 +2,7 @@
 
 A compile-time macro for converting XRPL classic addresses (r-addresses) to 20-byte arrays.
 
-This is an internal procedural macro crate used by `xrpl-wasm-std`. Users should import the macro from `xrpl-wasm-std`
+This is an internal procedural macro crate used by `xrpl-wasm-stdlib`. Users should import the macro from `xrpl-wasm-stdlib`
 directly.
 
 ## Features
@@ -20,7 +20,7 @@ means:
 
 - The macro's dependencies (`bs58`, `sha2`, `syn`, `quote`) run during compilation only
 - These dependencies are NEVER included in your final WASM binary
-- The `xrpl-wasm-std` library remains fully `no-std` compatible
+- The `xrpl-wasm-stdlib` library remains fully `no-std` compatible
 - The macro only outputs a simple `[u8; 20]` array literal in your code
 
 For example, this code:
@@ -40,7 +40,7 @@ No runtime code from the macro or its dependencies exists in the final binary.
 ## Usage
 
 ```rust
-use xrpl_wasm_std::r_address;
+use xrpl_wasm_stdlib::r_address;
 
 // Convert r-address to [u8; 20] at compile time
 const ACCOUNT: [u8; 20] = r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");

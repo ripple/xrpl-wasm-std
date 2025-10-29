@@ -34,9 +34,9 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// ## Usage Patterns
 ///
 /// ```rust,no_run
-/// use xrpl_wasm_std::core::ledger_objects::{ledger_object, current_ledger_object};
-/// use xrpl_wasm_std::core::types::account_id::AccountID;
-/// use xrpl_wasm_std::sfield;
+/// use xrpl_wasm_stdlib::core::ledger_objects::{ledger_object, current_ledger_object};
+/// use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+/// use xrpl_wasm_stdlib::sfield;
 /// # fn example() {
 /// # let slot = 0;
 /// // Get a required field from a specific ledger object
