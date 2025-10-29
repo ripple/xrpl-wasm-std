@@ -245,6 +245,20 @@ body {
   display: none;
 }
 
+.wasm-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.wasm-warning.hidden {
+  display: none;
+}
+
 .hidden {
   display: none;
 }
