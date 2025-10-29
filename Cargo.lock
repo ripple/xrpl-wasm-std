@@ -155,7 +155,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "xrpl-wasm-std"
+name = "xrpl-wasm-stdlib"
 version = "0.5.1-devnet5"
 dependencies = [
  "xrpl-address-macro",

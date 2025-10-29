@@ -3,15 +3,15 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
-use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
-use xrpl_wasm_std::core::ledger_objects::account_root::{AccountRoot, get_account_balance};
-use xrpl_wasm_std::core::ledger_objects::traits::{AccountFields, LedgerObjectCommonFields};
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::Amount;
-use xrpl_wasm_std::host::cache_ledger_obj;
-use xrpl_wasm_std::host::trace::{DataRepr, trace, trace_data, trace_num};
-use xrpl_wasm_std::{assert_eq, decode_hex_32};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
+use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_stdlib::core::ledger_objects::account_root::{AccountRoot, get_account_balance};
+use xrpl_wasm_stdlib::core::ledger_objects::traits::{AccountFields, LedgerObjectCommonFields};
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::amount::Amount;
+use xrpl_wasm_stdlib::host::cache_ledger_obj;
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_data, trace_num};
+use xrpl_wasm_stdlib::{assert_eq, decode_hex_32};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {

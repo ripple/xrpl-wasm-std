@@ -81,8 +81,8 @@ npm install
 1. **Clone the repository:**
 
    ```shell
-   git clone https://github.com/XRPLF/xrpl-wasm-std.git
-   cd xrpl-wasm-std
+   git clone https://github.com/XRPLF/xrpl-wasm-stdlib.git
+   cd xrpl-wasm-stdlib
    ```
 
 2. **Run setup script:**
@@ -102,11 +102,11 @@ Let's create a simple escrow that releases funds when an account balance exceeds
 
 ```rust
 
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
-use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
-use xrpl_wasm_std::core::types::amount::Amount;
-use xrpl_wasm_std::host::Result::{Ok, Err};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_stdlib::core::ledger_objects::account_root::get_account_balance;
+use xrpl_wasm_stdlib::core::types::amount::Amount;
+use xrpl_wasm_stdlib::host::Result::{Ok, Err};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -138,7 +138,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-xrpl-wasm-std = { path = "../xrpl-wasm-std" }
+xrpl-wasm-stdlib = { path = "../xrpl-wasm-stdlib" }
 
 [lib]
 crate-type = ["cdylib"]
@@ -201,7 +201,7 @@ The XRPL WASM Standard Library provides type-safe access to transaction data thr
 #### EscrowFinish Transaction
 
 ```rust ignore
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
 
 let tx = EscrowFinish;
 
@@ -218,9 +218,9 @@ let escrow_sequence = tx.get_escrow_sequence().unwrap();
 #### Field Access
 
 ```rust
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
-use xrpl_wasm_std::sfield;
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_stdlib::sfield;
 
 let tx = EscrowFinish;
 
@@ -241,9 +241,9 @@ Access current ledger state through the `ledger_objects` module.
 #### Account Information
 
 ```rust
-use xrpl_wasm_std::core::ledger_objects::account_root::get_account_balance;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::sfield;
+use xrpl_wasm_stdlib::core::ledger_objects::account_root::get_account_balance;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::sfield;
 
 let account = AccountID::from([0u8; 20]); // Replace with real account
 
@@ -258,9 +258,9 @@ let balance = get_account_balance(&account);
 
 ```rust ignore
 // NFT functionality uses the basic get_nft function
-use xrpl_wasm_std::core::ledger_objects::nft::get_nft;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::types::NFT; // [u8; 32]
+use xrpl_wasm_stdlib::core::ledger_objects::nft::get_nft;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::types::NFT; // [u8; 32]
 
 let owner = AccountID::from([0u8; 20]);
 let nft: NFT = [0u8; 32]; // 32-byte NFT identifier
@@ -277,14 +277,14 @@ let nft_data = get_nft(&owner, &nft);
 #### Core Types
 
 ```rust ignore
-use xrpl_wasm_std::core::types::{
+use xrpl_wasm_stdlib::core::types::{
     account_id::AccountID,           // 20-byte XRPL account identifier
     amount::Amount, // Token amounts (XRP, IOU, MPT)
 };
-use xrpl_wasm_std::types::NFT;      // [u8; 32] NFT identifier
+use xrpl_wasm_stdlib::types::NFT;      // [u8; 32] NFT identifier
 
 // Create AccountID from r-address (if r_address macro exists)
-// let account = xrpl_wasm_std::r_address!("rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH");
+// let account = xrpl_wasm_stdlib::r_address!("rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH");
 
 // Create from raw bytes
 let account = AccountID::from([0u8; 20]);
@@ -301,14 +301,14 @@ let nft: NFT = [0u8; 32];
 Keylets are used to locate objects in the ledger:
 
 ```rust ignore
-use xrpl_wasm_std::core::types::keylets::{
+use xrpl_wasm_stdlib::core::types::keylets::{
     account_keylet,
     line_keylet,
     escrow_keylet,
     oracle_keylet,
 };
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::asset::Asset;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::amount::asset::Asset;
 
 let account = AccountID::from([0u8; 20]);
 let sequence = 12345i32;
@@ -337,12 +337,12 @@ Low-level host function access through the `host` module.
 
 ```rust
 // Use the high-level trait methods instead of low-level host functions
-use xrpl_wasm_std::core::ledger_objects::account_root::AccountRoot;
-use xrpl_wasm_std::core::ledger_objects::traits::AccountFields;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::keylets::account_keylet;
-use xrpl_wasm_std::host::cache_ledger_obj;
-use xrpl_wasm_std::host::Error;
+use xrpl_wasm_stdlib::core::ledger_objects::account_root::AccountRoot;
+use xrpl_wasm_stdlib::core::ledger_objects::traits::AccountFields;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::keylets::account_keylet;
+use xrpl_wasm_stdlib::host::cache_ledger_obj;
+use xrpl_wasm_stdlib::host::Error;
 
 // The correct approach is to use the trait methods
 fn main() {
@@ -363,8 +363,8 @@ fn main() {
 
 ```rust
 // Use the high-level trait methods instead of low-level host functions
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::current_tx::traits::{TransactionCommonFields, EscrowFinishFields};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_stdlib::core::current_tx::traits::{TransactionCommonFields, EscrowFinishFields};
 
 fn main() {
     let tx = EscrowFinish;
@@ -386,15 +386,15 @@ fn main() {
 The library uses custom `Result` types for comprehensive error handling:
 
 ```rust
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
-use xrpl_wasm_std::core::ledger_objects::account_root::{get_account_balance, AccountRoot};
-use xrpl_wasm_std::core::ledger_objects::traits::AccountFields;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::Amount;
-use xrpl_wasm_std::core::types::keylets::account_keylet;
-use xrpl_wasm_std::host::{cache_ledger_obj, Error, Result};
-use xrpl_wasm_std::host::Result::{Ok, Err};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_stdlib::core::ledger_objects::account_root::{get_account_balance, AccountRoot};
+use xrpl_wasm_stdlib::core::ledger_objects::traits::AccountFields;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::amount::Amount;
+use xrpl_wasm_stdlib::core::types::keylets::account_keylet;
+use xrpl_wasm_stdlib::host::{cache_ledger_obj, Error, Result};
+use xrpl_wasm_stdlib::host::Result::{Ok, Err};
 
 fn process_escrow() -> Result<i32> {
     let tx = EscrowFinish;
@@ -466,7 +466,7 @@ if result < 0 {
 
 The simplest possible smart escrow that demonstrates basic concepts.
 
-**📁 View complete example:** [`examples/smart-escrows/hello_world/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/hello_world/)
+**📁 View complete example:** [`examples/smart-escrows/hello_world/`](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/hello_world/)
 
 **Key learning points:**
 
@@ -477,15 +477,15 @@ The simplest possible smart escrow that demonstrates basic concepts.
 
 **Files:**
 
-- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/hello_world/src/lib.rs) - Main contract code
-- [`README.md`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/hello_world/README.md) - Detailed explanation
-- [`run_test.js`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/hello_world/run_test.js) - Integration test
+- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/hello_world/src/lib.rs) - Main contract code
+- [`README.md`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/hello_world/README.md) - Detailed explanation
+- [`run_test.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/hello_world/run_test.js) - Integration test
 
 ### Oracle Example
 
 A price-based escrow that releases funds when an asset price meets conditions.
 
-**📁 View complete example:** [`examples/smart-escrows/oracle/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/oracle/)
+**📁 View complete example:** [`examples/smart-escrows/oracle/`](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/oracle/)
 
 **Key concepts demonstrated:**
 
@@ -496,15 +496,15 @@ A price-based escrow that releases funds when an asset price meets conditions.
 
 **Files:**
 
-- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/oracle/src/lib.rs) - Oracle price checking logic
-- [`README.md`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/oracle/README.md) - Oracle integration guide
-- [`run_test.js`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/oracle/run_test.js) - Price simulation test
+- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/oracle/src/lib.rs) - Oracle price checking logic
+- [`README.md`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/oracle/README.md) - Oracle integration guide
+- [`run_test.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/oracle/run_test.js) - Price simulation test
 
 ### KYC Example
 
 A compliance-focused escrow that requires credential verification.
 
-**📁 View complete example:** [`examples/smart-escrows/kyc/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/kyc/)
+**📁 View complete example:** [`examples/smart-escrows/kyc/`](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/kyc/)
 
 **Key concepts demonstrated:**
 
@@ -516,15 +516,15 @@ A compliance-focused escrow that requires credential verification.
 
 **Files:**
 
-- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/kyc/src/lib.rs) - KYC credential verification
-- [`README.md`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/kyc/README.md) - Compliance implementation guide
-- [`run_test.js`](https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/kyc/run_test.js) - Credential verification test
+- [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/kyc/src/lib.rs) - KYC credential verification
+- [`README.md`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/kyc/README.md) - Compliance implementation guide
+- [`run_test.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/kyc/run_test.js) - Credential verification test
 
 ### Advanced Examples
 
 #### Multi-Signature Notary
 
-**📁 [`examples/smart-escrows/notary/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/notary/)**
+**📁 [`examples/smart-escrows/notary/`](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/notary/)**
 
 - Requires multiple signature approvals
 - Implements threshold signing logic
@@ -532,7 +532,7 @@ A compliance-focused escrow that requires credential verification.
 
 #### NFT Ownership Verification
 
-**📁 [`examples/smart-escrows/nft_owner/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/nft_owner/)**
+**📁 [`examples/smart-escrows/nft_owner/`](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/nft_owner/)**
 
 - Releases funds based on NFT ownership
 - Shows how to query NFT ledger objects
@@ -540,7 +540,7 @@ A compliance-focused escrow that requires credential verification.
 
 #### Time-Based Ledger Sequence
 
-**📁 [`examples/smart-escrows/ledger_sqn/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/ledger_sqn/)**
+**📁 [`examples/smart-escrows/ledger_sqn/`](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/ledger_sqn/)**
 
 - Uses ledger sequence numbers for timing
 - Implements time-locked escrows
@@ -588,7 +588,7 @@ Follow the instructions [here](https://xrpl.org/docs/infrastructure/installation
 
 ### Test Using the Web UI
 
-**🌐 Open the web UI:** [https://ripple.github.io/xrpl-wasm-std/ui/](https://ripple.github.io/xrpl-wasm-std/ui/)
+**🌐 Open the web UI:** [https://ripple.github.io/xrpl-wasm-stdlib/ui/](https://ripple.github.io/xrpl-wasm-stdlib/ui/)
 
 The web UI allows you to:
 
@@ -722,10 +722,10 @@ let len2 = unsafe { get_tx_field(sfield::Destination, buffer[20..40].as_mut_ptr(
 **Add trace statements:**
 
 ```rust
-use xrpl_wasm_std::host::trace::{trace, trace_data, trace_num, DataRepr};
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
-use xrpl_wasm_std::host::Result::{Ok, Err};
+use xrpl_wasm_stdlib::host::trace::{trace, trace_data, trace_num, DataRepr};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_stdlib::host::Result::{Ok, Err};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -773,7 +773,7 @@ For additional help:
 
 ## Contributing
 
-If you're interested in contributing to the XRPL WebAssembly Standard Library, please see our [CONTRIBUTING.md](https://github.com/ripple/xrpl-wasm-std/blob/main/CONTRIBUTING.md) for detailed guidelines on:
+If you're interested in contributing to the XRPL WebAssembly Standard Library, please see our [CONTRIBUTING.md](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/CONTRIBUTING.md) for detailed guidelines on:
 
 - Development setup and workflow
 - Code standards and style guidelines

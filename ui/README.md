@@ -42,7 +42,7 @@ No manual maintenance required! Just build your WASM files and run the script.
 ## Deployment
 
 The UI is automatically deployed to GitHub Pages alongside the documentation at:
-`https://ripple.github.io/xrpl-wasm-std/ui/`
+`https://ripple.github.io/xrpl-wasm-stdlib/ui/`
 
 ## Architecture
 
