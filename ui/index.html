@@ -714,6 +714,15 @@
             await client.disconnect()
           }
 
+          // Clear accounts and escrows
+          accounts = []
+          escrows = []
+          selectedAccount = null
+
+          // Update UI to reflect cleared state
+          await updateAccountsList()
+          await updateEscrowsList()
+
           updateConnectionStatus(false)
           log("Disconnected from network")
         } catch (error) {
