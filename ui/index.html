@@ -1126,9 +1126,16 @@
                         <div class="item-header">
                             <div>
                                 <strong>Escrow ${i + 1}</strong>
+                                ${
+                                  escrow.id
+                                    ? `<div class="item-meta">
+                                  ID: ${escrow.id.substring(0, 16)}...
+                                  <button class="btn btn-small" onclick="copyToClipboard('${escrow.id}'); event.stopPropagation();" title="Copy escrow ID">📋</button>
+                                </div>`
+                                    : ""
+                                }
                                 <div class="item-meta">
                                   Sequence: ${escrow.sequence}
-                                  <button class="btn btn-small" onclick="copyToClipboard('${escrow.sequence}'); event.stopPropagation();" title="Copy sequence">📋</button>
                                 </div>
                             </div>
                             <div class="item-meta-right">
@@ -1137,8 +1144,8 @@
                             </div>
                         </div>
                         <div class="item-details">
-                            <div>Owner: ${escrow.owner.substring(0, 15)}... <button class="btn btn-small" onclick="copyToClipboard('${escrow.owner}'); event.stopPropagation();" title="Copy owner address">📋</button></div>
-                            <div>Destination: ${escrow.destination.substring(0, 15)}... <button class="btn btn-small" onclick="copyToClipboard('${escrow.destination}'); event.stopPropagation();" title="Copy destination address">📋</button></div>
+                            <div>Owner: ${escrow.owner.substring(0, 15)}...</div>
+                            <div>Destination: ${escrow.destination.substring(0, 15)}...</div>
                         </div>
                     </div>
                 `
@@ -1537,6 +1544,20 @@
               result.result.hash,
             )
 
+            // Extract escrow ID from transaction metadata
+            let escrowId = null
+            if (result.result.meta.AffectedNodes) {
+              for (const node of result.result.meta.AffectedNodes) {
+                if (
+                  node.CreatedNode &&
+                  node.CreatedNode.LedgerEntryType === "Escrow"
+                ) {
+                  escrowId = node.CreatedNode.LedgerIndex
+                  break
+                }
+              }
+            }
+
             // Store the successful escrow
             escrows.push({
               sequence: lastOfferSequence,
@@ -1545,6 +1566,7 @@
               amount: amount,
               timestamp: Date.now(),
               hash: result.result.hash,
+              id: escrowId,
             })
 
             // Update escrows list
