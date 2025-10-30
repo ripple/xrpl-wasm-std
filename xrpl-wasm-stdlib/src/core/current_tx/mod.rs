@@ -232,16 +232,22 @@ impl CurrentTxFieldGetter for AccountID {
 impl CurrentTxFieldGetter for Amount {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; AMOUNT_SIZE];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code(result_code, || Amount::from(buffer))
+        let mut buffer = core::mem::MaybeUninit::<[u8; AMOUNT_SIZE]>::uninit();
+        let result_code =
+            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), AMOUNT_SIZE) };
+        match_result_code(result_code, || {
+            Amount::from(unsafe { buffer.assume_init() })
+        })
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; AMOUNT_SIZE];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
+        let mut buffer = core::mem::MaybeUninit::<[u8; AMOUNT_SIZE]>::uninit();
+        let result_code =
+            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), AMOUNT_SIZE) };
+        match_result_code_optional(result_code, || {
+            Some(Amount::from(unsafe { buffer.assume_init() }))
+        })
     }
 }
 

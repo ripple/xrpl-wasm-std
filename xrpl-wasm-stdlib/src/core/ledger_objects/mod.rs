@@ -325,39 +325,59 @@ impl FieldGetter for Amount {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = [0u8; BUFFER_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
-        match_result_code(result_code, || Amount::from(buffer))
+        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BUFFER_SIZE)
+        };
+        match_result_code(result_code, || {
+            Amount::from(unsafe { buffer.assume_init() })
+        })
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = [0u8; BUFFER_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
-        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
+        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BUFFER_SIZE)
+        };
+        match_result_code_optional(result_code, || {
+            Some(Amount::from(unsafe { buffer.assume_init() }))
+        })
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = [0u8; BUFFER_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                BUFFER_SIZE,
+            )
         };
-        match_result_code(result_code, || Amount::from(buffer))
+        match_result_code(result_code, || {
+            Amount::from(unsafe { buffer.assume_init() })
+        })
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = [0u8; BUFFER_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                BUFFER_SIZE,
+            )
         };
-        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
+        match_result_code_optional(result_code, || {
+            Some(Amount::from(unsafe { buffer.assume_init() }))
+        })
     }
 }
 
