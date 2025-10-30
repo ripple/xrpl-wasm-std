@@ -103,8 +103,8 @@ async function executeEscrow(sourceWallet, destWallet, offerSequence) {
   return gasUsed
 }
 
-async function measureGas(branch) {
-  console.log(`\n=== Measuring gas for ${branch} ===`)
+async function measureGas() {
+  console.log(`\n=== Measuring gas ===`)
 
   // Build the contract
   console.log("Building contract...")
@@ -187,13 +187,8 @@ async function main() {
   console.log("==================")
 
   try {
-    // Determine which branch to measure
-    const args = process.argv.slice(2)
-    const branchArg = args.find((arg) => arg.startsWith("--branch="))
-    const branch = branchArg ? branchArg.split("=")[1] : "optimizations"
-
-    // Measure gas for the specified branch
-    const results = await measureGas(branch)
+    // Measure gas for current branch
+    const results = await measureGas()
 
     // Ensure benchmark directory exists
     if (!fs.existsSync(BENCHMARK_DIR)) {
@@ -211,9 +206,10 @@ async function main() {
       allResults.timestamp = new Date().toISOString()
     }
 
-    // Save results under the appropriate branch key
-    if (branch === "main") {
-      allResults.baseline = results
+    // Save results - if we already have optimized results, this becomes baseline
+    if (allResults.optimized && !allResults.baseline) {
+      allResults.baseline = allResults.optimized
+      allResults.optimized = results
     } else {
       allResults.optimized = results
     }
@@ -223,7 +219,6 @@ async function main() {
 
     // Print summary
     console.log("\n=== Summary ===")
-    console.log(`Branch: ${branch}`)
     console.log(`Binary size: ${results.binarySize} bytes`)
     console.log(`Average gas: ${results.avgGas.toFixed(2)}`)
     console.log(`Std dev: ${results.stdDev.toFixed(2)}`)

@@ -13,8 +13,13 @@
 #
 # Usage:
 #   ./scripts/benchmark-gas.sh              # Benchmark current branch
-#   node tools/gas_benchmark.js --branch=main  # Benchmark specific branch
 #   node tools/compare_gas_results.js       # Generate comparison report
+#
+# To compare branches:
+#   1. Run benchmark on current branch: ./scripts/benchmark-gas.sh
+#   2. Switch to other branch: git checkout main
+#   3. Run benchmark again: ./scripts/benchmark-gas.sh
+#   4. Generate comparison: node tools/compare_gas_results.js
 #
 # Results are stored in .benchmark/ (gitignored)
 #

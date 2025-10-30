@@ -85,16 +85,10 @@ cd e2e-tests && cargo build -p gas_benchmark --target wasm32v1-none --release
 
 ## Running Benchmarks
 
-### Single Branch
+### Benchmark Current Branch
 
 ```bash
 ./scripts/benchmark-gas.sh
-```
-
-### Specific Branch
-
-```bash
-node tools/gas_benchmark.js --branch=main
 ```
 
 ### Generate Comparison Report
@@ -106,21 +100,16 @@ node tools/compare_gas_results.js
 ### Compare Two Branches
 
 ```bash
-# Benchmark current branch
+# 1. Benchmark current branch
 ./scripts/benchmark-gas.sh
 
-# Switch to main
-git stash
+# 2. Switch to other branch (e.g., main)
 git checkout main
 
-# Benchmark main
-node tools/gas_benchmark.js --branch=main
+# 3. Benchmark that branch
+./scripts/benchmark-gas.sh
 
-# Restore changes
-git checkout optimizations
-git stash pop
-
-# Generate comparison
+# 4. Generate comparison report
 node tools/compare_gas_results.js
 ```
 
