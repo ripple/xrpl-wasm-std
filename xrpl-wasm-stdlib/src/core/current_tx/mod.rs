@@ -264,17 +264,21 @@ impl CurrentTxFieldGetter for Amount {
 impl CurrentTxFieldGetter for Hash256 {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; HASH256_SIZE];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256::from(buffer))
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
+        let result_code =
+            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE) };
+        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
+            Hash256::from(unsafe { buffer.assume_init() })
+        })
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; HASH256_SIZE];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
+        let result_code =
+            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE) };
         match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
-            Some(Hash256::from(buffer))
+            Some(Hash256::from(unsafe { buffer.assume_init() }))
         })
     }
 }
