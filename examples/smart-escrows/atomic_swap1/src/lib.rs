@@ -3,18 +3,18 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::core::ledger_objects::current_escrow;
-use xrpl_wasm_std::core::ledger_objects::escrow::Escrow;
-use xrpl_wasm_std::core::ledger_objects::traits::{CurrentEscrowFields, EscrowFields};
-use xrpl_wasm_std::core::locator::Locator;
-use xrpl_wasm_std::core::types::keylets::XRPL_KEYLET_SIZE;
-use xrpl_wasm_std::host;
-use xrpl_wasm_std::host::Error::InternalError;
-use xrpl_wasm_std::host::get_tx_nested_field;
-use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
-use xrpl_wasm_std::host::{Error, Result, Result::Err, Result::Ok};
-use xrpl_wasm_std::sfield;
-use xrpl_wasm_std::types::{ContractData, XRPL_CONTRACT_DATA_SIZE};
+use xrpl_wasm_stdlib::core::ledger_objects::current_escrow;
+use xrpl_wasm_stdlib::core::ledger_objects::escrow::Escrow;
+use xrpl_wasm_stdlib::core::ledger_objects::traits::{CurrentEscrowFields, EscrowFields};
+use xrpl_wasm_stdlib::core::locator::Locator;
+use xrpl_wasm_stdlib::core::types::keylets::XRPL_KEYLET_SIZE;
+use xrpl_wasm_stdlib::host;
+use xrpl_wasm_stdlib::host::Error::InternalError;
+use xrpl_wasm_stdlib::host::get_tx_nested_field;
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace_data, trace_num};
+use xrpl_wasm_stdlib::host::{Error, Result, Result::Err, Result::Ok};
+use xrpl_wasm_stdlib::sfield;
+use xrpl_wasm_stdlib::types::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 
 // Security constants for validation
 const VALIDATION_FAILED: i32 = 0;

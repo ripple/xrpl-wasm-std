@@ -449,7 +449,7 @@ fn process_escrow() -> Result<i32> {
 Host functions return negative integers for errors. You can use trace functions to log error codes for debugging:
 
 ```rust ignore
-use xrpl_wasm_std::host::trace::trace_num;
+use xrpl_wasm_stdlib::host::trace::trace_num;
 
 let result = unsafe { some_host_function(params) };
 if result < 0 {
@@ -556,13 +556,13 @@ These examples demonstrate:
 - Atomic failure handling when escrows are consumed
 - Multi-phase execution patterns
 
-**📁 [`examples/smart-escrows/atomic_swap1/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/atomic_swap1/) - Memo-Based Atomic Swap**
+**📁 [`examples/smart-escrows/atomic_swap1/`](https://github.com/ripple/xrpl-wasm-stdib/tree/main/examples/smart-escrows/atomic_swap1/) - Memo-Based Atomic Swap**
 
 - Stateless atomic swap using transaction memos
 - Cross-escrow validation and account reversal
 - Demonstrates mutual escrow validation patterns
 
-**📁 [`examples/smart-escrows/atomic_swap2/`](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/atomic_swap2/) - Data Field-Based Atomic Swap**
+**📁 [`examples/smart-escrows/atomic_swap2/`](https://github.com/ripple/xrpl-wasm-stdib/tree/main/examples/smart-escrows/atomic_swap2/) - Data Field-Based Atomic Swap**
 
 - Stateful atomic swap using escrow data fields
 - Two-phase execution with built-in timing validation
