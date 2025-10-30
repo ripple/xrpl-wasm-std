@@ -85,10 +85,17 @@ cd e2e-tests && cargo build -p gas_benchmark --target wasm32v1-none --release
 
 ## Running Benchmarks
 
-### Benchmark Current Branch
+### Benchmark Specific Contract
 
 ```bash
+# Benchmark gas_benchmark (default)
 ./scripts/benchmark-gas.sh
+
+# Benchmark a specific contract
+node tools/gas_benchmark.js my_contract
+
+# Benchmark all contracts in e2e-tests
+node tools/gas_benchmark.js all
 ```
 
 ### Generate Comparison Report
@@ -111,6 +118,16 @@ git checkout main
 
 # 4. Generate comparison report
 node tools/compare_gas_results.js
+```
+
+### Benchmark Multiple Contracts
+
+```bash
+# Benchmark specific contracts
+node tools/gas_benchmark.js gas_benchmark my_contract
+
+# Benchmark all contracts
+node tools/gas_benchmark.js all
 ```
 
 ## Output

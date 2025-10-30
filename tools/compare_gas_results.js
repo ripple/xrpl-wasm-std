@@ -4,132 +4,124 @@ const fs = require("fs")
 const path = require("path")
 
 const BENCHMARK_DIR = path.join(__dirname, "../.benchmark")
-const RESULTS_FILE = path.join(BENCHMARK_DIR, "gas_benchmark_results.json")
-const REPORT_FILE = path.join(BENCHMARK_DIR, "GAS_BENCHMARK_REPORT.md")
 
-function calculatePercentChange(baseline, optimized) {
-  if (baseline === 0) return 0
-  return ((optimized - baseline) / baseline) * 100
+// Get contract names from command line arguments, or find all result files
+function getResultFiles() {
+  const args = process.argv.slice(2)
+
+  if (args.length > 0) {
+    // Use specified contracts
+    return args.map((contract) =>
+      path.join(BENCHMARK_DIR, `${contract}_results.json`),
+    )
+  }
+
+  // Find all *_results.json files in benchmark directory
+  if (!fs.existsSync(BENCHMARK_DIR)) {
+    return []
+  }
+
+  const files = fs.readdirSync(BENCHMARK_DIR)
+  return files
+    .filter((file) => file.endsWith("_results.json"))
+    .map((file) => path.join(BENCHMARK_DIR, file))
 }
 
 function formatNumber(num) {
-  return num.toFixed(2)
+  return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 }
 
-function generateReport(results) {
-  const { optimized, baseline } = results
+function generateContractDetails(contractName, results) {
+  const { current, previous } = results
 
-  let report = `# Gas Benchmark Report\n\n`
-  report += `Generated: ${results.timestamp}\n\n`
+  let report = `### ${contractName}\n\n`
 
-  report += `## Summary\n\n`
-
-  if (baseline) {
-    report += `### Binary Size Comparison\n\n`
-    report += `| Metric | Baseline | Optimized | Change | % Change |\n`
-    report += `|--------|----------|-----------|--------|----------|\n`
-
-    const sizeDiff = optimized.binarySize - baseline.binarySize
-    const sizePercent = calculatePercentChange(
-      baseline.binarySize,
-      optimized.binarySize,
-    )
-    const sizeChange = sizeDiff > 0 ? `+${sizeDiff}` : `${sizeDiff}`
-    const sizePercent_str =
-      sizePercent > 0
-        ? `+${formatNumber(sizePercent)}%`
-        : `${formatNumber(sizePercent)}%`
-
-    report += `| Binary Size | ${baseline.binarySize} bytes | ${optimized.binarySize} bytes | ${sizeChange} bytes | ${sizePercent_str} |\n\n`
-
-    report += `### Gas Usage Comparison\n\n`
-    report += `| Metric | Baseline | Optimized | Change | % Change |\n`
-    report += `|--------|----------|-----------|--------|----------|\n`
-
-    const gasDiff = optimized.avgGas - baseline.avgGas
-    const gasPercent = calculatePercentChange(baseline.avgGas, optimized.avgGas)
-    const gasChange =
-      gasDiff > 0 ? `+${formatNumber(gasDiff)}` : `${formatNumber(gasDiff)}`
-    const gasPercent_str =
-      gasPercent > 0
-        ? `+${formatNumber(gasPercent)}%`
-        : `${formatNumber(gasPercent)}%`
-
-    report += `| Average Gas | ${formatNumber(baseline.avgGas)} | ${formatNumber(optimized.avgGas)} | ${gasChange} | ${gasPercent_str} |\n`
-    report += `| Std Dev | ${formatNumber(baseline.stdDev)} | ${formatNumber(optimized.stdDev)} | - | - |\n`
-    report += `| Min Gas | ${baseline.minGas} | ${optimized.minGas} | - | - |\n`
-    report += `| Max Gas | ${baseline.maxGas} | ${optimized.maxGas} | - | - |\n\n`
-
-    // Interpretation
-    report += `## Interpretation\n\n`
-    if (gasPercent < -5) {
-      report += `✅ **Significant Improvement**: Gas usage reduced by ${Math.abs(formatNumber(gasPercent))}%\n\n`
-    } else if (gasPercent < 0) {
-      report += `✅ **Minor Improvement**: Gas usage reduced by ${Math.abs(formatNumber(gasPercent))}%\n\n`
-    } else if (gasPercent > 5) {
-      report += `⚠️ **Regression**: Gas usage increased by ${formatNumber(gasPercent)}%\n\n`
-    } else if (gasPercent > 0) {
-      report += `⚠️ **Minor Regression**: Gas usage increased by ${formatNumber(gasPercent)}%\n\n`
-    } else {
-      report += `✅ **No Change**: Gas usage is equivalent\n\n`
-    }
-
-    if (sizePercent < -5) {
-      report += `✅ **Binary Size Reduced**: ${Math.abs(formatNumber(sizePercent))}% smaller\n\n`
-    } else if (sizePercent > 5) {
-      report += `⚠️ **Binary Size Increased**: ${formatNumber(sizePercent)}% larger\n\n`
-    } else {
-      report += `✅ **Binary Size Stable**: No significant change\n\n`
-    }
-  } else {
-    report += `### Optimized Branch Metrics\n\n`
-    report += `| Metric | Value |\n`
-    report += `|--------|-------|\n`
-    report += `| Binary Size | ${optimized.binarySize} bytes |\n`
-    report += `| Average Gas | ${formatNumber(optimized.avgGas)} |\n`
-    report += `| Std Dev | ${formatNumber(optimized.stdDev)} |\n`
-    report += `| Min Gas | ${optimized.minGas} |\n`
-    report += `| Max Gas | ${optimized.maxGas} |\n\n`
+  if (previous) {
+    report += `#### Detailed Results\n\n`
+    report += `**Previous Measurement:**\n`
+    report += `- Binary Size: ${previous.binarySize.toLocaleString()} bytes\n`
+    report += `- Average Gas: ${formatNumber(previous.avgGas)}\n`
+    report += `- Std Dev: ${formatNumber(previous.stdDev)}\n`
+    report += `- Gas Readings: ${previous.gasReadings.join(", ")}\n\n`
   }
 
-  report += `## Detailed Results\n\n`
-
-  if (baseline) {
-    report += `### Baseline Branch\n`
-    report += `- Binary Size: ${baseline.binarySize} bytes\n`
-    report += `- Average Gas: ${formatNumber(baseline.avgGas)}\n`
-    report += `- Std Dev: ${formatNumber(baseline.stdDev)}\n`
-    report += `- Gas Readings: ${baseline.gasReadings.join(", ")}\n\n`
-  }
-
-  report += `### Optimized Branch\n`
-  report += `- Binary Size: ${optimized.binarySize} bytes\n`
-  report += `- Average Gas: ${formatNumber(optimized.avgGas)}\n`
-  report += `- Std Dev: ${formatNumber(optimized.stdDev)}\n`
-  report += `- Gas Readings: ${optimized.gasReadings.join(", ")}\n\n`
-
-  report += `## Notes\n\n`
-  report += `- Gas measurements are taken from ${optimized.gasReadings.length} runs\n`
-  report += `- Standard deviation indicates variance in gas usage across runs\n`
-  report += `- Binary size is deterministic and should be identical across runs\n`
-  report += `- Negative gas changes indicate improvements (less gas consumed)\n`
+  report += `**Current Measurement:**\n`
+  report += `- Binary Size: ${current.binarySize.toLocaleString()} bytes\n`
+  report += `- Average Gas: ${formatNumber(current.avgGas)}\n`
+  report += `- Std Dev: ${formatNumber(current.stdDev)}\n`
+  report += `- Gas Readings: ${current.gasReadings.join(", ")}\n\n`
 
   return report
 }
 
+function generateSummaryRow(contractName, results) {
+  const { current } = results
+
+  const binarySize = current.binarySize.toLocaleString()
+  return `| ${contractName} | ${binarySize} | ${formatNumber(current.avgGas)} | ${formatNumber(current.stdDev)} |\n`
+}
+
 function main() {
-  if (!fs.existsSync(RESULTS_FILE)) {
-    console.error(`Results file not found: ${RESULTS_FILE}`)
+  const resultFiles = getResultFiles()
+
+  if (resultFiles.length === 0) {
+    console.error(`No results files found in ${BENCHMARK_DIR}`)
     console.error("Run 'node tools/gas_benchmark.js' first to generate results")
     process.exit(1)
   }
 
-  const results = JSON.parse(fs.readFileSync(RESULTS_FILE, "utf8"))
-  const report = generateReport(results)
+  // Generate unified report for all contracts
+  let unifiedReport = `# Gas Benchmark Report\n\n`
 
-  fs.writeFileSync(REPORT_FILE, report)
-  console.log(`Report generated: ${REPORT_FILE}`)
-  console.log("\n" + report)
+  // Get timestamp and branch from first result file
+  const firstResults = JSON.parse(fs.readFileSync(resultFiles[0], "utf8"))
+  const timestamp = firstResults.timestamp
+  const branch = firstResults.branch || "unknown"
+
+  unifiedReport += `Generated: ${timestamp}\n`
+  unifiedReport += `Branch: ${branch}\n\n`
+
+  unifiedReport += `## Summary\n\n`
+  unifiedReport += `| Contract | Binary Size | Avg Gas | Std Dev |\n`
+  unifiedReport += `|----------|-------------|---------|----------|\n`
+
+  // Collect all results for summary table
+  const allResults = {}
+  for (const resultsFile of resultFiles) {
+    if (!fs.existsSync(resultsFile)) {
+      console.error(`Results file not found: ${resultsFile}`)
+      continue
+    }
+
+    const results = JSON.parse(fs.readFileSync(resultsFile, "utf8"))
+    const contractName = path.basename(resultsFile, "_results.json")
+    allResults[contractName] = results
+
+    unifiedReport += generateSummaryRow(contractName, results)
+  }
+
+  unifiedReport += `\n## Details\n\n`
+
+  // Generate detailed section for each contract
+  for (const contractName in allResults) {
+    unifiedReport += generateContractDetails(
+      contractName,
+      allResults[contractName],
+    )
+  }
+
+  // Add notes section
+  unifiedReport += `## Notes\n\n`
+  unifiedReport += `- Gas measurements are taken from multiple runs per contract\n`
+  unifiedReport += `- Standard deviation indicates variance in gas usage across runs\n`
+  unifiedReport += `- Binary size is deterministic and should be identical across runs\n`
+  unifiedReport += `- Negative gas changes indicate improvements (less gas consumed)\n`
+
+  // Write unified report
+  const reportFile = path.join(BENCHMARK_DIR, "GAS_BENCHMARK_REPORT.md")
+  fs.writeFileSync(reportFile, unifiedReport)
+  console.log(`Report generated: ${reportFile}`)
+  console.log("\n" + unifiedReport)
 }
 
 main()

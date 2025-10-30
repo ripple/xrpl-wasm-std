@@ -12,7 +12,10 @@
 #   - Hex decoding (decode_hex_32, decode_hex_20)
 #
 # Usage:
-#   ./scripts/benchmark-gas.sh              # Benchmark current branch
+#   ./scripts/benchmark-gas.sh              # Benchmark gas_benchmark contract (default)
+#   ./scripts/benchmark-gas.sh my_contract  # Benchmark specific contract
+#   ./scripts/benchmark-gas.sh all          # Benchmark all contracts in e2e-tests
+#   ./scripts/benchmark-gas.sh c1 c2 c3     # Benchmark multiple contracts
 #   node tools/compare_gas_results.js       # Generate comparison report
 #
 # To compare branches:
@@ -55,8 +58,8 @@ echo -e "${GREEN}✓ Local rippled instance found${NC}"
 echo ""
 
 # Phase 1: Measure gas for optimizations branch
-echo -e "${BLUE}Phase 1: Measuring gas for optimizations branch...${NC}"
-node "$TOOLS_DIR/gas_benchmark.js"
+echo -e "${BLUE}Phase 1: Measuring gas...${NC}"
+node "$TOOLS_DIR/gas_benchmark.js" "$@"
 echo -e "${GREEN}✓ Phase 1 complete${NC}"
 echo ""
 

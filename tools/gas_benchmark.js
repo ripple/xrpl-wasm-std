@@ -5,15 +5,53 @@ const fs = require("fs")
 const path = require("path")
 const { execSync } = require("child_process")
 
-const WASM_PATH = path.join(
-  __dirname,
-  "../e2e-tests/target/wasm32v1-none/release/gas_benchmark.wasm",
-)
+// Get current git branch name
+function getCurrentBranch() {
+  try {
+    return execSync("git rev-parse --abbrev-ref HEAD", {
+      encoding: "utf8",
+    }).trim()
+  } catch {
+    return "unknown"
+  }
+}
+
 const BENCHMARK_DIR = path.join(__dirname, "../.benchmark")
-const RESULTS_FILE = path.join(BENCHMARK_DIR, "gas_benchmark_results.json")
+const E2E_TESTS_DIR = path.join(__dirname, "../e2e-tests")
 const NETWORK_URL = "ws://127.0.0.1:6006"
 const COMPUTATION_ALLOWANCE = 1000000
 const NUM_RUNS = 5
+
+// Get contract names from command line arguments
+function getContractNames() {
+  const args = process.argv.slice(2)
+
+  if (args.length === 0) {
+    return ["gas_benchmark"]
+  }
+
+  if (args[0] === "all") {
+    // Find all Cargo.toml files in e2e-tests subdirectories
+    const entries = fs.readdirSync(E2E_TESTS_DIR, { withFileTypes: true })
+    const contracts = entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .filter((name) => {
+        const cargoPath = path.join(E2E_TESTS_DIR, name, "Cargo.toml")
+        return fs.existsSync(cargoPath)
+      })
+
+    if (contracts.length === 0) {
+      throw new Error("No contracts found in e2e-tests")
+    }
+
+    return contracts
+  }
+
+  return args
+}
+
+const CONTRACT_NAMES = getContractNames()
 
 const client = new xrpl.Client(NETWORK_URL)
 
@@ -103,14 +141,19 @@ async function executeEscrow(sourceWallet, destWallet, offerSequence) {
   return gasUsed
 }
 
-async function measureGas() {
-  console.log(`\n=== Measuring gas ===`)
+async function measureGas(contractName) {
+  console.log(`\n=== Measuring gas for ${contractName} ===`)
+
+  const wasmPath = path.join(
+    E2E_TESTS_DIR,
+    `target/wasm32v1-none/release/${contractName}.wasm`,
+  )
 
   // Build the contract
   console.log("Building contract...")
   try {
     execSync(
-      "cd e2e-tests && cargo build -p gas_benchmark --target wasm32v1-none --release",
+      `cd e2e-tests && cargo build -p ${contractName} --target wasm32v1-none --release`,
       { stdio: "inherit" },
     )
   } catch (error) {
@@ -118,11 +161,11 @@ async function measureGas() {
   }
 
   // Get binary size
-  const binarySize = getBinarySize(WASM_PATH)
+  const binarySize = getBinarySize(wasmPath)
   console.log(`Binary size: ${binarySize} bytes`)
 
   // Get WASM hex
-  const wasmHex = getWasmHex(WASM_PATH)
+  const wasmHex = getWasmHex(wasmPath)
 
   // Connect to network
   await client.connect()
@@ -168,7 +211,6 @@ async function measureGas() {
     )
 
     return {
-      branch,
       binarySize,
       gasReadings,
       avgGas,
@@ -183,47 +225,60 @@ async function measureGas() {
 }
 
 async function main() {
-  console.log("Gas Benchmark Tool")
-  console.log("==================")
+  console.log(`Gas Benchmark Tool`)
+  console.log("=".repeat(40))
+  console.log(`Benchmarking: ${CONTRACT_NAMES.join(", ")}`)
+  console.log("")
 
   try {
-    // Measure gas for current branch
-    const results = await measureGas()
+    const branch = getCurrentBranch()
+    const timestamp = new Date().toISOString()
 
     // Ensure benchmark directory exists
     if (!fs.existsSync(BENCHMARK_DIR)) {
       fs.mkdirSync(BENCHMARK_DIR, { recursive: true })
     }
 
-    // Load existing results if they exist
-    let allResults = {
-      timestamp: new Date().toISOString(),
+    // Measure gas for each contract
+    for (const contractName of CONTRACT_NAMES) {
+      const results = await measureGas(contractName)
+      const resultsFile = path.join(
+        BENCHMARK_DIR,
+        `${contractName}_results.json`,
+      )
+
+      // Load existing results if they exist
+      let allResults = {
+        timestamp,
+        branch,
+      }
+
+      if (fs.existsSync(resultsFile)) {
+        const existing = JSON.parse(fs.readFileSync(resultsFile, "utf8"))
+        allResults = existing
+        allResults.timestamp = timestamp
+        allResults.branch = branch
+      }
+
+      // Save results - if we already have current results, this becomes previous
+      if (allResults.current && !allResults.previous) {
+        allResults.previous = allResults.current
+        allResults.current = results
+      } else {
+        allResults.current = results
+      }
+
+      fs.writeFileSync(resultsFile, JSON.stringify(allResults, null, 2))
+      console.log(`\nResults saved to ${resultsFile}`)
+
+      // Print summary
+      console.log("\n=== Summary ===")
+      console.log(`Binary size: ${results.binarySize} bytes`)
+      console.log(`Average gas: ${results.avgGas.toFixed(2)}`)
+      console.log(`Std dev: ${results.stdDev.toFixed(2)}`)
+      console.log(`Min gas: ${results.minGas}`)
+      console.log(`Max gas: ${results.maxGas}`)
     }
-
-    if (fs.existsSync(RESULTS_FILE)) {
-      const existing = JSON.parse(fs.readFileSync(RESULTS_FILE, "utf8"))
-      allResults = existing
-      allResults.timestamp = new Date().toISOString()
-    }
-
-    // Save results - if we already have optimized results, this becomes baseline
-    if (allResults.optimized && !allResults.baseline) {
-      allResults.baseline = allResults.optimized
-      allResults.optimized = results
-    } else {
-      allResults.optimized = results
-    }
-
-    fs.writeFileSync(RESULTS_FILE, JSON.stringify(allResults, null, 2))
-    console.log(`\nResults saved to ${RESULTS_FILE}`)
-
-    // Print summary
-    console.log("\n=== Summary ===")
-    console.log(`Binary size: ${results.binarySize} bytes`)
-    console.log(`Average gas: ${results.avgGas.toFixed(2)}`)
-    console.log(`Std dev: ${results.stdDev.toFixed(2)}`)
-    console.log(`Min gas: ${results.minGas}`)
-    console.log(`Max gas: ${results.maxGas}`)
   } catch (error) {
     console.error("Error:", error.message)
     process.exit(1)
