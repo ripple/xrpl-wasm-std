@@ -15,4 +15,4 @@ categories = ["no-std", "embedded", "cryptography::cryptocurrencies"]
 crate-type = ["lib"]
 
 [dependencies]
-xrpl-address-macro = { path = "xrpl-address-macro" }
+xrpl-address-macro = { version = "0.1.0", path = "xrpl-address-macro" }
