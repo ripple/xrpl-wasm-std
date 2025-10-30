@@ -7,7 +7,7 @@
 //!
 //! # Example
 //! ```shell
-//! use xrpl_wasm_std::r_address;
+//! use xrpl_wasm_stdlib::r_address;
 //!
 //! // ✅ Works - compile-time literal
 //! const ACCOUNT: [u8; 20] = r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");

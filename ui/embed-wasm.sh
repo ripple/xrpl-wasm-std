@@ -95,7 +95,7 @@ echo "📝 Updating UI file..."
 
     for i in "${!README_FILES[@]}"; do
         filename="${README_FILES[$i]}"
-        readme_url="https://github.com/ripple/xrpl-wasm-std/blob/main/examples/smart-escrows/$filename/README.md"
+        readme_url="https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/$filename/README.md"
         echo "        $filename: \"$readme_url\","
     done
 
