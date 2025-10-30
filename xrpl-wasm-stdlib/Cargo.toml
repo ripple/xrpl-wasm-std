@@ -6,7 +6,7 @@ description = "Standard library for XRPL WebAssembly smart contracts"
 license = "ISC"
 repository = "https://github.com/ripple/xrpl-wasm-stdlib"
 homepage = "https://github.com/ripple/xrpl-wasm-stdlib"
-readme = "README.md"
+readme = "../README.md"
 keywords = ["xrpl", "wasm", "smart-contracts", "no-std"]
 categories = ["no-std", "embedded", "cryptography::cryptocurrencies"]
 
