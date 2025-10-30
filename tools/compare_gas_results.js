@@ -78,7 +78,7 @@ function main() {
   const timestamp = firstResults.timestamp
   const branch = firstResults.branch || "unknown"
 
-  unifiedReport += `Generated: ${timestamp}\n`
+  unifiedReport += `Generated: ${timestamp}\n\n`
   unifiedReport += `Branch: ${branch}\n\n`
 
   unifiedReport += `## Summary\n\n`
