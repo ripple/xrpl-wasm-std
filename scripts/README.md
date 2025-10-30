@@ -38,6 +38,7 @@ You can also run individual test suites:
 - **`run-markdown.sh`** - Execute bash code blocks in Markdown files
 - **`run-tests.sh`** - Run integration tests for examples and end-to-end tests
 - **`host-function-audit.sh`** - Audit host functions against XRPLd (requires Node.js)
+- **`benchmark-gas.sh`** - Measure and compare gas costs of optimized helper functions
 
 ## Usage Examples
 
@@ -59,6 +60,9 @@ You can also run individual test suites:
 
 # Run only integration tests
 ./scripts/run-tests.sh
+
+# Run gas benchmarks (requires local rippled instance)
+./scripts/benchmark-gas.sh
 ```
 
 ## Environment Variables
@@ -71,11 +75,37 @@ export RUSTFLAGS="-Dwarnings"
 
 This matches the CI environment and ensures warnings are treated as errors.
 
+## Gas Benchmark Script
+
+The `benchmark-gas.sh` script measures and compares gas costs of optimized helper functions:
+
+```shell
+# Run gas benchmarks (requires local rippled instance running on ws://127.0.0.1:6006)
+./scripts/benchmark-gas.sh
+```
+
+This script:
+
+1. Builds the gas_benchmark contract
+2. Deploys it to a local rippled instance
+3. Executes it multiple times to measure gas consumption
+4. Generates a comparison report
+
+**Requirements for gas benchmarking:**
+
+- Local rippled instance running on `ws://127.0.0.1:6006`
+- Node.js (for the benchmark runner scripts)
+
+**Output files:**
+
+- `gas_benchmark_results.json` - Raw measurement data
+- `GAS_BENCHMARK_REPORT.md` - Formatted comparison report
+
 ## Requirements
 
 - **Rust**: Stable toolchain (installed automatically by `setup.sh`)
 - **Pre-commit**: For running pre-commit hooks (installed by `setup.sh`)
-- **Node.js**: Required only for host function audit script
+- **Node.js**: Required for host function audit and gas benchmark scripts
 
 ## GitHub Actions Compatibility
 

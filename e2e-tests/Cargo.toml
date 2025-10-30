@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "float_tests",
+    "gas_benchmark",
     "host_functions_test",
     "keylet_exists",
     "trace_escrow_account",

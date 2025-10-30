@@ -1,0 +1,12 @@
+[package]
+name = "gas_benchmark"
+version = "0.5.1-devnet5"
+edition = "2024"
+description = "Gas benchmark contract for measuring optimization impact"
+license = "ISC"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+xrpl-wasm-stdlib = { path = "../../xrpl-wasm-stdlib" }

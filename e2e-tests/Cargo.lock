@@ -63,6 +63,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "gas_benchmark"
+version = "0.5.1-devnet5"
+dependencies = [
+ "xrpl-wasm-stdlib",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
