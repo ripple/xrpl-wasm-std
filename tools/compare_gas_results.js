@@ -3,8 +3,9 @@
 const fs = require("fs")
 const path = require("path")
 
-const RESULTS_FILE = path.join(__dirname, "../gas_benchmark_results.json")
-const REPORT_FILE = path.join(__dirname, "../GAS_BENCHMARK_REPORT.md")
+const BENCHMARK_DIR = path.join(__dirname, "../.benchmark")
+const RESULTS_FILE = path.join(BENCHMARK_DIR, "gas_benchmark_results.json")
+const REPORT_FILE = path.join(BENCHMARK_DIR, "GAS_BENCHMARK_REPORT.md")
 
 function calculatePercentChange(baseline, optimized) {
   if (baseline === 0) return 0

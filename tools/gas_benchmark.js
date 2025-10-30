@@ -9,7 +9,8 @@ const WASM_PATH = path.join(
   __dirname,
   "../e2e-tests/target/wasm32v1-none/release/gas_benchmark.wasm",
 )
-const RESULTS_FILE = path.join(__dirname, "../gas_benchmark_results.json")
+const BENCHMARK_DIR = path.join(__dirname, "../.benchmark")
+const RESULTS_FILE = path.join(BENCHMARK_DIR, "gas_benchmark_results.json")
 const NETWORK_URL = "ws://127.0.0.1:6006"
 const COMPUTATION_ALLOWANCE = 1000000
 const NUM_RUNS = 5
@@ -193,6 +194,11 @@ async function main() {
 
     // Measure gas for the specified branch
     const results = await measureGas(branch)
+
+    // Ensure benchmark directory exists
+    if (!fs.existsSync(BENCHMARK_DIR)) {
+      fs.mkdirSync(BENCHMARK_DIR, { recursive: true })
+    }
 
     // Load existing results if they exist
     let allResults = {
