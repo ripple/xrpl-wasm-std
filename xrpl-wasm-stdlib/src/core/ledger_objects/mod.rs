@@ -129,34 +129,38 @@ pub trait FieldGetter: Sized {
 impl FieldGetter for u16 {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value: u16 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 2) };
-        match_result_code_with_expected_bytes(result_code, 2, || value)
+        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 2) };
+        match_result_code_with_expected_bytes(result_code, 2, || unsafe { value.assume_init() })
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value: u16 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 2) };
-        match_result_code_with_expected_bytes_optional(result_code, 2, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 2) };
+        match_result_code_with_expected_bytes_optional(result_code, 2, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value: u16 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 2) };
-        match_result_code_with_expected_bytes(result_code, 2, || value)
+        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 2) };
+        match_result_code_with_expected_bytes(result_code, 2, || unsafe { value.assume_init() })
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value: u16 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 2) };
-        match_result_code_with_expected_bytes_optional(result_code, 2, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 2) };
+        match_result_code_with_expected_bytes_optional(result_code, 2, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 }
 
@@ -172,34 +176,38 @@ impl FieldGetter for u16 {
 impl FieldGetter for u32 {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value: u32 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 4) };
-        match_result_code_with_expected_bytes(result_code, 4, || value)
+        let mut value = core::mem::MaybeUninit::<u32>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes(result_code, 4, || unsafe { value.assume_init() })
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value: u32 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 4) };
-        match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u32>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes_optional(result_code, 4, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value: u32 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 4) };
-        match_result_code_with_expected_bytes(result_code, 4, || value)
+        let mut value = core::mem::MaybeUninit::<u32>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes(result_code, 4, || unsafe { value.assume_init() })
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value: u32 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 4) };
-        match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u32>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes_optional(result_code, 4, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 }
 
@@ -216,34 +224,38 @@ impl FieldGetter for u32 {
 impl FieldGetter for u64 {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value: u64 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 8) };
-        match_result_code_with_expected_bytes(result_code, 8, || value)
+        let mut value = core::mem::MaybeUninit::<u64>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 8) };
+        match_result_code_with_expected_bytes(result_code, 8, || unsafe { value.assume_init() })
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value: u64 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 8) };
-        match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u64>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 8) };
+        match_result_code_with_expected_bytes_optional(result_code, 8, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value: u64 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 8) };
-        match_result_code_with_expected_bytes(result_code, 8, || value)
+        let mut value = core::mem::MaybeUninit::<u64>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 8) };
+        match_result_code_with_expected_bytes(result_code, 8, || unsafe { value.assume_init() })
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value: u64 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 8) };
-        match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u64>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 8) };
+        match_result_code_with_expected_bytes_optional(result_code, 8, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 }
 

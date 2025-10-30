@@ -173,17 +173,19 @@ pub trait CurrentTxFieldGetter: Sized {
 impl CurrentTxFieldGetter for u32 {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; 4];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes(result_code, 4, || u32::from_le_bytes(buffer))
+        let mut buffer = core::mem::MaybeUninit::<[u8; 4]>::uninit();
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes(result_code, 4, || {
+            u32::from_le_bytes(unsafe { buffer.assume_init() })
+        })
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; 4];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        let mut buffer = core::mem::MaybeUninit::<[u8; 4]>::uninit();
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 4) };
         match_result_code_with_expected_bytes_optional(result_code, 4, || {
-            Some(u32::from_le_bytes(buffer))
+            Some(u32::from_le_bytes(unsafe { buffer.assume_init() }))
         })
     }
 }
