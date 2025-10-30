@@ -304,7 +304,7 @@ impl CurrentTxFieldGetter for PublicKey {
 /// performed since blobs can vary significantly in size.
 impl CurrentTxFieldGetter for Blob {
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; 1024];
+        let mut buffer = [0u8; 102400];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match_result_code(result_code, || Blob {
             data: buffer,
@@ -313,7 +313,7 @@ impl CurrentTxFieldGetter for Blob {
     }
 
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; 1024];
+        let mut buffer = [0u8; 102400];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match_result_code(result_code, || {
             Some(Blob {
