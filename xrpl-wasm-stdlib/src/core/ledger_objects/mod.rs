@@ -1,7 +1,6 @@
 pub mod account_root;
 pub mod current_escrow;
 pub mod escrow;
-pub mod nft;
 pub mod traits;
 
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};

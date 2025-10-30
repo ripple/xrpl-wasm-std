@@ -420,7 +420,7 @@ pub unsafe fn get_nft(
     _out_buff_ptr: *mut u8,
     _out_buff_len: usize,
 ) -> i32 {
-    -1
+    32
 }
 
 #[allow(unused)]
@@ -431,7 +431,7 @@ pub unsafe fn get_nft_issuer(
     _out_buff_ptr: *mut u8,
     _out_buff_len: usize,
 ) -> i32 {
-    -1
+    32
 }
 
 #[allow(unused)]
@@ -442,19 +442,19 @@ pub unsafe fn get_nft_taxon(
     _out_buff_ptr: *mut u8,
     _out_buff_len: usize,
 ) -> i32 {
-    -1
+    4
 }
 
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn get_nft_flags(_nft_id_ptr: *const u8, _nft_id_len: usize) -> i32 {
-    -1
+    0
 }
 
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn get_nft_transfer_fee(_nft_id_ptr: *const u8, _nft_id_len: usize) -> i32 {
-    -1
+    0
 }
 
 #[allow(unused)]
@@ -465,7 +465,7 @@ pub unsafe fn get_nft_serial(
     _out_buff_ptr: *mut u8,
     _out_buff_len: usize,
 ) -> i32 {
-    -1
+    4
 }
 
 #[allow(unused)]
