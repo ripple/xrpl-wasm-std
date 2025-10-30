@@ -1,8 +1,24 @@
 #!/bin/bash
 
 # Gas Benchmark Harness
-# This script measures and compares gas costs of optimized helper functions
-# between the main branch and the optimizations branch.
+#
+# This script measures and compares gas costs of stdlib helper functions
+# between different branches (e.g., main vs optimizations).
+#
+# Benchmarked functions:
+#   - Transaction field access (get_account, get_fee)
+#   - Error code matching (match_result_code, match_result_code_optional, etc.)
+#   - Result type methods (is_ok, is_err, ok, err)
+#   - Hex decoding (decode_hex_32, decode_hex_20)
+#
+# Usage:
+#   ./scripts/benchmark-gas.sh              # Benchmark current branch
+#   node tools/gas_benchmark.js --branch=main  # Benchmark specific branch
+#   node tools/compare_gas_results.js       # Generate comparison report
+#
+# Results are stored in .benchmark/ (gitignored)
+#
+# To add new benchmarks, see e2e-tests/gas_benchmark/README.md
 
 set -e
 
