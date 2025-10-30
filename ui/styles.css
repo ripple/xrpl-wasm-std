@@ -64,6 +64,12 @@ body {
   margin-bottom: 20px;
 }
 
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .card {
   background: white;
   padding: 20px;
@@ -236,6 +242,20 @@ body {
 }
 
 .wasm-readme-link.hidden {
+  display: none;
+}
+
+.wasm-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.wasm-warning.hidden {
   display: none;
 }
 
