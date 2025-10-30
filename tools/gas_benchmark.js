@@ -149,17 +149,6 @@ async function measureGas(contractName) {
     `target/wasm32v1-none/release/${contractName}.wasm`,
   )
 
-  // Build the contract
-  console.log("Building contract...")
-  try {
-    execSync(
-      `cd e2e-tests && cargo build -p ${contractName} --target wasm32v1-none --release`,
-      { stdio: "inherit" },
-    )
-  } catch (error) {
-    throw new Error(`Failed to build contract: ${error.message}`)
-  }
-
   // Get binary size
   const binarySize = getBinarySize(wasmPath)
   console.log(`Binary size: ${binarySize} bytes`)
