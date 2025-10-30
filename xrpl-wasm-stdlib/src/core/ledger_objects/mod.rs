@@ -273,51 +273,55 @@ impl FieldGetter for u64 {
 impl FieldGetter for AccountID {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
         let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), ACCOUNT_ID_SIZE)
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE)
         };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
+        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
+            unsafe { buffer.assume_init() }.into()
+        })
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
         let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), ACCOUNT_ID_SIZE)
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE)
         };
         match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(buffer.into())
+            Some(unsafe { buffer.assume_init() }.into())
         })
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
         let result_code = unsafe {
             get_ledger_obj_field(
                 register_num,
                 field_code,
-                buffer.as_mut_ptr(),
+                buffer.as_mut_ptr().cast(),
                 ACCOUNT_ID_SIZE,
             )
         };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
+        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
+            unsafe { buffer.assume_init() }.into()
+        })
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
         let result_code = unsafe {
             get_ledger_obj_field(
                 register_num,
                 field_code,
-                buffer.as_mut_ptr(),
+                buffer.as_mut_ptr().cast(),
                 ACCOUNT_ID_SIZE,
             )
         };
         match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(buffer.into())
+            Some(unsafe { buffer.assume_init() }.into())
         })
     }
 }

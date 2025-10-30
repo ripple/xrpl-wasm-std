@@ -204,17 +204,21 @@ impl CurrentTxFieldGetter for u32 {
 impl CurrentTxFieldGetter for AccountID {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
+        let result_code =
+            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE) };
+        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
+            unsafe { buffer.assume_init() }.into()
+        })
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
+        let result_code =
+            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE) };
         match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(buffer.into())
+            Some(unsafe { buffer.assume_init() }.into())
         })
     }
 }
@@ -299,16 +303,20 @@ impl CurrentTxFieldGetter for Hash256 {
 impl CurrentTxFieldGetter for PublicKey {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; 33];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes(result_code, 33, || buffer.into())
+        let mut buffer = core::mem::MaybeUninit::<[u8; 33]>::uninit();
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 33) };
+        match_result_code_with_expected_bytes(result_code, 33, || {
+            unsafe { buffer.assume_init() }.into()
+        })
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; 33];
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes_optional(result_code, 33, || Some(buffer.into()))
+        let mut buffer = core::mem::MaybeUninit::<[u8; 33]>::uninit();
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 33) };
+        match_result_code_with_expected_bytes_optional(result_code, 33, || {
+            Some(unsafe { buffer.assume_init() }.into())
+        })
     }
 }
 
