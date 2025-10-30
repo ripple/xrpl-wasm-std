@@ -178,7 +178,7 @@ git push origin v0.x.y
 
 ## Getting Help
 
-- Check [Complete Developer Guide](https://ripple.github.io/xrpl-wasm-stdlib/xrpl_wasm_std/guide/index.html)
+- Check [Complete Developer Guide](https://ripple.github.io/xrpl-wasm-stdlib/xrpl_wasm_stdlib/guide/index.html)
 - Search existing GitHub issues
 - Create new issue with "question" label
 - Reference related issues in PRs

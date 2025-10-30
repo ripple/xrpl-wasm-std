@@ -172,39 +172,52 @@
       </div>
 
       <div class="grid">
-        <!-- Account Management -->
-        <div class="card">
-          <h2>Account Management</h2>
-          <div class="form-group">
-            <button
-              id="generateBtn"
-              class="btn btn-success"
-              onclick="generateAccount()"
-            >
-              Generate New Account
-            </button>
-            <button
-              id="fundBtn"
-              class="btn btn-warning"
-              onclick="fundSelectedAccount()"
+        <!-- Account and Escrow Management Wrapper -->
+        <div class="sidebar-column">
+          <!-- Account Management -->
+          <div class="card">
+            <h2>Account Management</h2>
+            <div class="form-group">
+              <button
+                id="generateBtn"
+                class="btn btn-success"
+                onclick="generateAccount()"
+              >
+                Generate New Account
+              </button>
+              <button
+                id="fundBtn"
+                class="btn btn-warning"
+                onclick="fundSelectedAccount()"
+                style="display: none"
+              >
+                Fund Selected
+              </button>
+            </div>
+            <div
+              id="accountLoading"
+              class="account-loading"
               style="display: none"
             >
-              Fund Selected
-            </button>
-          </div>
-          <div
-            id="accountLoading"
-            class="account-loading"
-            style="display: none"
-          >
-            <div class="loading-container">
-              <div class="spinner"></div>
-              <span id="loadingText">Generating account...</span>
+              <div class="loading-container">
+                <div class="spinner"></div>
+                <span id="loadingText">Generating account...</span>
+              </div>
+            </div>
+            <div class="accounts-list" id="accountsList">
+              <div class="empty-state">
+                No accounts loaded. Generate or load accounts to get started.
+              </div>
             </div>
           </div>
-          <div class="accounts-list" id="accountsList">
-            <div class="empty-state">
-              No accounts loaded. Generate or load accounts to get started.
+
+          <!-- Escrow Management -->
+          <div class="card">
+            <h2>Escrow Management</h2>
+            <div class="escrows-list" id="escrowsList">
+              <div class="empty-state">
+                No escrows created. Deploy WASM to create escrows.
+              </div>
             </div>
           </div>
         </div>
@@ -225,6 +238,10 @@
           </div>
 
           <div id="deploy-wasm-tab" class="tab-content active">
+            <div id="wasmWarning" class="wasm-warning hidden">
+              ⚠️ No WASM code loaded. Please load WASM code from the "WASM Code
+              Management" card first.
+            </div>
             <div class="form-group">
               <label for="escrowSourceAccount">Source Account (Owner):</label>
               <select id="escrowSourceAccount" class="form-control">
@@ -452,16 +469,6 @@
             </button>
           </div>
         </div>
-
-        <!-- Escrow Management -->
-        <div class="card">
-          <h2>Escrow Management</h2>
-          <div class="escrows-list" id="escrowsList">
-            <div class="empty-state">
-              No escrows created. Deploy WASM to create escrows.
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Smart Escrow Testing -->
@@ -496,8 +503,15 @@
           const logEntry = document.createElement("div")
           logEntry.innerHTML = `[${timestamp}] ${message}`
           logArea.appendChild(logEntry)
+          // Add a newline after HTML content
+          const newline = document.createElement("div")
+          newline.textContent = ""
+          logArea.appendChild(newline)
         } else {
-          logArea.textContent += `[${timestamp}] ${message}\n`
+          // Use innerHTML to preserve existing content and avoid mixing textContent/innerHTML
+          const logEntry = document.createElement("div")
+          logEntry.textContent = `[${timestamp}] ${message}`
+          logArea.appendChild(logEntry)
         }
 
         logArea.scrollTop = logArea.scrollHeight
@@ -719,6 +733,15 @@
             await client.disconnect()
           }
 
+          // Clear accounts and escrows
+          accounts = []
+          escrows = []
+          selectedAccount = null
+
+          // Update UI to reflect cleared state
+          await updateAccountsList()
+          await updateEscrowsList()
+
           updateConnectionStatus(false)
           log("Disconnected from network")
         } catch (error) {
@@ -746,6 +769,7 @@
           // Hide README links for uploaded files
           document.getElementById("currentWasmReadme").classList.add("hidden")
           document.getElementById("deployWasmReadme").classList.add("hidden")
+          updateWasmWarning()
           log(`Loaded WASM file: ${file.name}`)
         }
         reader.readAsArrayBuffer(file)
@@ -765,6 +789,7 @@
         // Hide README links for hex data
         document.getElementById("currentWasmReadme").classList.add("hidden")
         document.getElementById("deployWasmReadme").classList.add("hidden")
+        updateWasmWarning()
         log("Loaded WASM from hex data")
       }
 
@@ -807,6 +832,15 @@
           "https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/oracle/README.md",
       }
 
+      function updateWasmWarning() {
+        const wasmWarning = document.getElementById("wasmWarning")
+        if (currentWasm) {
+          wasmWarning.classList.add("hidden")
+        } else {
+          wasmWarning.classList.remove("hidden")
+        }
+      }
+
       function updateReadmeLinks(exampleName) {
         const currentWasmReadme = document.getElementById("currentWasmReadme")
         const deployWasmReadme = document.getElementById("deployWasmReadme")
@@ -834,6 +868,7 @@
             document.getElementById("currentWasm").textContent = wasmInfo
             document.getElementById("deployWasmStatus").textContent = wasmInfo
             updateReadmeLinks(exampleName)
+            updateWasmWarning()
             log(`✅ Loaded ${exampleName} example from embedded WASM`)
           } else {
             log(`❌ ${exampleName} example not available`)
@@ -845,6 +880,7 @@
             document.getElementById("currentWasm").textContent = wasmInfo
             document.getElementById("deployWasmStatus").textContent = wasmInfo
             updateReadmeLinks(exampleName)
+            updateWasmWarning()
           }
         } catch (error) {
           logError(`Failed to load example ${exampleName}: ${error.message}`)
@@ -1014,7 +1050,7 @@
                                 <strong>Account ${i + 1}</strong>
                                 <div class="account-balance">${balance}</div>
                             </div>
-                            <button class="btn btn-small" onclick="copyAddress('${account.address}'); event.stopPropagation();">Copy</button>
+                            <button class="btn btn-small" onclick="copyToClipboard('${account.address}'); event.stopPropagation();" title="Copy address">📋</button>
                         </div>
                         <div class="account-address">${account.address}</div>
                     </div>
@@ -1034,10 +1070,20 @@
         log(`Selected account: ${selectedAccount.address}`)
       }
 
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            showToast("Copied to clipboard!", "success")
+          })
+          .catch(() => {
+            logError("Failed to copy to clipboard")
+          })
+      }
+
+      // Backwards compatibility
       function copyAddress(address) {
-        navigator.clipboard.writeText(address).then(() => {
-          log(`Copied address to clipboard: ${address}`)
-        })
+        copyToClipboard(address)
       }
 
       function updateAccountDropdowns() {
@@ -1100,7 +1146,17 @@
                         <div class="item-header">
                             <div>
                                 <strong>Escrow ${i + 1}</strong>
-                                <div class="item-meta">Sequence: ${escrow.sequence}</div>
+                                ${
+                                  escrow.id
+                                    ? `<div class="item-meta">
+                                  ID: ${escrow.id.substring(0, 16)}...
+                                  <button class="btn btn-small" onclick="copyToClipboard('${escrow.id}'); event.stopPropagation();" title="Copy escrow ID">📋</button>
+                                </div>`
+                                    : ""
+                                }
+                                <div class="item-meta">
+                                  Sequence: ${escrow.sequence}
+                                </div>
                             </div>
                             <div class="item-meta-right">
                                 <div><strong>${escrow.amount} drops</strong></div>
@@ -1211,6 +1267,14 @@
           return
         }
 
+        // Set loading state
+        const finishBtn = document.querySelector(
+          "button[onclick='finishEscrow()']",
+        )
+        const originalText = finishBtn.textContent
+        finishBtn.disabled = true
+        finishBtn.textContent = "Finishing..."
+
         try {
           const sourceAccount = accounts[parseInt(sourceIndex)]
           const ownerAccount = accounts[parseInt(ownerIndex)]
@@ -1273,6 +1337,24 @@
               `Transaction hash: ${result.result.hash}`,
               result.result.hash,
             )
+
+            // Remove the finished escrow from the list
+            const sequenceNum = parseInt(sequence)
+            escrows = escrows.filter(
+              (escrow) => escrow.sequence !== sequenceNum,
+            )
+            await updateEscrowsList()
+
+            // Clear the finish form
+            document.getElementById("escrowSelect").value = ""
+            document.getElementById("finishSourceAccount").value = ""
+            document.getElementById("ownerAccount").value = ""
+            document.getElementById("offerSequence").value = ""
+            document.getElementById("finishMemos").value = ""
+            document.getElementById("finishFulfillment").value = ""
+            document.getElementById("finishComputationAllowance").value =
+              "1000000"
+            document.getElementById("finishCustomFields").value = ""
           } else {
             const transactionResult = result.result.meta.TransactionResult
             log(`❌ Escrow finish failed: ${transactionResult}`)
@@ -1287,6 +1369,10 @@
           await updateAccountsList()
         } catch (error) {
           logError(`Failed to finish escrow: ${error.message}`)
+        } finally {
+          // Restore button state
+          finishBtn.disabled = false
+          finishBtn.textContent = originalText
         }
       }
 
@@ -1303,6 +1389,14 @@
           logError("Please select a source account", "warning")
           return
         }
+
+        // Set loading state
+        const submitBtn = document.querySelector(
+          "button[onclick='submitCustomTransaction()']",
+        )
+        const originalText = submitBtn.textContent
+        submitBtn.disabled = true
+        submitBtn.textContent = "Submitting..."
 
         try {
           const sourceAccount = accounts[parseInt(sourceIndex)]
@@ -1323,6 +1417,10 @@
               `Transaction hash: ${result.result.hash}`,
               result.result.hash,
             )
+
+            // Clear the custom transaction form
+            document.getElementById("customSourceAccount").value = ""
+            document.getElementById("customTx").value = ""
           } else {
             const transactionResult = result.result.meta.TransactionResult
             log(`❌ Transaction failed: ${transactionResult}`)
@@ -1337,6 +1435,10 @@
           await updateAccountsList()
         } catch (error) {
           logError(`Failed to submit transaction: ${error.message}`)
+        } finally {
+          // Restore button state
+          submitBtn.disabled = false
+          submitBtn.textContent = originalText
         }
       }
 
@@ -1373,6 +1475,14 @@
           )
           return
         }
+
+        // Set loading state
+        const deployBtn = document.querySelector(
+          "button[onclick='deployCurrentWasm()']",
+        )
+        const originalText = deployBtn.textContent
+        deployBtn.disabled = true
+        deployBtn.textContent = "Deploying..."
 
         try {
           const sourceAccount = accounts[parseInt(sourceIndex)]
@@ -1454,6 +1564,20 @@
               result.result.hash,
             )
 
+            // Extract escrow ID from transaction metadata
+            let escrowId = null
+            if (result.result.meta.AffectedNodes) {
+              for (const node of result.result.meta.AffectedNodes) {
+                if (
+                  node.CreatedNode &&
+                  node.CreatedNode.LedgerEntryType === "Escrow"
+                ) {
+                  escrowId = node.CreatedNode.LedgerIndex
+                  break
+                }
+              }
+            }
+
             // Store the successful escrow
             escrows.push({
               sequence: lastOfferSequence,
@@ -1462,6 +1586,7 @@
               amount: amount,
               timestamp: Date.now(),
               hash: result.result.hash,
+              id: escrowId,
             })
 
             // Update escrows list
@@ -1470,6 +1595,16 @@
             // Auto-fill the finish escrow form
             document.getElementById("finishSourceAccount").value = destIndex
             document.getElementById("ownerAccount").value = sourceIndex
+
+            // Clear the deploy form
+            document.getElementById("escrowSourceAccount").value = ""
+            document.getElementById("escrowDestination").value = ""
+            document.getElementById("escrowAmount").value = "100000"
+            document.getElementById("deployMemos").value = ""
+            document.getElementById("deployCondition").value = ""
+            document.getElementById("deployData").value = ""
+            document.getElementById("deployDestinationTag").value = ""
+            document.getElementById("deployCustomFields").value = ""
           } else {
             const transactionResult = result.result.meta.TransactionResult
             log(`❌ Smart Escrow deployment failed: ${transactionResult}`)
@@ -1484,8 +1619,32 @@
           await updateAccountsList()
         } catch (error) {
           logError(`Failed to deploy Smart Escrow: ${error.message}`)
+        } finally {
+          // Restore button state
+          deployBtn.disabled = false
+          deployBtn.textContent = originalText
         }
       }
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault()
+
+          // Find the active tab and submit the appropriate form
+          const activeTab = document.querySelector(".tab-content.active")
+          if (activeTab) {
+            const tabId = activeTab.id
+            if (tabId === "deploy-wasm-tab") {
+              deployCurrentWasm()
+            } else if (tabId === "escrow-finish-tab") {
+              finishEscrow()
+            } else if (tabId === "custom-tab") {
+              submitCustomTransaction()
+            }
+          }
+        }
+      })
 
       // Initialize
       document.addEventListener("DOMContentLoaded", function () {

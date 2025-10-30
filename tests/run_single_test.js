@@ -76,6 +76,11 @@ async function main() {
 
   console.log(`Loaded ${wallets.length} wallets`)
 
+  // Generate fresh wallets for this test
+  const sourceWallet = await fundWallet()
+  const destWallet = await fundWallet()
+  console.log(`Source wallet: ${sourceWallet.address}`)
+
   const args = process.argv.slice(2)
   if (args.length === 0) {
     throw new Error(
@@ -97,8 +102,8 @@ async function main() {
   const testContext = {
     client,
     submit,
-    sourceWallet: wallets[0],
-    destWallet: wallets[1],
+    sourceWallet,
+    destWallet,
     allWallets: wallets,
     fundWallet,
     deploy,
