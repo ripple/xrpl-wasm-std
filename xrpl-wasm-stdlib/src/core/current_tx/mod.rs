@@ -171,12 +171,14 @@ pub trait CurrentTxFieldGetter: Sized {
 /// Uses a 4-byte buffer and validates that exactly 4 bytes are returned
 /// from the host function. The bytes are interpreted as little-endian.
 impl CurrentTxFieldGetter for u32 {
+    #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; 4];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match_result_code_with_expected_bytes(result_code, 4, || u32::from_le_bytes(buffer))
     }
 
+    #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; 4];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
@@ -198,12 +200,14 @@ impl CurrentTxFieldGetter for u32 {
 /// are returned from the host function. The buffer is converted to an AccountID
 /// using the `From<[u8; 20]>` implementation.
 impl CurrentTxFieldGetter for AccountID {
+    #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
     }
 
+    #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
@@ -226,12 +230,14 @@ impl CurrentTxFieldGetter for AccountID {
 /// representation. The Amount type handles the parsing of different amount formats
 /// internally. No strict byte count validation is performed since amounts can vary in size.
 impl CurrentTxFieldGetter for Amount {
+    #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; AMOUNT_SIZE];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match_result_code(result_code, || Amount::from(buffer))
     }
 
+    #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; AMOUNT_SIZE];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
@@ -250,12 +256,14 @@ impl CurrentTxFieldGetter for Amount {
 /// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
 /// are returned from the host function to ensure data integrity.
 impl CurrentTxFieldGetter for Hash256 {
+    #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256::from(buffer))
     }
 
+    #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
@@ -277,12 +285,14 @@ impl CurrentTxFieldGetter for Hash256 {
 /// from the host function. The buffer is converted to a PublicKey using
 /// the `From<[u8; 33]>` implementation.
 impl CurrentTxFieldGetter for PublicKey {
+    #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; 33];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match_result_code_with_expected_bytes(result_code, 33, || buffer.into())
     }
 
+    #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; 33];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
@@ -303,6 +313,7 @@ impl CurrentTxFieldGetter for PublicKey {
 /// and stored in the Blob's `len` field. No strict byte count validation is
 /// performed since blobs can vary significantly in size.
 impl CurrentTxFieldGetter for Blob {
+    #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; 1024];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
@@ -312,6 +323,7 @@ impl CurrentTxFieldGetter for Blob {
         })
     }
 
+    #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; 1024];
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
@@ -332,12 +344,14 @@ impl CurrentTxFieldGetter for Blob {
 ///
 /// Uses a 2-byte buffer and validates that exactly 2 bytes are returned from the host function.
 impl CurrentTxFieldGetter for TransactionType {
+    #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; 2]; // Allocate memory to read into (this is an i32)
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match_result_code_with_expected_bytes(result_code, 2, || i16::from_le_bytes(buffer).into())
     }
 
+    #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; 2]; // Allocate memory to read into (this is an i32)
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };

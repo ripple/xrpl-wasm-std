@@ -127,6 +127,7 @@ pub trait FieldGetter: Sized {
 /// Uses a 2-byte buffer and validates that exactly 2 bytes are returned
 /// from the host function to ensure data integrity.
 impl FieldGetter for u16 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut value: u16 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
@@ -134,6 +135,7 @@ impl FieldGetter for u16 {
         match_result_code_with_expected_bytes(result_code, 2, || value)
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut value: u16 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
@@ -141,6 +143,7 @@ impl FieldGetter for u16 {
         match_result_code_with_expected_bytes_optional(result_code, 2, || Some(value))
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut value: u16 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
@@ -148,6 +151,7 @@ impl FieldGetter for u16 {
         match_result_code_with_expected_bytes(result_code, 2, || value)
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut value: u16 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
@@ -166,6 +170,7 @@ impl FieldGetter for u16 {
 /// Uses a 4-byte buffer and validates that exactly 4 bytes are returned
 /// from the host function to ensure data integrity.
 impl FieldGetter for u32 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut value: u32 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
@@ -173,6 +178,7 @@ impl FieldGetter for u32 {
         match_result_code_with_expected_bytes(result_code, 4, || value)
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut value: u32 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
@@ -180,6 +186,7 @@ impl FieldGetter for u32 {
         match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut value: u32 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
@@ -187,6 +194,7 @@ impl FieldGetter for u32 {
         match_result_code_with_expected_bytes(result_code, 4, || value)
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut value: u32 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
@@ -206,6 +214,7 @@ impl FieldGetter for u32 {
 /// Uses an 8-byte buffer and validates that exactly 8 bytes are returned
 /// from the host function to ensure data integrity.
 impl FieldGetter for u64 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut value: u64 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
@@ -213,6 +222,7 @@ impl FieldGetter for u64 {
         match_result_code_with_expected_bytes(result_code, 8, || value)
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut value: u64 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
@@ -220,6 +230,7 @@ impl FieldGetter for u64 {
         match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut value: u64 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
@@ -227,6 +238,7 @@ impl FieldGetter for u64 {
         match_result_code_with_expected_bytes(result_code, 8, || value)
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut value: u64 = 0;
         let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
@@ -247,6 +259,7 @@ impl FieldGetter for u64 {
 /// are returned from the host function. The buffer is converted to an AccountID
 /// using the `From<[u8; 20]>` implementation.
 impl FieldGetter for AccountID {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code = unsafe {
@@ -255,6 +268,7 @@ impl FieldGetter for AccountID {
         match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code = unsafe {
@@ -265,6 +279,7 @@ impl FieldGetter for AccountID {
         })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code = unsafe {
@@ -278,6 +293,7 @@ impl FieldGetter for AccountID {
         match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0x00; ACCOUNT_ID_SIZE];
         let result_code = unsafe {
@@ -306,6 +322,7 @@ impl FieldGetter for AccountID {
 /// The Amount type handles the parsing of different amount formats internally.
 /// No strict byte count validation is performed since amounts can vary in size.
 impl FieldGetter for Amount {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
         let mut buffer = [0u8; BUFFER_SIZE];
@@ -314,6 +331,7 @@ impl FieldGetter for Amount {
         match_result_code(result_code, || Amount::from(buffer))
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         const BUFFER_SIZE: usize = 48;
         let mut buffer = [0u8; BUFFER_SIZE];
@@ -322,6 +340,7 @@ impl FieldGetter for Amount {
         match_result_code_optional(result_code, || Some(Amount::from(buffer)))
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
         let mut buffer = [0u8; BUFFER_SIZE];
@@ -331,6 +350,7 @@ impl FieldGetter for Amount {
         match_result_code(result_code, || Amount::from(buffer))
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         const BUFFER_SIZE: usize = 48;
         let mut buffer = [0u8; BUFFER_SIZE];
@@ -352,6 +372,7 @@ impl FieldGetter for Amount {
 /// Uses a 16-byte buffer (HASH128_SIZE) and validates that exactly 16 bytes
 /// are returned from the host function to ensure data integrity.
 impl FieldGetter for Hash128 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH128_SIZE];
         let result_code =
@@ -359,6 +380,7 @@ impl FieldGetter for Hash128 {
         match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || Hash128::from(buffer))
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH128_SIZE];
         let result_code =
@@ -368,6 +390,7 @@ impl FieldGetter for Hash128 {
         })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH128_SIZE];
         let result_code = unsafe {
@@ -376,6 +399,7 @@ impl FieldGetter for Hash128 {
         match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || Hash128::from(buffer))
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH128_SIZE];
         let result_code = unsafe {
@@ -398,6 +422,7 @@ impl FieldGetter for Hash128 {
 /// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
 /// are returned from the host function to ensure data integrity.
 impl FieldGetter for Hash256 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code =
@@ -405,6 +430,7 @@ impl FieldGetter for Hash256 {
         match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256::from(buffer))
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code =
@@ -414,6 +440,7 @@ impl FieldGetter for Hash256 {
         })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code = unsafe {
@@ -422,6 +449,7 @@ impl FieldGetter for Hash256 {
         match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256::from(buffer))
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; HASH256_SIZE];
         let result_code = unsafe {
@@ -448,6 +476,7 @@ const BLOB_BUFFER_SIZE: usize = 1024;
 /// and stored in the Blob's `len` field. No strict byte count validation is
 /// performed since blobs can vary significantly in size.
 impl FieldGetter for Blob {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; BLOB_BUFFER_SIZE];
         let result_code = unsafe {
@@ -459,6 +488,7 @@ impl FieldGetter for Blob {
         })
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; BLOB_BUFFER_SIZE];
         let result_code = unsafe {
@@ -472,6 +502,7 @@ impl FieldGetter for Blob {
         })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         let mut buffer = [0u8; BLOB_BUFFER_SIZE];
         let result_code = unsafe {
@@ -488,6 +519,7 @@ impl FieldGetter for Blob {
         })
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         let mut buffer = [0u8; BLOB_BUFFER_SIZE];
         let result_code = unsafe {
