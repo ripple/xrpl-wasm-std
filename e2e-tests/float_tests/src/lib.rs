@@ -40,7 +40,7 @@ fn test_float_from_host() {
     let output_len = unsafe {
         get_ledger_obj_nested_field(
             slot,
-            locator.get_addr(),
+            locator.as_ptr(),
             locator.num_packed_bytes(),
             buf.as_mut_ptr(),
             buf.len(),

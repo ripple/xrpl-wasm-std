@@ -132,7 +132,7 @@ pub extern "C" fn finish() -> i32 {
         locator.pack(sfield::MemoType);
         let output_len = unsafe {
             host::get_tx_nested_field(
-                locator.get_addr(),
+                locator.as_ptr(),
                 locator.num_packed_bytes(),
                 memo_buf.as_mut_ptr(),
                 memo_buf.len(),
@@ -148,7 +148,7 @@ pub extern "C" fn finish() -> i32 {
         locator.repack_last(sfield::MemoData);
         let output_len = unsafe {
             host::get_tx_nested_field(
-                locator.get_addr(),
+                locator.as_ptr(),
                 locator.num_packed_bytes(),
                 memo_buf.as_mut_ptr(),
                 memo_buf.len(),
@@ -163,7 +163,7 @@ pub extern "C" fn finish() -> i32 {
         locator.repack_last(sfield::MemoFormat);
         let output_len = unsafe {
             host::get_tx_nested_field(
-                locator.get_addr(),
+                locator.as_ptr(),
                 locator.num_packed_bytes(),
                 memo_buf.as_mut_ptr(),
                 memo_buf.len(),
@@ -187,7 +187,7 @@ pub extern "C" fn finish() -> i32 {
             locator.pack(sfield::Account);
             let output_len = unsafe {
                 host::get_tx_nested_field(
-                    locator.get_addr(),
+                    locator.as_ptr(),
                     locator.num_packed_bytes(),
                     buf.as_mut_ptr(),
                     buf.len(),
@@ -203,7 +203,7 @@ pub extern "C" fn finish() -> i32 {
             locator.repack_last(sfield::TxnSignature);
             let output_len = unsafe {
                 host::get_tx_nested_field(
-                    locator.get_addr(),
+                    locator.as_ptr(),
                     locator.num_packed_bytes(),
                     buf.as_mut_ptr(),
                     buf.len(),
@@ -222,7 +222,7 @@ pub extern "C" fn finish() -> i32 {
             locator.repack_last(sfield::SigningPubKey);
             let output_len = unsafe {
                 host::get_tx_nested_field(
-                    locator.get_addr(),
+                    locator.as_ptr(),
                     locator.num_packed_bytes(),
                     buf.as_mut_ptr(),
                     buf.len(),
@@ -298,7 +298,7 @@ pub extern "C" fn finish() -> i32 {
             locator.pack(i);
             let output_len = unsafe {
                 host::get_tx_nested_field(
-                    locator.get_addr(),
+                    locator.as_ptr(),
                     locator.num_packed_bytes(),
                     buf.as_mut_ptr(),
                     buf.len(),
