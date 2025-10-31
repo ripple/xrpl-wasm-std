@@ -81,10 +81,6 @@ impl Locator {
         true
     }
 
-    pub fn get_addr(&self) -> *const u8 {
-        self.buffer.as_ptr()
-    }
-
     pub fn as_ptr(&self) -> *const u8 {
         self.buffer.as_ptr()
     }
