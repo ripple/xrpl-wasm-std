@@ -3,15 +3,15 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{get_current_escrow_finish, EscrowFinish};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
 use xrpl_wasm_stdlib::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
 use xrpl_wasm_stdlib::core::locator::Locator;
+use xrpl_wasm_stdlib::host::Result;
 use xrpl_wasm_stdlib::host::error_codes::{
     match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
     match_result_code_with_expected_bytes_optional,
 };
 use xrpl_wasm_stdlib::host::trace::trace;
-use xrpl_wasm_stdlib::host::Result;
 use xrpl_wasm_stdlib::{decode_hex_20, decode_hex_32, sfield};
 
 const ITERATIONS: usize = 100;
@@ -126,11 +126,7 @@ pub extern "C" fn finish() -> i32 {
     let _ = trace("$$$$$ GAS BENCHMARK END $$$$$");
 
     // Return 1 if accumulator is non-zero (it always will be), preventing optimization
-    if accumulator > 0 {
-        1
-    } else {
-        0
-    }
+    if accumulator > 0 { 1 } else { 0 }
 }
 
 /// Benchmark get_account_id_field by repeatedly calling get_account()
