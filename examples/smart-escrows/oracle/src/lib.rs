@@ -39,7 +39,7 @@ pub fn get_price_from_oracle(slot: i32) -> Result<u64> {
     let result_code = unsafe {
         host::get_ledger_obj_nested_field(
             slot,
-            locator.get_addr(),
+            locator.as_ptr(),
             locator.num_packed_bytes(),
             data.as_mut_ptr(),
             data.len(),
