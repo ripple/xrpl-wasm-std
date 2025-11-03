@@ -22,6 +22,22 @@
 /// - Maximum: ~9.999999999999999 × 10^80
 /// - Minimum positive: ~1.0 × 10^-81
 ///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Automatically derived with Copy for consistency
+/// - `Copy`: Efficient for this 8-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable amount comparisons (bitwise equality only)
+///
+/// The `Copy` trait is appropriate here because:
+/// - The struct is only 8 bytes, making copies very cheap
+/// - Amounts are frequently passed around in financial operations
+/// - Implicit copying improves ergonomics without performance concerns
+///
+/// **Note**: `PartialEq` and `Eq` perform bitwise comparison only. For semantic
+/// comparison of amounts (e.g., handling different representations of zero),
+/// use host functions.
+///
 /// # Example
 ///
 /// ```no_run
@@ -31,7 +47,7 @@
 /// // float_from_int(100, float_bytes.as_mut_ptr(), 8, 0);
 /// let amount = OpaqueFloat(float_bytes);
 /// ```
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct OpaqueFloat(pub [u8; 8]);
 

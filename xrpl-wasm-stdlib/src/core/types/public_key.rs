@@ -1,6 +1,21 @@
 pub const PUBLIC_KEY_BUFFER_SIZE: usize = 33;
 
-/// Holds public key bytes for secp256k1 and ed25519 DSA types.
+/// A 33-byte public key for secp256k1 and ed25519 DSA types.
+///
+/// Public keys on the XRP Ledger are 33 bytes and can be either:
+/// - **secp256k1**: Compressed ECDSA public key (0x02 or 0x03 prefix)
+/// - **ed25519**: EdDSA public key (0xED prefix)
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Reasonable for this 33-byte struct when explicit copying is needed
+/// - `PartialEq, Eq`: Enable public key comparisons and use in collections
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (33 bytes).
+/// Large `Copy` types can lead to accidental expensive copies and poor performance.
+/// Use `.clone()` when you need to duplicate a public key.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PublicKey(pub [u8; PUBLIC_KEY_BUFFER_SIZE]);
 
 impl From<[u8; PUBLIC_KEY_BUFFER_SIZE]> for PublicKey {

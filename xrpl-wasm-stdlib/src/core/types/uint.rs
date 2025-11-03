@@ -1,7 +1,27 @@
 //! Generic unsigned integer types with configurable bit sizes
 
+/// A generic unsigned integer type with configurable byte size.
+///
+/// This type provides a zero-cost abstraction for fixed-size unsigned integers
+/// of arbitrary byte lengths. Common instantiations include UInt128, UInt160,
+/// UInt192, and UInt256.
+///
+/// # Type Parameters
+///
+/// * `N` - The size of the integer in bytes
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Reasonable for explicit copying when needed
+/// - `PartialEq, Eq`: Essential for comparisons and use in collections
+///
+/// Note: `Copy` is intentionally not derived because `N` can be arbitrarily large.
+/// For small UInts (e.g., `UInt<8>`), copying might be cheap, but for larger UInts
+/// (e.g., `UInt<32>` or larger), implicit copying would be expensive.
+/// Use `.clone()` when you need to duplicate a UInt.
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UInt<const N: usize>(pub [u8; N]);
 
 impl<const N: usize> From<[u8; N]> for UInt<N> {
@@ -119,7 +139,7 @@ mod tests {
         let uint1 = UInt::<4>::from(bytes);
 
         // Copy it (implicit copy due to Copy trait)
-        let uint2 = uint1;
+        let uint2 = uint1.clone();
 
         // Both should be usable and equal
         assert_eq!(uint1, uint2);

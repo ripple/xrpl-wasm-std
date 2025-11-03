@@ -2,7 +2,23 @@ pub const CURRENCY_SIZE: usize = 20;
 pub const STANDARD_CURRENCY_SIZE: usize = 3; // For standard currencies like USD, EUR, etc.
 
 /// Represents a currency code in the XRPL, which is a 20-byte identifier.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+///
+/// Currency codes in XRPL can be either:
+/// - **Standard currencies**: 3-character ASCII codes (e.g., "USD", "EUR") stored in bytes 12-14
+/// - **Non-standard currencies**: Full 20-byte hex values for custom tokens
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Automatically derived with Copy for consistency
+/// - `Copy`: Efficient for this small 20-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable currency comparisons and use in hash-based collections
+///
+/// The `Copy` trait is appropriate here because:
+/// - The struct is only 20 bytes, making copies very cheap
+/// - Currency codes are frequently used in amount and trustline operations
+/// - Implicit copying improves ergonomics without performance concerns
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct Currency(pub [u8; CURRENCY_SIZE]);
 

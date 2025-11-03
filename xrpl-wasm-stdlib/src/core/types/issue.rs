@@ -4,12 +4,31 @@ use crate::core::types::mpt_id::MptId;
 
 /// Struct to represent an Issue of type XRP. Exists so that other structs can restrict type
 /// information to XRP in their declarations (this is not possible with just the `Issue` enum below).
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Automatically derived with Copy for consistency
+/// - `Copy`: Efficient for this zero-sized struct
+/// - `PartialEq, Eq`: Enable comparisons
+///
+/// The `Copy` trait is appropriate here because this is a zero-sized type.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct XrpIssue {}
 
-/// Defines an issue for IOUs.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// Defines an issue for IOUs (40 bytes: 20-byte currency + 20-byte issuer).
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Reasonable for this 40-byte struct when explicit copying is needed
+/// - `PartialEq, Eq`: Enable issue comparisons and use in collections
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (40 bytes).
+/// Large `Copy` types can lead to accidental expensive copies and poor performance.
+/// Use `.clone()` when you need to duplicate an IOU issue.
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct IouIssue {
     issuer: AccountID,
@@ -35,8 +54,20 @@ impl IouIssue {
 }
 
 /// Struct to represent an Issue of type MPT. Exists so that other structs can restrict type
-/// information to XRP in their declarations (this is not possible with just the `Issue` enum below).
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// information to MPT in their declarations (this is not possible with just the `Issue` enum below).
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Automatically derived with Copy for consistency
+/// - `Copy`: Efficient for this 24-byte struct
+/// - `PartialEq, Eq`: Enable MPT issue comparisons
+///
+/// The `Copy` trait is appropriate here because:
+/// - The struct is only 24 bytes (wrapping MptId)
+/// - MPT issues are frequently used in token operations
+/// - Implicit copying improves ergonomics
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct MptIssue {
     mpt_id: MptId,
@@ -44,7 +75,17 @@ pub struct MptIssue {
 
 /// Represents an issue without a value, such as reading `Asset1` and `Asset2` in AMM ledger
 /// objects.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Reasonable for this enum when explicit copying is needed
+/// - `PartialEq, Eq`: Enable issue comparisons and use in collections
+///
+/// Note: `Copy` is intentionally not derived because the `IOU` variant is 40 bytes.
+/// Large `Copy` types can lead to accidental expensive copies and poor performance.
+/// Use `.clone()` when you need to duplicate an issue.
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub enum Issue {
     XRP(XrpIssue),

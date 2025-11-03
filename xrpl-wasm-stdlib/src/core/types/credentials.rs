@@ -1,8 +1,32 @@
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// A 256-byte credential identifier on the XRP Ledger.
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Automatically derived with Copy for consistency
+/// - `Copy`: Derived despite the 256-byte size to enable array initialization patterns
+/// - `PartialEq, Eq`: Enable credential ID comparisons and use in collections
+///
+/// Note: `Copy` is derived here as an exception to the usual size guidelines (>32 bytes).
+/// This is necessary because `CredentialID` is used in fixed-size arrays (e.g., `[CredentialID; 10]`)
+/// which require `Copy` for array initialization syntax. While this means copies are expensive,
+/// the usage pattern (storing in arrays, not frequently copied) makes this acceptable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct CredentialID(pub [u8; 256]);
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// A collection of up to 10 credential IDs (2560+ bytes total).
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Reasonable for this large struct when explicit copying is needed
+/// - `PartialEq, Eq`: Enable credential ID collection comparisons
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (2560+ bytes).
+/// Large `Copy` types can lead to accidental expensive copies and poor performance.
+/// Use `.clone()` when you need to duplicate a credential ID collection.
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct CredentialIDs {
     pub credential_ids: [CredentialID; 10],
@@ -25,10 +49,9 @@ impl CredentialIDs {
         let mut credential_ids_array = [EMPTY_CREDENTIAL_ID; 10];
 
         // Copy the provided IDs into the start of the array.
-        // Using `enumerate` gives us the index `i`.
-        // Since CredentialID is Copy, `*id` performs a cheap copy.
+        // Since CredentialID is Copy, this is a simple assignment.
         for (i, &id) in ids.iter().enumerate() {
-            credential_ids_array[i] = id;
+            credential_ids_array[i] = id; // <-- Copy
         }
 
         CredentialIDs {
@@ -49,8 +72,11 @@ impl TryFrom<&[CredentialID]> for CredentialIDs {
         }
 
         let mut credential_ids_array = [EMPTY_CREDENTIAL_ID; 10];
+
+        // Copy the provided IDs into the start of the array.
+        // Since CredentialID is Copy, this is a simple assignment.
         for (i, &id) in ids.iter().enumerate() {
-            credential_ids_array[i] = id;
+            credential_ids_array[i] = id; // <-- Copy
         }
 
         Ok(CredentialIDs {

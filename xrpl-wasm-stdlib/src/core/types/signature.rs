@@ -52,6 +52,16 @@ pub const SIGNATURE_MAX_SIZE: usize = 72;
 /// When loading signature data from the ledger, the actual signature type
 /// may not be known, so this type can accommodate both.
 ///
+/// // ## Derived Traits
+///
+/// - `Clone`: Reasonable for this 72-byte struct when explicit copying is needed
+/// - `PartialEq, Eq`: Enable signature comparisons and use in collections
+/// - `Debug`: Useful for development and debugging
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (72 bytes).
+/// Large `Copy` types can lead to accidental expensive copies and poor performance.
+/// Use `.clone()` when you need to duplicate a signature.
+///
 /// # Why a Struct Instead of a Type Alias?
 ///
 /// This is implemented as `struct Signature(Blob<72>)` rather than `type Signature = Blob<72>`
@@ -87,7 +97,7 @@ pub const SIGNATURE_MAX_SIZE: usize = 72;
 /// // Access the underlying data
 /// let bytes: &[u8] = sig.as_slice();
 /// ```
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 #[repr(transparent)]
 pub struct Signature(pub Blob<SIGNATURE_MAX_SIZE>);
 
@@ -282,9 +292,9 @@ mod tests {
     }
 
     #[test]
-    fn test_clone_and_copy() {
+    fn test_clone() {
         let sig1 = Signature::from_slice(&[1, 2, 3, 4, 5]);
-        let sig2 = sig1; // Copy
+        let sig2 = sig1.clone();
 
         // Both should have the same data
         assert_eq!(sig1.as_slice(), sig2.as_slice());
