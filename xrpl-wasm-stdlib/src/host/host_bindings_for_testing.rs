@@ -617,13 +617,25 @@ pub unsafe fn trace(
     _data_read_len: usize,
     _as_hex: i32,
 ) -> i32 {
-    (_data_read_len as i32) + (_msg_read_len as i32)
+    // Prevent overflow: saturate addition and cast
+    let sum = _data_read_len.saturating_add(_msg_read_len);
+    if sum > i32::MAX as usize {
+        i32::MAX
+    } else {
+        sum as i32
+    }
 }
 
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn trace_num(_msg_read_ptr: *const u8, _msg_read_len: usize, _number: i64) -> i32 {
-    (_msg_read_len as i32) + 4
+    // Prevent overflow: saturate addition and cast to i32 safely
+    let sum = _msg_read_len.saturating_add(4);
+    if sum > i32::MAX as usize {
+        i32::MAX
+    } else {
+        sum as i32
+    }
 }
 
 #[allow(unused)]
@@ -634,7 +646,13 @@ pub unsafe fn trace_account(
     _account_ptr: *const u8,
     _account_len: usize,
 ) -> i32 {
-    (_msg_read_len as i32) + (_account_len as i32)
+    // Prevent overflow: saturate addition and cast to i32 safely
+    let sum = _msg_read_len.saturating_add(_account_len);
+    if sum > i32::MAX as usize {
+        i32::MAX
+    } else {
+        sum as i32
+    }
 }
 
 #[allow(unused)]
@@ -645,7 +663,13 @@ pub unsafe fn trace_opaque_float(
     _opaque_float_ptr: *const u8,
     _opaque_float_len: usize,
 ) -> i32 {
-    (_msg_read_len as i32) + (_opaque_float_len as i32)
+    // Prevent overflow: saturate addition and cast to i32 safely
+    let sum = _msg_read_len.saturating_add(_opaque_float_len);
+    if sum > i32::MAX as usize {
+        i32::MAX
+    } else {
+        sum as i32
+    }
 }
 
 #[allow(unused)]
@@ -656,5 +680,11 @@ pub unsafe fn trace_amount(
     _amount_ptr: *const u8,
     _amount_len: usize,
 ) -> i32 {
-    (_msg_read_len as i32) + (_amount_len as i32)
+    // Prevent overflow: saturate addition and cast to i32 safely
+    let sum = _msg_read_len.saturating_add(_amount_len);
+    if sum > i32::MAX as usize {
+        i32::MAX
+    } else {
+        sum as i32
+    }
 }
