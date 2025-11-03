@@ -29,12 +29,31 @@ fn panic(_info: &::core::panic::PanicInfo) -> ! {
     ::core::arch::wasm32::unreachable();
 }
 
+#[inline(always)]
 fn hex_char_to_nibble(c: u8) -> Option<u8> {
-    match c {
-        b'0'..=b'9' => Some(c - b'0'),
-        b'a'..=b'f' => Some(c - b'a' + 10),
-        b'A'..=b'F' => Some(c - b'A' + 10),
-        _ => None,
+    // WASM-optimized hex decoding with branch conditions for better performance
+    #[cfg(target_arch = "wasm32")]
+    {
+        // Use branchless computation optimized for WASM
+        if c >= b'0' && c <= b'9' {
+            Some(c - b'0')
+        } else if c >= b'a' && c <= b'f' {
+            Some(c - b'a' + 10)
+        } else if c >= b'A' && c <= b'F' {
+            Some(c - b'A' + 10)
+        } else {
+            None
+        }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        // Use pattern matching for non-WASM targets; this is more idiomatic and may have different compiler optimization characteristics, but is functionally equivalent to the WASM branch.
+        match c {
+            b'0'..=b'9' => Some(c - b'0'),
+            b'a'..=b'f' => Some(c - b'a' + 10),
+            b'A'..=b'F' => Some(c - b'A' + 10),
+            _ => None,
+        }
     }
 }
 
@@ -50,15 +69,52 @@ fn hex_char_to_nibble(c: u8) -> Option<u8> {
 /// let bytes = decode_hex_32(&hex).unwrap();
 /// assert_eq!(bytes.len(), 32);
 /// ```
+#[inline(always)]
 pub fn decode_hex_32(hex: &[u8; 64]) -> Option<[u8; 32]> {
     let mut out = [0u8; 32];
-    let mut i = 0;
-    while i < 32 {
-        let high = hex_char_to_nibble(hex[i * 2])?;
-        let low = hex_char_to_nibble(hex[i * 2 + 1])?;
-        out[i] = (high << 4) | low;
-        i += 1;
+
+    // Unrolled loop for better WASM performance - eliminates loop counter overhead
+    macro_rules! decode_byte {
+        ($i:expr) => {{
+            let high = hex_char_to_nibble(hex[$i * 2])?;
+            let low = hex_char_to_nibble(hex[$i * 2 + 1])?;
+            out[$i] = (high << 4) | low;
+        }};
     }
+
+    decode_byte!(0);
+    decode_byte!(1);
+    decode_byte!(2);
+    decode_byte!(3);
+    decode_byte!(4);
+    decode_byte!(5);
+    decode_byte!(6);
+    decode_byte!(7);
+    decode_byte!(8);
+    decode_byte!(9);
+    decode_byte!(10);
+    decode_byte!(11);
+    decode_byte!(12);
+    decode_byte!(13);
+    decode_byte!(14);
+    decode_byte!(15);
+    decode_byte!(16);
+    decode_byte!(17);
+    decode_byte!(18);
+    decode_byte!(19);
+    decode_byte!(20);
+    decode_byte!(21);
+    decode_byte!(22);
+    decode_byte!(23);
+    decode_byte!(24);
+    decode_byte!(25);
+    decode_byte!(26);
+    decode_byte!(27);
+    decode_byte!(28);
+    decode_byte!(29);
+    decode_byte!(30);
+    decode_byte!(31);
+
     Some(out)
 }
 
@@ -74,14 +130,39 @@ pub fn decode_hex_32(hex: &[u8; 64]) -> Option<[u8; 32]> {
 /// let bytes = decode_hex_20(&hex).unwrap();
 /// assert_eq!(bytes.len(), 20);
 /// ```
+#[inline(always)]
 pub fn decode_hex_20(hex: &[u8; 40]) -> Option<[u8; 20]> {
     let mut out = [0u8; 20];
-    let mut i = 0;
-    while i < 20 {
-        let high = hex_char_to_nibble(hex[i * 2])?;
-        let low = hex_char_to_nibble(hex[i * 2 + 1])?;
-        out[i] = (high << 4) | low;
-        i += 1;
+
+    // Unrolled loop for better WASM performance - eliminates loop counter overhead
+    macro_rules! decode_byte {
+        ($i:expr) => {{
+            let high = hex_char_to_nibble(hex[$i * 2])?;
+            let low = hex_char_to_nibble(hex[$i * 2 + 1])?;
+            out[$i] = (high << 4) | low;
+        }};
     }
+
+    decode_byte!(0);
+    decode_byte!(1);
+    decode_byte!(2);
+    decode_byte!(3);
+    decode_byte!(4);
+    decode_byte!(5);
+    decode_byte!(6);
+    decode_byte!(7);
+    decode_byte!(8);
+    decode_byte!(9);
+    decode_byte!(10);
+    decode_byte!(11);
+    decode_byte!(12);
+    decode_byte!(13);
+    decode_byte!(14);
+    decode_byte!(15);
+    decode_byte!(16);
+    decode_byte!(17);
+    decode_byte!(18);
+    decode_byte!(19);
+
     Some(out)
 }

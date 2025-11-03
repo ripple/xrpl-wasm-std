@@ -1,7 +1,6 @@
 pub mod account_root;
 pub mod current_escrow;
 pub mod escrow;
-pub mod nft;
 pub mod traits;
 
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
@@ -127,32 +126,40 @@ pub trait FieldGetter: Sized {
 /// Uses a 2-byte buffer and validates that exactly 2 bytes are returned
 /// from the host function to ensure data integrity.
 impl FieldGetter for u16 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value: u16 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 2) };
-        match_result_code_with_expected_bytes(result_code, 2, || value)
+        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 2) };
+        match_result_code_with_expected_bytes(result_code, 2, || unsafe { value.assume_init() })
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value: u16 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 2) };
-        match_result_code_with_expected_bytes_optional(result_code, 2, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 2) };
+        match_result_code_with_expected_bytes_optional(result_code, 2, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value: u16 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 2) };
-        match_result_code_with_expected_bytes(result_code, 2, || value)
+        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 2) };
+        match_result_code_with_expected_bytes(result_code, 2, || unsafe { value.assume_init() })
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value: u16 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u16).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 2) };
-        match_result_code_with_expected_bytes_optional(result_code, 2, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 2) };
+        match_result_code_with_expected_bytes_optional(result_code, 2, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 }
 
@@ -166,32 +173,40 @@ impl FieldGetter for u16 {
 /// Uses a 4-byte buffer and validates that exactly 4 bytes are returned
 /// from the host function to ensure data integrity.
 impl FieldGetter for u32 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value: u32 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 4) };
-        match_result_code_with_expected_bytes(result_code, 4, || value)
+        let mut value = core::mem::MaybeUninit::<u32>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes(result_code, 4, || unsafe { value.assume_init() })
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value: u32 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 4) };
-        match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u32>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes_optional(result_code, 4, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value: u32 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 4) };
-        match_result_code_with_expected_bytes(result_code, 4, || value)
+        let mut value = core::mem::MaybeUninit::<u32>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes(result_code, 4, || unsafe { value.assume_init() })
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value: u32 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u32).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 4) };
-        match_result_code_with_expected_bytes_optional(result_code, 4, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u32>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 4) };
+        match_result_code_with_expected_bytes_optional(result_code, 4, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 }
 
@@ -206,32 +221,40 @@ impl FieldGetter for u32 {
 /// Uses an 8-byte buffer and validates that exactly 8 bytes are returned
 /// from the host function to ensure data integrity.
 impl FieldGetter for u64 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value: u64 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 8) };
-        match_result_code_with_expected_bytes(result_code, 8, || value)
+        let mut value = core::mem::MaybeUninit::<u64>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 8) };
+        match_result_code_with_expected_bytes(result_code, 8, || unsafe { value.assume_init() })
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value: u64 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-        let result_code = unsafe { get_current_ledger_obj_field(field_code, value_ptr, 8) };
-        match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u64>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 8) };
+        match_result_code_with_expected_bytes_optional(result_code, 8, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value: u64 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 8) };
-        match_result_code_with_expected_bytes(result_code, 8, || value)
+        let mut value = core::mem::MaybeUninit::<u64>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 8) };
+        match_result_code_with_expected_bytes(result_code, 8, || unsafe { value.assume_init() })
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value: u64 = 0;
-        let value_ptr: *mut u8 = (&mut value as *mut u64).cast::<u8>();
-        let result_code = unsafe { get_ledger_obj_field(register_num, field_code, value_ptr, 8) };
-        match_result_code_with_expected_bytes_optional(result_code, 8, || Some(value))
+        let mut value = core::mem::MaybeUninit::<u64>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 8) };
+        match_result_code_with_expected_bytes_optional(result_code, 8, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 }
 
@@ -247,49 +270,57 @@ impl FieldGetter for u64 {
 /// are returned from the host function. The buffer is converted to an AccountID
 /// using the `From<[u8; 20]>` implementation.
 impl FieldGetter for AccountID {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
         let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), ACCOUNT_ID_SIZE)
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE)
         };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
-    }
-
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), ACCOUNT_ID_SIZE)
-        };
-        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(buffer.into())
+        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
+            unsafe { buffer.assume_init() }.into()
         })
     }
 
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE)
+        };
+        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
+            Some(unsafe { buffer.assume_init() }.into())
+        })
+    }
+
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
         let result_code = unsafe {
             get_ledger_obj_field(
                 register_num,
                 field_code,
-                buffer.as_mut_ptr(),
+                buffer.as_mut_ptr().cast(),
                 ACCOUNT_ID_SIZE,
             )
         };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || buffer.into())
+        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
+            unsafe { buffer.assume_init() }.into()
+        })
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0x00; ACCOUNT_ID_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
         let result_code = unsafe {
             get_ledger_obj_field(
                 register_num,
                 field_code,
-                buffer.as_mut_ptr(),
+                buffer.as_mut_ptr().cast(),
                 ACCOUNT_ID_SIZE,
             )
         };
         match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(buffer.into())
+            Some(unsafe { buffer.assume_init() }.into())
         })
     }
 }
@@ -306,38 +337,62 @@ impl FieldGetter for AccountID {
 /// The Amount type handles the parsing of different amount formats internally.
 /// No strict byte count validation is performed since amounts can vary in size.
 impl FieldGetter for Amount {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = [0u8; BUFFER_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
-        match_result_code(result_code, || Amount::from(buffer))
+        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BUFFER_SIZE)
+        };
+        match_result_code(result_code, || {
+            Amount::from(unsafe { buffer.assume_init() })
+        })
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = [0u8; BUFFER_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BUFFER_SIZE) };
-        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
+        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BUFFER_SIZE)
+        };
+        match_result_code_optional(result_code, || {
+            Some(Amount::from(unsafe { buffer.assume_init() }))
+        })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = [0u8; BUFFER_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                BUFFER_SIZE,
+            )
         };
-        match_result_code(result_code, || Amount::from(buffer))
+        match_result_code(result_code, || {
+            Amount::from(unsafe { buffer.assume_init() })
+        })
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = [0u8; BUFFER_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), BUFFER_SIZE)
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                BUFFER_SIZE,
+            )
         };
-        match_result_code_optional(result_code, || Some(Amount::from(buffer)))
+        match_result_code_optional(result_code, || {
+            Some(Amount::from(unsafe { buffer.assume_init() }))
+        })
     }
 }
 
@@ -352,37 +407,57 @@ impl FieldGetter for Amount {
 /// Uses a 16-byte buffer (HASH128_SIZE) and validates that exactly 16 bytes
 /// are returned from the host function to ensure data integrity.
 impl FieldGetter for Hash128 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; HASH128_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), HASH128_SIZE) };
-        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || Hash128::from(buffer))
-    }
-
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; HASH128_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), HASH128_SIZE) };
-        match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
-            Some(Hash128::from(buffer))
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH128_SIZE)
+        };
+        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
+            Hash128::from(unsafe { buffer.assume_init() })
         })
     }
 
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; HASH128_SIZE];
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), HASH128_SIZE)
-        };
-        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || Hash128::from(buffer))
-    }
-
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; HASH128_SIZE];
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), HASH128_SIZE)
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH128_SIZE)
         };
         match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
-            Some(Hash128::from(buffer))
+            Some(Hash128::from(unsafe { buffer.assume_init() }))
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                HASH128_SIZE,
+            )
+        };
+        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
+            Hash128::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                HASH128_SIZE,
+            )
+        };
+        match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
+            Some(Hash128::from(unsafe { buffer.assume_init() }))
         })
     }
 }
@@ -398,37 +473,57 @@ impl FieldGetter for Hash128 {
 /// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
 /// are returned from the host function to ensure data integrity.
 impl FieldGetter for Hash256 {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; HASH256_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), HASH256_SIZE) };
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256::from(buffer))
-    }
-
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; HASH256_SIZE];
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), HASH256_SIZE) };
-        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
-            Some(Hash256::from(buffer))
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE)
+        };
+        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
+            Hash256::from(unsafe { buffer.assume_init() })
         })
     }
 
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; HASH256_SIZE];
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
         let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), HASH256_SIZE)
-        };
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || Hash256::from(buffer))
-    }
-
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; HASH256_SIZE];
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr(), HASH256_SIZE)
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE)
         };
         match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
-            Some(Hash256::from(buffer))
+            Some(Hash256::from(unsafe { buffer.assume_init() }))
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                HASH256_SIZE,
+            )
+        };
+        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
+            Hash256::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                HASH256_SIZE,
+            )
+        };
+        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
+            Some(Hash256::from(unsafe { buffer.assume_init() }))
         })
     }
 }
@@ -448,59 +543,63 @@ const BLOB_BUFFER_SIZE: usize = 102400;
 /// and stored in the Blob's `len` field. No strict byte count validation is
 /// performed since blobs can vary significantly in size.
 impl FieldGetter for Blob {
+    #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
         let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BLOB_BUFFER_SIZE)
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BLOB_BUFFER_SIZE)
         };
         match_result_code(result_code, || Blob {
-            data: buffer,
+            data: unsafe { buffer.assume_init() },
             len: result_code as usize,
         })
     }
 
+    #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
         let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr(), BLOB_BUFFER_SIZE)
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BLOB_BUFFER_SIZE)
         };
         match_result_code_optional(result_code, || {
             Some(Blob {
-                data: buffer,
+                data: unsafe { buffer.assume_init() },
                 len: result_code as usize,
             })
         })
     }
 
+    #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
         let result_code = unsafe {
             get_ledger_obj_field(
                 register_num,
                 field_code,
-                buffer.as_mut_ptr(),
+                buffer.as_mut_ptr().cast(),
                 BLOB_BUFFER_SIZE,
             )
         };
         match_result_code(result_code, || Blob {
-            data: buffer,
+            data: unsafe { buffer.assume_init() },
             len: result_code as usize,
         })
     }
 
+    #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; BLOB_BUFFER_SIZE];
+        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
         let result_code = unsafe {
             get_ledger_obj_field(
                 register_num,
                 field_code,
-                buffer.as_mut_ptr(),
+                buffer.as_mut_ptr().cast(),
                 BLOB_BUFFER_SIZE,
             )
         };
         match_result_code_optional(result_code, || {
             Some(Blob {
-                data: buffer,
+                data: unsafe { buffer.assume_init() },
                 len: result_code as usize,
             })
         })
@@ -586,60 +685,143 @@ pub mod ledger_object {
     ) -> Result<Option<T>> {
         T::get_from_ledger_obj_optional(register_num, field_code)
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::ledger_object;
-    use crate::sfield;
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use crate::core::ledger_objects::{BLOB_BUFFER_SIZE, current_ledger_object, ledger_object};
+        use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
+        use crate::core::types::amount::Amount;
+        use crate::core::types::blob::Blob;
+        use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
+        use crate::sfield;
 
-    #[test]
-    fn test_get_field_compilation() {
-        // This test verifies that the get_field function compiles with the expected types
-        // We can't actually run these functions without a proper host environment,
-        // but we can verify they compile correctly
+        // ========================================
+        // Basic smoke tests for FieldGetter implementations
+        // These tests verify that the trait implementations compile and work with the test host.
+        // Note: The test host returns buffer_len as success, so these only verify basic functionality.
+        // ========================================
 
-        let slot = 0;
+        #[test]
+        fn test_field_getter_basic_types() {
+            // Test that all basic integer types work
+            assert!(u16::get_from_current_ledger_obj(sfield::LedgerEntryType).is_ok());
+            assert!(u32::get_from_current_ledger_obj(sfield::Flags).is_ok());
+            assert!(u64::get_from_current_ledger_obj(sfield::Balance).is_ok());
+        }
 
-        // Test the user's requested usage patterns
-        let _balance_call = || -> crate::host::Result<u64> {
-            ledger_object::get_field::<u64>(slot, sfield::Balance)
-        };
+        #[test]
+        fn test_field_getter_xrpl_types() {
+            // Test that XRPL-specific types work
+            assert!(AccountID::get_from_current_ledger_obj(sfield::Account).is_ok());
+            assert!(Amount::get_from_current_ledger_obj(sfield::Amount).is_ok());
+            assert!(Hash128::get_from_current_ledger_obj(sfield::EmailHash).is_ok());
+            assert!(Hash256::get_from_current_ledger_obj(sfield::PreviousTxnID).is_ok());
 
-        let _sequence_call = || -> crate::host::Result<u32> {
-            ledger_object::get_field::<u32>(slot, sfield::Sequence)
-        };
+            let blob = Blob::get_from_current_ledger_obj(sfield::PublicKey).unwrap();
+            // The test host returns buffer length as the result
+            assert_eq!(blob.len, BLOB_BUFFER_SIZE);
+        }
 
-        // Test with other types to ensure the trait implementations work
-        let _account_call = || -> crate::host::Result<crate::core::types::account_id::AccountID> {
-            ledger_object::get_field(slot, sfield::Account)
-        };
+        #[test]
+        fn test_field_getter_optional_variants() {
+            // Test optional field retrieval
+            let result = u32::get_from_current_ledger_obj_optional(sfield::Flags);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
 
-        let _amount_call = || -> crate::host::Result<crate::core::types::amount::Amount> {
-            ledger_object::get_field(slot, sfield::Amount)
-        };
+            let result = AccountID::get_from_current_ledger_obj_optional(sfield::Account);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
 
-        // Test optional variants
-        let _optional_balance_call = || -> crate::host::Result<Option<u64>> {
-            ledger_object::get_field_optional::<u64>(slot, sfield::Balance)
-        };
+        #[test]
+        fn test_field_getter_with_slot() {
+            // Test ledger object field retrieval with slot numbers
+            let slot = 0;
+            assert!(u32::get_from_ledger_obj(slot, sfield::Flags).is_ok());
+            assert!(u64::get_from_ledger_obj(slot, sfield::Balance).is_ok());
+            assert!(AccountID::get_from_ledger_obj(slot, sfield::Account).is_ok());
+        }
 
-        let _optional_sequence_call = || -> crate::host::Result<Option<u32>> {
-            ledger_object::get_field_optional::<u32>(slot, sfield::Sequence)
-        };
-    }
+        #[test]
+        fn test_field_getter_optional_with_slot() {
+            // Test optional field retrieval with slot numbers
+            let slot = 0;
+            let result = u32::get_from_ledger_obj_optional(slot, sfield::Flags);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
 
-    #[test]
-    fn test_exact_user_pattern() {
-        // Test the exact pattern the user requested
-        let slot = 0;
+        // ========================================
+        // Tests for module-level convenience functions
+        // ========================================
 
-        // These should compile exactly as the user specified
-        let _balance = ledger_object::get_field::<u64>(slot, sfield::Balance);
-        let _sequence = ledger_object::get_field::<u32>(slot, sfield::Sequence);
+        #[test]
+        fn test_current_ledger_object_module() {
+            // Test the current_ledger_object module's convenience functions
+            assert!(current_ledger_object::get_field::<u32>(sfield::Flags).is_ok());
+            assert!(current_ledger_object::get_field::<AccountID>(sfield::Account).is_ok());
 
-        // Also test that Balance should work with Amount type (which is more correct)
-        let _balance_amount =
-            ledger_object::get_field::<crate::core::types::amount::Amount>(slot, sfield::Balance);
+            let result = current_ledger_object::get_field_optional::<u32>(sfield::Flags);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        #[test]
+        fn test_ledger_object_module() {
+            // Test the ledger_object module's convenience functions
+            let slot = 0;
+            assert!(ledger_object::get_field::<u16>(slot, sfield::LedgerEntryType).is_ok());
+            assert!(ledger_object::get_field::<u32>(slot, sfield::Flags).is_ok());
+            assert!(ledger_object::get_field::<u64>(slot, sfield::Balance).is_ok());
+            assert!(ledger_object::get_field::<AccountID>(slot, sfield::Account).is_ok());
+            assert!(ledger_object::get_field::<Amount>(slot, sfield::Amount).is_ok());
+            assert!(ledger_object::get_field::<Hash128>(slot, sfield::EmailHash).is_ok());
+            assert!(ledger_object::get_field::<Hash256>(slot, sfield::PreviousTxnID).is_ok());
+            assert!(ledger_object::get_field::<Blob>(slot, sfield::PublicKey).is_ok());
+
+            let result = ledger_object::get_field_optional::<u32>(slot, sfield::Flags);
+            assert!(result.is_ok());
+            assert!(result.unwrap().is_some());
+        }
+
+        // ========================================
+        // Type inference and compilation tests
+        // ========================================
+
+        #[test]
+        fn test_type_inference() {
+            let slot = 0;
+            // Verify type inference works with turbofish syntax
+            let _balance = ledger_object::get_field::<u64>(slot, sfield::Balance);
+            let _account = ledger_object::get_field::<AccountID>(slot, sfield::Account);
+
+            // Verify type inference works with type annotations
+            let _sequence: Result<u32> = ledger_object::get_field(slot, sfield::Sequence);
+            let _flags: Result<u32> = ledger_object::get_field(slot, sfield::Flags);
+        }
+
+        // ========================================
+        // Data size verification tests
+        // ========================================
+
+        #[test]
+        fn test_type_sizes() {
+            // Verify that returned types have the expected sizes
+            let hash128 = Hash128::get_from_current_ledger_obj(sfield::EmailHash).unwrap();
+            assert_eq!(hash128.as_bytes().len(), HASH128_SIZE);
+
+            let hash256 = Hash256::get_from_current_ledger_obj(sfield::PreviousTxnID).unwrap();
+            assert_eq!(hash256.as_bytes().len(), HASH256_SIZE);
+
+            let account = AccountID::get_from_current_ledger_obj(sfield::Account).unwrap();
+            assert_eq!(account.0.len(), ACCOUNT_ID_SIZE);
+
+            let blob = Blob::get_from_current_ledger_obj(sfield::PublicKey).unwrap();
+            // In test environment, host returns buffer size as result code
+            assert_eq!(blob.len, BLOB_BUFFER_SIZE);
+            assert_eq!(blob.data.len(), BLOB_BUFFER_SIZE);
+        }
     }
 }
