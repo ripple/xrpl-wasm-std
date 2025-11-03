@@ -8,8 +8,8 @@ use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_curren
 use xrpl_wasm_stdlib::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
 use xrpl_wasm_stdlib::core::locator::Locator;
 use xrpl_wasm_stdlib::core::types::account_id::AccountID;
-use xrpl_wasm_stdlib::core::types::blob::Blob;
 use xrpl_wasm_stdlib::core::types::public_key::PublicKey;
+use xrpl_wasm_stdlib::core::types::signature::Signature;
 use xrpl_wasm_stdlib::core::types::transaction_type::TransactionType;
 use xrpl_wasm_stdlib::core::types::uint::Hash256;
 use xrpl_wasm_stdlib::host;
@@ -245,11 +245,10 @@ pub extern "C" fn finish() -> i32 {
             );
         }
 
-        let txn_signature: Blob = escrow_finish.get_txn_signature().unwrap();
-        let mut signature_bytes = [0u8; 71];
-        signature_bytes.copy_from_slice(&txn_signature.data[..71]);
-        assert_eq!(signature_bytes, EXPECTED_TXN_SIGNATURE);
-        let _ = trace_data("  TxnSignature:", &signature_bytes, DataRepr::AsHex);
+        let txn_signature: Signature = escrow_finish.get_txn_signature().unwrap();
+        assert_eq!(txn_signature.len(), 71);
+        assert_eq!(txn_signature.as_slice(), &EXPECTED_TXN_SIGNATURE);
+        let _ = trace_data("  TxnSignature:", txn_signature.as_slice(), DataRepr::AsHex);
 
         let _ = trace("  -- EscrowFinish Fields");
 
