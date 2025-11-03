@@ -1,18 +1,19 @@
 [package]
 name = "xrpl-wasm-stdlib"
-version = "0.5.1-devnet5"
+version = "0.7.1"
 edition = "2024"
 description = "Standard library for XRPL WebAssembly smart contracts"
 license = "ISC"
 repository = "https://github.com/ripple/xrpl-wasm-stdlib"
 homepage = "https://github.com/ripple/xrpl-wasm-stdlib"
-readme = "README.md"
+readme = "../README.md"
 keywords = ["xrpl", "wasm", "smart-contracts", "no-std"]
 categories = ["no-std", "embedded", "cryptography::cryptocurrencies"]
+include = ["src/", "README.md", "docs/**/*"]
 
 
 [lib]
 crate-type = ["lib"]
 
 [dependencies]
-xrpl-address-macro = { path = "xrpl-address-macro" }
+xrpl-address-macro = { version = "0.1.0", path = "xrpl-address-macro" }
