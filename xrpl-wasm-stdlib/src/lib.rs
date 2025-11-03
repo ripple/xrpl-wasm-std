@@ -47,7 +47,7 @@ fn hex_char_to_nibble(c: u8) -> Option<u8> {
     }
     #[cfg(not(target_arch = "wasm32"))]
     {
-        // Use pattern matching for non-WASM targets
+        // Use pattern matching for non-WASM targets; this is more idiomatic and may have different compiler optimization characteristics, but is functionally equivalent to the WASM branch.
         match c {
             b'0'..=b'9' => Some(c - b'0'),
             b'a'..=b'f' => Some(c - b'a' + 10),
