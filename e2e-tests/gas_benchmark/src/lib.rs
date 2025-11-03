@@ -4,14 +4,17 @@
 extern crate std;
 
 use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
-use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_stdlib::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
+use xrpl_wasm_stdlib::core::locator::Locator;
 use xrpl_wasm_stdlib::host::Result;
 use xrpl_wasm_stdlib::host::error_codes::{
     match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
     match_result_code_with_expected_bytes_optional,
 };
 use xrpl_wasm_stdlib::host::trace::trace;
-use xrpl_wasm_stdlib::{decode_hex_20, decode_hex_32};
+use xrpl_wasm_stdlib::{decode_hex_20, decode_hex_32, sfield};
+
+const ITERATIONS: usize = 100;
 
 /// Main entry point for the gas benchmark contract
 ///
@@ -20,7 +23,9 @@ use xrpl_wasm_stdlib::{decode_hex_20, decode_hex_32};
 /// to help identify gas usage patterns.
 ///
 /// Benchmarks covered:
+/// - Locator operations (pack single, pack nested, repack_last)
 /// - Transaction field access (get_account, get_fee)
+/// - Blob operations (creation and access)
 /// - Result type operations (is_ok, is_err, ok, err)
 /// - Error code matching (match_result_code, match_result_code_optional, etc.)
 /// - Hex decoding (decode_hex_32, decode_hex_20)
@@ -34,14 +39,55 @@ pub extern "C" fn finish() -> i32 {
     // Accumulate results to prevent compiler optimization
     let mut accumulator: u64 = 0;
 
+    // Locator operation benchmarks
+    let _ = trace("BENCHMARK_SECTION: LOCATOR_OPERATIONS");
+    let _ = trace("BENCHMARK: locator_pack_single");
+    accumulator = accumulator.wrapping_add(benchmark_locator_pack_single());
+
+    let _ = trace("BENCHMARK: locator_pack_nested");
+    accumulator = accumulator.wrapping_add(benchmark_locator_pack_nested());
+
+    let _ = trace("BENCHMARK: locator_repack_last");
+    accumulator = accumulator.wrapping_add(benchmark_locator_repack_last());
+
     // Transaction field access benchmarks
+    let _ = trace("BENCHMARK_SECTION: TRANSACTION_FIELD_ACCESS");
     let _ = trace("BENCHMARK: get_account_id_field");
     accumulator = accumulator.wrapping_add(benchmark_account_id_field(&escrow_finish));
 
     let _ = trace("BENCHMARK: get_fee_field");
     accumulator = accumulator.wrapping_add(benchmark_fee_field(&escrow_finish));
 
+    let _ = trace("BENCHMARK: get_amount_field");
+    accumulator = accumulator.wrapping_add(benchmark_amount_field(&escrow_finish));
+
+    let _ = trace("BENCHMARK: get_hash256_field");
+    accumulator = accumulator.wrapping_add(benchmark_hash256_field(&escrow_finish));
+
+    let _ = trace("BENCHMARK: get_u16_field");
+    accumulator = accumulator.wrapping_add(benchmark_u16_field(&escrow_finish));
+
+    let _ = trace("BENCHMARK: get_u64_field");
+    accumulator = accumulator.wrapping_add(benchmark_u64_field(&escrow_finish));
+
+    // Blob benchmarks
+    let _ = trace("BENCHMARK_SECTION: BLOB_OPERATIONS");
+    let _ = trace("BENCHMARK: blob_creation");
+    accumulator = accumulator.wrapping_add(benchmark_blob_creation());
+
+    let _ = trace("BENCHMARK: blob_field_access");
+    accumulator = accumulator.wrapping_add(benchmark_blob_field_access(&escrow_finish));
+
+    // Optional field access benchmarks
+    let _ = trace("BENCHMARK_SECTION: OPTIONAL_FIELD_ACCESS");
+    let _ = trace("BENCHMARK: optional_field_some");
+    accumulator = accumulator.wrapping_add(benchmark_optional_field_some(&escrow_finish));
+
+    let _ = trace("BENCHMARK: optional_field_none");
+    accumulator = accumulator.wrapping_add(benchmark_optional_field_none(&escrow_finish));
+
     // Error code matching benchmarks
+    let _ = trace("BENCHMARK_SECTION: ERROR_CODE_MATCHING");
     let _ = trace("BENCHMARK: match_result_code");
     accumulator = accumulator.wrapping_add(benchmark_match_result_code());
 
@@ -56,6 +102,7 @@ pub extern "C" fn finish() -> i32 {
         accumulator.wrapping_add(benchmark_match_result_code_with_expected_bytes_optional());
 
     // Result type method benchmarks
+    let _ = trace("BENCHMARK_SECTION: RESULT_TYPE_METHODS");
     let _ = trace("BENCHMARK: is_ok");
     accumulator = accumulator.wrapping_add(benchmark_is_ok(&escrow_finish));
 
@@ -69,6 +116,7 @@ pub extern "C" fn finish() -> i32 {
     accumulator = accumulator.wrapping_add(benchmark_result_err(&escrow_finish));
 
     // Hex decoding benchmarks
+    let _ = trace("BENCHMARK_SECTION: HEX_DECODING");
     let _ = trace("BENCHMARK: decode_hex_32");
     accumulator = accumulator.wrapping_add(benchmark_decode_hex_32());
 
@@ -83,7 +131,6 @@ pub extern "C" fn finish() -> i32 {
 
 /// Benchmark get_account_id_field by repeatedly calling get_account()
 fn benchmark_account_id_field(escrow_finish: &EscrowFinish) -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         if escrow_finish.get_account().is_ok() {
@@ -95,7 +142,6 @@ fn benchmark_account_id_field(escrow_finish: &EscrowFinish) -> u64 {
 
 /// Benchmark get_fee_field by repeatedly calling get_fee()
 fn benchmark_fee_field(escrow_finish: &EscrowFinish) -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         if escrow_finish.get_fee().is_ok() {
@@ -107,7 +153,6 @@ fn benchmark_fee_field(escrow_finish: &EscrowFinish) -> u64 {
 
 /// Benchmark match_result_code (basic success case)
 fn benchmark_match_result_code() -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         let result: Result<u32> = match_result_code(1, || 42u32);
@@ -120,7 +165,6 @@ fn benchmark_match_result_code() -> u64 {
 
 /// Benchmark match_result_code_optional (success with Some)
 fn benchmark_match_result_code_optional() -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         let result: Result<Option<u32>> = match_result_code_optional(1, || Some(42u32));
@@ -133,7 +177,6 @@ fn benchmark_match_result_code_optional() -> u64 {
 
 /// Benchmark match_result_code_with_expected_bytes
 fn benchmark_match_result_code_with_expected_bytes() -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         let result: Result<u32> = match_result_code_with_expected_bytes(20, 20, || 42u32);
@@ -146,7 +189,6 @@ fn benchmark_match_result_code_with_expected_bytes() -> u64 {
 
 /// Benchmark match_result_code_with_expected_bytes_optional
 fn benchmark_match_result_code_with_expected_bytes_optional() -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         let result: Result<Option<u32>> =
@@ -160,7 +202,6 @@ fn benchmark_match_result_code_with_expected_bytes_optional() -> u64 {
 
 /// Benchmark is_ok() checks
 fn benchmark_is_ok(escrow_finish: &EscrowFinish) -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         if escrow_finish.get_account().is_ok() {
@@ -172,7 +213,6 @@ fn benchmark_is_ok(escrow_finish: &EscrowFinish) -> u64 {
 
 /// Benchmark is_err() checks
 fn benchmark_is_err(escrow_finish: &EscrowFinish) -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         if !escrow_finish.get_account().is_err() {
@@ -184,7 +224,6 @@ fn benchmark_is_err(escrow_finish: &EscrowFinish) -> u64 {
 
 /// Benchmark Result::ok() conversion
 fn benchmark_result_ok(escrow_finish: &EscrowFinish) -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         if escrow_finish.get_account().ok().is_some() {
@@ -196,7 +235,6 @@ fn benchmark_result_ok(escrow_finish: &EscrowFinish) -> u64 {
 
 /// Benchmark Result::err() conversion
 fn benchmark_result_err(escrow_finish: &EscrowFinish) -> u64 {
-    const ITERATIONS: usize = 100;
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         if escrow_finish.get_account().err().is_none() {
@@ -208,7 +246,6 @@ fn benchmark_result_err(escrow_finish: &EscrowFinish) -> u64 {
 
 /// Benchmark decode_hex_32
 fn benchmark_decode_hex_32() -> u64 {
-    const ITERATIONS: usize = 100;
     let hex = *b"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
@@ -221,12 +258,145 @@ fn benchmark_decode_hex_32() -> u64 {
 
 /// Benchmark decode_hex_20
 fn benchmark_decode_hex_20() -> u64 {
-    const ITERATIONS: usize = 100;
     let hex = *b"00112233445566778899aabbccddeeff00112233";
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         if decode_hex_20(&hex).is_some() {
             count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark Locator::pack() - single level field access
+fn benchmark_locator_pack_single() -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        let mut locator = Locator::new();
+        if locator.pack(sfield::Account) {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark Locator::pack() - nested field access (3 levels)
+fn benchmark_locator_pack_nested() -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        let mut locator = Locator::new();
+        if locator.pack(sfield::Memos) && locator.pack(0) && locator.pack(sfield::MemoType) {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark Locator::repack_last()
+fn benchmark_locator_repack_last() -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        let mut locator = Locator::new();
+        locator.pack(sfield::Memos);
+        locator.pack(0);
+        if locator.repack_last(sfield::MemoData) {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark Blob struct creation and access
+fn benchmark_blob_creation() -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        use xrpl_wasm_stdlib::core::types::blob::Blob;
+        let blob = Blob {
+            data: [0u8; 1024],
+            len: 1024,
+        };
+        if blob.len > 0 {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark Amount field access (48-byte buffer)
+fn benchmark_amount_field(escrow_finish: &EscrowFinish) -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        if escrow_finish.get_fee().is_ok() {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark Hash256 field access (32-byte buffer)
+fn benchmark_hash256_field(escrow_finish: &EscrowFinish) -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        // Using get_id as a Hash256 field example
+        if escrow_finish.get_id().is_ok() {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark u16 field access
+fn benchmark_u16_field(escrow_finish: &EscrowFinish) -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        // Using get_transaction_type as a u16-like field example
+        if escrow_finish.get_transaction_type().is_ok() {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark u64 field access
+fn benchmark_u64_field(escrow_finish: &EscrowFinish) -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        // Using get_computation_allowance as a u32 field
+        if escrow_finish.get_computation_allowance().is_ok() {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark Blob field access from transaction
+fn benchmark_blob_field_access(escrow_finish: &EscrowFinish) -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        if escrow_finish.get_txn_signature().is_ok() {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Benchmark optional field that exists (Some case)
+fn benchmark_optional_field_some(escrow_finish: &EscrowFinish) -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        if let xrpl_wasm_stdlib::host::Result::Ok(Some(_)) = escrow_finish.get_account_txn_id() {
+            count += 1
+        }
+    }
+    count
+}
+
+/// Benchmark optional field that doesn't exist (None case)
+fn benchmark_optional_field_none(escrow_finish: &EscrowFinish) -> u64 {
+    let mut count = 0u64;
+    for _ in 0..ITERATIONS {
+        if let xrpl_wasm_stdlib::host::Result::Ok(None) = escrow_finish.get_account_txn_id() {
+            count += 1
         }
     }
     count
