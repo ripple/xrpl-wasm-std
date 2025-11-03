@@ -261,18 +261,18 @@ impl NFToken {
         }
     }
 
-    /// Retrieves the serial/sequence number of this NFToken.
+    /// Retrieves the token sequence number of this NFToken.
     ///
-    /// The sequence number is automatically incremented for each NFToken minted
+    /// The token sequence number is automatically incremented for each NFToken minted
     /// by the issuer, based on the `MintedNFTokens` field of the issuer's account.
     /// This ensures each NFToken has a unique identifier.
     ///
     /// # Returns
     ///
-    /// * `Ok(u32)` - The sequence number
+    /// * `Ok(u32)` - The token sequence number
     /// * `Err(Error)` - If the host function fails
     ///
-    pub fn serial(&self) -> Result<u32> {
+    pub fn token_sequence(&self) -> Result<u32> {
         let mut serial_buf = [0u8; 4];
         let result = unsafe {
             host::get_nft_serial(
@@ -566,12 +566,12 @@ mod tests {
     }
 
     #[test]
-    fn test_nft_serial_method() {
+    fn test_nft_token_sequence_method() {
         let nft_id = [0u8; 32];
         let nft = NFToken::new(nft_id);
 
-        // Positive case: should return Ok with serial value
-        let result = nft.serial();
+        // Positive case: should return Ok with token sequence value
+        let result = nft.token_sequence();
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 0);
     }

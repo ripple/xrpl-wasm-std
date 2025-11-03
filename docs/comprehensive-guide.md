@@ -271,7 +271,7 @@ let nft_flags = nft_token.flags()?;
 let transfer_fee = nft_token.transfer_fee()?;
 let issuer = nft_token.issuer()?;
 let taxon = nft_token.taxon()?;
-let serial = nft_token.serial()?;
+let token_sequence = nft_token.token_sequence()?;
 
 // Check individual flags efficiently (no additional host calls)
 if nft_flags.is_burnable() {

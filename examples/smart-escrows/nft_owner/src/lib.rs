@@ -84,8 +84,8 @@ pub extern "C" fn finish() -> i32 {
     if let Ok(taxon) = nft_token.taxon() {
         let _ = trace_num("NFT Taxon:", taxon as i64);
     }
-    if let Ok(serial) = nft_token.serial() {
-        let _ = trace_num("NFT Serial:", serial as i64);
+    if let Ok(token_sequence) = nft_token.token_sequence() {
+        let _ = trace_num("NFT Token Sequence:", token_sequence as i64);
     }
 
     let current_escrow = current_escrow::get_current_escrow();
