@@ -212,7 +212,7 @@ dependencies = [
 
 [[package]]
 name = "xrpl-wasm-stdlib"
-version = "0.5.1-devnet5"
+version = "0.7.1"
 dependencies = [
  "xrpl-address-macro",
 ]
