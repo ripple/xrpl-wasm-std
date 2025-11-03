@@ -31,7 +31,7 @@ fn panic(_info: &::core::panic::PanicInfo) -> ! {
 
 #[inline(always)]
 fn hex_char_to_nibble(c: u8) -> Option<u8> {
-    // WASM-optimized hex decoding with jump table for better performance
+    // WASM-optimized hex decoding with branch conditions for better performance
     #[cfg(target_arch = "wasm32")]
     {
         // Use branchless computation optimized for WASM
