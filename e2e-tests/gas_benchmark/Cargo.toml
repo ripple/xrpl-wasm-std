@@ -1,8 +1,8 @@
 [package]
-name = "float_tests"
+name = "gas_benchmark"
 version = "0.5.1-devnet5"
 edition = "2024"
-description = "Test suite for XRPL floating-point operations including arithmetic, comparison, and mathematical functions"
+description = "Gas benchmark contract for measuring optimization impact"
 license = "ISC"
 
 [lib]

@@ -73,7 +73,7 @@
 cargo build --target wasm32v1-none --release
 
 # Upload to deployed testing interface
-# Open: https://ripple.github.io/xrpl-wasm-std/ui/
+# Open: https://ripple.github.io/xrpl-wasm-stdlib/ui/
 # Click "Choose File" and select your .wasm file
 ```
 
@@ -82,7 +82,7 @@ cargo build --target wasm32v1-none --release
 These debugging statements will show up in the `debug.log` for rippled.
 
 ```rust
-use xrpl_wasm_std::host::trace::{trace, trace_data, DataRepr};
+use xrpl_wasm_stdlib::host::trace::{trace, trace_data, DataRepr};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -125,7 +125,7 @@ runTest().catch(console.error)
 ## Project Structure
 
 ```
-xrpl-wasm-std/
+xrpl-wasm-stdlib/
 ├── src/                    # Library source code
 ├── examples/smart-escrows/ # Example smart contracts
 ├── scripts/                # Development and CI scripts
@@ -178,7 +178,7 @@ git push origin v0.x.y
 
 ## Getting Help
 
-- Check [Complete Developer Guide](https://ripple.github.io/xrpl-wasm-std/xrpl_wasm_std/guide/index.html)
+- Check [Complete Developer Guide](https://ripple.github.io/xrpl-wasm-stdlib/xrpl_wasm_stdlib/guide/index.html)
 - Search existing GitHub issues
 - Create new issue with "question" label
 - Reference related issues in PRs

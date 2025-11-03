@@ -1,26 +1,26 @@
-# xrpl-wasm-std Library
+# xrpl-wasm-stdlib Library
 
 The XRPL Standard Library provides safe, type-safe access to XRPL host functions for WebAssembly smart contract development. This `no_std` library offers zero-cost abstractions over raw host function calls and handles memory management, error handling, and type conversions.
 
 ## Quick Start
 
-There is an interface available at <https://ripple.github.io/xrpl-wasm-std/ui/> for local or Devnet testing.
+There is an interface available at <https://ripple.github.io/xrpl-wasm-stdlib/ui/> for local or Devnet testing.
 
 ### Examples Overview
 
-- **[hello_world](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/hello_world/)** - Basic escrow with logging
-- **[oracle](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/oracle/)** - Price-based release using oracle data
-- **[kyc](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/kyc/)** - Credential-based verification
-- **[notary](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/notary/)** - Multi-signature authorization
-- **[nft_owner](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/nft_owner/)** - NFT ownership verification
-- **[ledger_sqn](https://github.com/ripple/xrpl-wasm-std/tree/main/examples/smart-escrows/ledger_sqn/)** - Sequence-based release
+- **[hello_world](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/hello_world/)** - Basic escrow with logging
+- **[oracle](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/oracle/)** - Price-based release using oracle data
+- **[kyc](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/kyc/)** - Credential-based verification
+- **[notary](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/notary/)** - Multi-signature authorization
+- **[nft_owner](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/nft_owner/)** - NFT ownership verification
+- **[ledger_sqn](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows/ledger_sqn/)** - Sequence-based release
 
 ## Documentation
 
-| Section                                                                                               | Description                                     |
-| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| **[Complete Developer Guide](https://ripple.github.io/xrpl-wasm-std/xrpl_wasm_std/guide/index.html)** | Comprehensive guide with working internal links |
-| **[Rust API Docs](https://ripple.github.io/xrpl-wasm-std)**                                           | Generated API documentation (`cargo doc`)       |
+| Section                                                                                                     | Description                                     |
+| ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| **[Complete Developer Guide](https://ripple.github.io/xrpl-wasm-stdlib/xrpl_wasm_stdlib/guide/index.html)** | Comprehensive guide with working internal links |
+| **[Rust API Docs](https://ripple.github.io/xrpl-wasm-stdlib)**                                              | Generated API documentation (`cargo doc`)       |
 
 The complete developer guide includes:
 

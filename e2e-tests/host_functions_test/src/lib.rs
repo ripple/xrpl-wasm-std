@@ -25,18 +25,18 @@ extern crate std;
 // -700 to -799: Data Update Functions (1 function)
 //
 
-use xrpl_wasm_std::core::current_tx::escrow_finish::EscrowFinish;
-use xrpl_wasm_std::core::current_tx::traits::TransactionCommonFields;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::Amount;
-use xrpl_wasm_std::core::types::currency::Currency;
-use xrpl_wasm_std::core::types::mpt_id::MptId;
-use xrpl_wasm_std::core::types::opaque_float::OpaqueFloat;
-use xrpl_wasm_std::host;
-use xrpl_wasm_std::host::trace::{
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
+use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::amount::Amount;
+use xrpl_wasm_stdlib::core::types::currency::Currency;
+use xrpl_wasm_stdlib::core::types::mpt_id::MptId;
+use xrpl_wasm_stdlib::core::types::opaque_float::OpaqueFloat;
+use xrpl_wasm_stdlib::host;
+use xrpl_wasm_stdlib::host::trace::{
     DataRepr, trace, trace_account_buf, trace_amount, trace_data, trace_num,
 };
-use xrpl_wasm_std::sfield;
+use xrpl_wasm_stdlib::sfield;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -739,7 +739,7 @@ fn test_utility_functions() -> i32 {
     let test_number = 42i64;
     let trace_num_result = trace_num("Test number trace", test_number);
 
-    use xrpl_wasm_std::host::Result;
+    use xrpl_wasm_stdlib::host::Result;
     match trace_num_result {
         Result::Ok(_) => {
             let _ = trace_num("Trace_num function succeeded", 0);
