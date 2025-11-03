@@ -14,6 +14,8 @@
 //! # let _ = (l.len() >= 3);
 //! ```
 
+use core::mem::MaybeUninit;
+
 /// The size of the buffer, in bytes, to use for any new locator
 const LOCATOR_BUFFER_SIZE: usize = 64;
 
@@ -44,18 +46,25 @@ impl Default for Locator {
 impl Locator {
     /// Create a new Locator using an unsigned 8-bit slot number. Valid slots are 0 to 255.
     pub fn new_with_slot(slot_num: u8) -> Locator {
-        let mut buffer: [u8; 64] = [0; 64];
-        buffer[0] = slot_num;
+        let mut buffer = MaybeUninit::<[u8; 64]>::uninit();
+        unsafe {
+            buffer.as_mut_ptr().cast::<u8>().write(slot_num);
+        }
         Self {
-            buffer,
+            buffer: unsafe { buffer.assume_init() },
             cur_buffer_index: 1,
         }
     }
 
     /// Create a new Locator. Valid slots are 0 to 255.
     pub fn new() -> Locator {
+        let mut buffer = MaybeUninit::<[u8; 64]>::uninit();
+        // Initialize only the first byte to 0 for safety
+        unsafe {
+            buffer.as_mut_ptr().cast::<u8>().write(0);
+        }
         Self {
-            buffer: [0; 64],
+            buffer: unsafe { buffer.assume_init() },
             cur_buffer_index: 0,
         }
     }
@@ -66,20 +75,10 @@ impl Locator {
         }
 
         let value_bytes: [u8; 4] = sfield_or_index.to_le_bytes();
-
-        for byte in value_bytes.iter() {
-            match self.buffer.get_mut(self.cur_buffer_index) {
-                Some(b) => *b = *byte,
-                None => return false,
-            }
-            self.cur_buffer_index += 1;
-        }
+        self.buffer[self.cur_buffer_index..self.cur_buffer_index + 4].copy_from_slice(&value_bytes);
+        self.cur_buffer_index += 4;
 
         true
-    }
-
-    pub fn get_addr(&self) -> *const u8 {
-        self.buffer.as_ptr()
     }
 
     pub fn as_ptr(&self) -> *const u8 {
@@ -102,14 +101,8 @@ impl Locator {
         self.cur_buffer_index -= 4;
 
         let value_bytes: [u8; 4] = sfield_or_index.to_le_bytes();
-
-        for byte in value_bytes.iter() {
-            match self.buffer.get_mut(self.cur_buffer_index) {
-                Some(b) => *b = *byte,
-                None => return false,
-            }
-            self.cur_buffer_index += 1;
-        }
+        self.buffer[self.cur_buffer_index..self.cur_buffer_index + 4].copy_from_slice(&value_bytes);
+        self.cur_buffer_index += 4;
 
         true
     }
