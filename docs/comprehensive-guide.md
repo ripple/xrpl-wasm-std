@@ -255,19 +255,34 @@ let balance = get_account_balance(&account);
 #### NFT Objects
 
 ```rust ignore
-// NFT functionality uses the basic get_nft function
-use xrpl_wasm_stdlib::core::ledger_objects::nft::get_nft;
+// NFT functionality uses the NFToken type
+use xrpl_wasm_stdlib::core::types::nft::NFToken;
 use xrpl_wasm_stdlib::core::types::account_id::AccountID;
-use xrpl_wasm_stdlib::types::NFT; // [u8; 32]
 
 let owner = AccountID::from([0u8; 20]);
-let nft: NFT = [0u8; 32]; // 32-byte NFT identifier
+let nft_id_bytes = [0u8; 32]; // 32-byte NFT identifier
+let nft_token = NFToken::new(nft_id_bytes);
 
-// Get NFT data
-let nft_data = get_nft(&owner, &nft);
+// Check ownership
+let is_owned = nft_token.is_owned_by(&owner);
 
-// Note: Higher-level NFT functions like ownership checking
-// and page queries are not yet implemented
+// Get NFT metadata
+let nft_flags = nft_token.flags()?;
+let transfer_fee = nft_token.transfer_fee()?;
+let issuer = nft_token.issuer()?;
+let taxon = nft_token.taxon()?;
+let token_sequence = nft_token.token_sequence()?;
+
+// Check individual flags efficiently (no additional host calls)
+if nft_flags.is_burnable() {
+    // NFT can be burned by issuer
+}
+if nft_flags.is_transferable() {
+    // NFT can be transferred
+}
+
+// Get NFT URI
+let uri = nft_token.uri(&owner)?;
 ```
 
 ### Type System

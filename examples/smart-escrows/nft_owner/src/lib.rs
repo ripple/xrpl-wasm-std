@@ -4,15 +4,15 @@
 extern crate std;
 
 use xrpl_wasm_stdlib::core::ledger_objects::current_escrow;
-use xrpl_wasm_stdlib::core::ledger_objects::nft::get_nft;
 use xrpl_wasm_stdlib::core::ledger_objects::traits::CurrentEscrowFields;
 use xrpl_wasm_stdlib::core::locator::Locator;
+use xrpl_wasm_stdlib::core::types::nft::{NFTID_SIZE, NFToken};
 use xrpl_wasm_stdlib::host::Error::InternalError;
 use xrpl_wasm_stdlib::host::get_tx_nested_field;
 use xrpl_wasm_stdlib::host::trace::{DataRepr, trace_data, trace_num};
 use xrpl_wasm_stdlib::host::{Error, Result, Result::Err, Result::Ok};
 use xrpl_wasm_stdlib::sfield;
-use xrpl_wasm_stdlib::types::{ContractData, XRPL_CONTRACT_DATA_SIZE, XRPL_NFTID_SIZE};
+use xrpl_wasm_stdlib::types::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 
 #[unsafe(no_mangle)]
 pub fn get_first_memo() -> Result<Option<ContractData>> {
@@ -54,8 +54,39 @@ pub extern "C" fn finish() -> i32 {
         }
     };
 
-    let nft: [u8; XRPL_NFTID_SIZE] = memo[0..32].try_into().unwrap();
-    let _ = trace_data("NFT ID from memo:", &nft, DataRepr::AsHex);
+    // Extract NFT ID from memo (first 32 bytes) and create NFToken
+    let nft_id_bytes: [u8; NFTID_SIZE] = memo[0..32].try_into().unwrap();
+    let nft_token = NFToken::new(nft_id_bytes);
+    let _ = trace_data("NFT ID from memo:", nft_token.as_bytes(), DataRepr::AsHex);
+
+    // Demonstrate NFToken field extraction
+    if let Ok(nft_flags) = nft_token.flags() {
+        let _ = trace_num("NFT Flags:", nft_flags.as_u16() as i64);
+        if nft_flags.is_burnable() {
+            let _ = trace_num("  - BURNABLE:", 1);
+        }
+        if nft_flags.is_only_xrp() {
+            let _ = trace_num("  - ONLY_XRP:", 1);
+        }
+        if nft_flags.is_trust_line() {
+            let _ = trace_num("  - TRUST_LINE:", 1);
+        }
+        if nft_flags.is_transferable() {
+            let _ = trace_num("  - TRANSFERABLE:", 1);
+        }
+    }
+    if let Ok(transfer_fee) = nft_token.transfer_fee() {
+        let _ = trace_num("NFT Transfer Fee:", transfer_fee as i64);
+    }
+    if let Ok(issuer) = nft_token.issuer() {
+        let _ = trace_data("NFT Issuer:", &issuer.0, DataRepr::AsHex);
+    }
+    if let Ok(taxon) = nft_token.taxon() {
+        let _ = trace_num("NFT Taxon:", taxon as i64);
+    }
+    if let Ok(token_sequence) = nft_token.token_sequence() {
+        let _ = trace_num("NFT Token Sequence:", token_sequence as i64);
+    }
 
     let current_escrow = current_escrow::get_current_escrow();
     let destination = match current_escrow.get_destination() {
@@ -66,11 +97,18 @@ pub extern "C" fn finish() -> i32 {
         }
     };
 
-    match get_nft(&destination, &nft) {
-        Ok(_) => 1, // <-- Finish the escrow to indicate a successful outcome
+    // Check if destination owns the NFT by attempting to retrieve its URI
+    match nft_token.uri(&destination) {
+        Ok(_uri) => {
+            let _ = trace_data("NFT is owned by destination", &[], DataRepr::AsHex);
+            1 // <-- Finish the escrow successfully
+        }
         Err(e) => {
-            let _ = trace_num("Error getting NFT:", e.code() as i64);
-            e.code() // <-- Do not execute the escrow.
+            let _ = trace_num(
+                "NFT is NOT owned by destination. Error code:",
+                e.code() as i64,
+            );
+            0 // <-- Do not execute the escrow
         }
     }
 }

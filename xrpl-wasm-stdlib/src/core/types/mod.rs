@@ -8,6 +8,7 @@ pub mod currency;
 pub mod issue;
 pub mod keylets;
 pub mod mpt_id;
+pub mod nft;
 pub mod opaque_float;
 pub mod public_key;
 pub mod transaction_type;
