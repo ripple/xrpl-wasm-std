@@ -528,7 +528,7 @@ mod tests {
         // Positive case: should return Ok with flags value
         let result = nft.flags();
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().as_u16(), 0);
+        assert_eq!(result.unwrap().as_u16(), NFTID_SIZE as u16);
     }
 
     #[test]
@@ -539,7 +539,7 @@ mod tests {
         // Positive case: should return Ok with transfer fee value
         let result = nft.transfer_fee();
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 0);
+        assert_eq!(result.unwrap(), NFTID_SIZE as u16);
     }
 
     #[test]
