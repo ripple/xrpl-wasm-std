@@ -95,16 +95,16 @@ All references to these files were updated in:
 
 ## Quick Reference
 
-| File Type                  | Convention           | Example                  |
-| ---------------------------|----------------------|------------------------- |
-| Rust source files          | snake_case           | `account_id.rs`          |
-| Rust crate names           | kebab-case           | `xrpl-wasm-stdlib`       |
-| Rust module directories    | snake_case           | `float_tests`            |
-| JavaScript files           | camelCase            | `compareGasResults.js`   |
-| Shell scripts              | kebab-case           | `benchmark-gas.sh`       |
-| Special docs               | SCREAMING_SNAKE_CASE | `README.md`              |
-| Other docs                 | kebab-case           | `comprehensive-guide.md` |
-| HTML/CSS                   | kebab-case           | `index.html`             |
+| File Type               | Convention           | Example                  |
+| ----------------------- | -------------------- | ------------------------ |
+| Rust source files       | snake_case           | `account_id.rs`          |
+| Rust crate names        | kebab-case           | `xrpl-wasm-stdlib`       |
+| Rust module directories | snake_case           | `float_tests`            |
+| JavaScript files        | camelCase            | `compareGasResults.js`   |
+| Shell scripts           | kebab-case           | `benchmark-gas.sh`       |
+| Special docs            | SCREAMING_SNAKE_CASE | `README.md`              |
+| Other docs              | kebab-case           | `comprehensive-guide.md` |
+| HTML/CSS                | kebab-case           | `index.html`             |
 
 ## Enforcement
 
@@ -124,4 +124,3 @@ Some files may not follow these conventions due to:
 - **Historical reasons**: Some files may retain their original names for backward compatibility
 
 When in doubt, follow the convention that matches the majority of similar files in the codebase.
-
