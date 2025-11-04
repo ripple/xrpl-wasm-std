@@ -1,4 +1,5 @@
 pub mod account_root;
+pub mod array_object;
 pub mod current_escrow;
 pub mod escrow;
 pub mod traits;
@@ -1026,20 +1027,20 @@ pub mod ledger_object {
         #[test]
         fn test_field_getter_basic_types() {
             // Test that all basic integer types work
-            assert!(u16::get_from_current_ledger_obj(sfield::LedgerEntryType.into()).is_ok());
-            assert!(u32::get_from_current_ledger_obj(sfield::Flags.into()).is_ok());
-            assert!(u64::get_from_current_ledger_obj(sfield::Balance.into()).is_ok());
+            assert!(u16::get_from_current_ledger_obj(65537i32).is_ok());
+            assert!(u32::get_from_current_ledger_obj(65538i32).is_ok());
+            assert!(u64::get_from_current_ledger_obj(393216i32).is_ok());
         }
 
         #[test]
         fn test_field_getter_xrpl_types() {
             // Test that XRPL-specific types work
-            assert!(AccountID::get_from_current_ledger_obj(sfield::Account.into()).is_ok());
-            assert!(Amount::get_from_current_ledger_obj(sfield::Amount.into()).is_ok());
-            assert!(Hash128::get_from_current_ledger_obj(sfield::EmailHash.into()).is_ok());
-            assert!(Hash256::get_from_current_ledger_obj(sfield::PreviousTxnID.into()).is_ok());
+            assert!(AccountID::get_from_current_ledger_obj(524289i32).is_ok());
+            assert!(Amount::get_from_current_ledger_obj(393216i32).is_ok());
+            assert!(Hash128::get_from_current_ledger_obj(262145i32).is_ok());
+            assert!(Hash256::get_from_current_ledger_obj(262146i32).is_ok());
 
-            let blob = Blob::get_from_current_ledger_obj(sfield::PublicKey.into()).unwrap();
+            let blob = Blob::get_from_current_ledger_obj(458752i32).unwrap();
             // The test host returns buffer length as the result
             assert_eq!(blob.len, BLOB_BUFFER_SIZE);
         }
@@ -1047,11 +1048,11 @@ pub mod ledger_object {
         #[test]
         fn test_field_getter_optional_variants() {
             // Test optional field retrieval
-            let result = u32::get_from_current_ledger_obj_optional(sfield::Flags.into());
+            let result = u32::get_from_current_ledger_obj_optional(65538i32);
             assert!(result.is_ok());
             assert!(result.unwrap().is_some());
 
-            let result = AccountID::get_from_current_ledger_obj_optional(sfield::Account.into());
+            let result = AccountID::get_from_current_ledger_obj_optional(524289i32);
             assert!(result.is_ok());
             assert!(result.unwrap().is_some());
         }
@@ -1060,16 +1061,16 @@ pub mod ledger_object {
         fn test_field_getter_with_slot() {
             // Test ledger object field retrieval with slot numbers
             let slot = 0;
-            assert!(u32::get_from_ledger_obj(slot, sfield::Flags.into()).is_ok());
-            assert!(u64::get_from_ledger_obj(slot, sfield::Balance.into()).is_ok());
-            assert!(AccountID::get_from_ledger_obj(slot, sfield::Account.into()).is_ok());
+            assert!(u32::get_from_ledger_obj(slot, 65538i32).is_ok());
+            assert!(u64::get_from_ledger_obj(slot, 393216i32).is_ok());
+            assert!(AccountID::get_from_ledger_obj(slot, 524289i32).is_ok());
         }
 
         #[test]
         fn test_field_getter_optional_with_slot() {
             // Test optional field retrieval with slot numbers
             let slot = 0;
-            let result = u32::get_from_ledger_obj_optional(slot, sfield::Flags.into());
+            let result = u32::get_from_ledger_obj_optional(slot, 65538i32);
             assert!(result.is_ok());
             assert!(result.unwrap().is_some());
         }
@@ -1130,17 +1131,16 @@ pub mod ledger_object {
         #[test]
         fn test_type_sizes() {
             // Verify that returned types have the expected sizes
-            let hash128 = Hash128::get_from_current_ledger_obj(sfield::EmailHash.into()).unwrap();
+            let hash128 = Hash128::get_from_current_ledger_obj(262145i32).unwrap();
             assert_eq!(hash128.as_bytes().len(), HASH128_SIZE);
 
-            let hash256 =
-                Hash256::get_from_current_ledger_obj(sfield::PreviousTxnID.into()).unwrap();
+            let hash256 = Hash256::get_from_current_ledger_obj(262146i32).unwrap();
             assert_eq!(hash256.as_bytes().len(), HASH256_SIZE);
 
-            let account = AccountID::get_from_current_ledger_obj(sfield::Account.into()).unwrap();
+            let account = AccountID::get_from_current_ledger_obj(524289i32).unwrap();
             assert_eq!(account.0.len(), ACCOUNT_ID_SIZE);
 
-            let blob = Blob::get_from_current_ledger_obj(sfield::PublicKey.into()).unwrap();
+            let blob = Blob::get_from_current_ledger_obj(458752i32).unwrap();
             // In test environment, host returns buffer size as result code
             assert_eq!(blob.len, BLOB_BUFFER_SIZE);
             assert_eq!(blob.data.len(), BLOB_BUFFER_SIZE);

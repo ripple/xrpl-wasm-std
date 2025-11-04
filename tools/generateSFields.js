@@ -108,6 +108,8 @@ async function main() {
     VL: "Blob",
     CURRENCY: "Currency",
     ISSUE: "Issue",
+    ARRAY: "Array",
+    OBJECT: "Object",
   }
 
   ////////////////////////////////////////////////////////////////////////
@@ -116,16 +118,14 @@ async function main() {
   // NOTE: Output below replaces the constants section in sfield.rs
   // (starting after the impl blocks at line 52)
 
-  addLine("pub const Invalid: i32 = -1;")
-  addLine("pub const Generic: i32 = 0;")
-  addLine("pub const hash: i32 = -1;")
-  addLine("pub const index: i32 = 0;")
+  addLine("pub const Invalid: SField<u8, -1> = SField::new();")
+  addLine("pub const Generic: SField<u8, 0> = SField::new();")
+  addLine("pub const hash: SField<u8, -1> = SField::new();")
+  addLine("pub const index: SField<u8, 0> = SField::new();")
   addLine("")
+  addLine("// Placeholder SField constants for array and object types")
   addLine(
-    "// Legacy i32 constants for backward compatibility with current_tx functions",
-  )
-  addLine(
-    "// These are kept for use with get_field(field_code: i32) in current_tx module",
+    "// These types don't have FieldGetter implementations but are represented as SField<u8, CODE>",
   )
 
   // Parse SField.cpp for all the SFields and their serialization info
@@ -147,14 +147,17 @@ async function main() {
       parseInt(stypeMap[xrplType]) * 2 ** 16 + parseInt(sfieldHits[x][3])
     const rustType = typeMap[xrplType]
 
-    // Generate SField constant for types with FieldGetter implementations
+    // Generate SField constant for all types
     if (rustType) {
       addLine(
         `pub const ${fieldName}: SField<${rustType}, ${fieldCode}> = SField::new();`,
       )
     } else {
-      // For types without FieldGetter, keep the old i32 constant for backward compatibility
-      addLine(`pub const ${fieldName}: i32 = ${fieldCode};`)
+      // This should not happen if typeMap is complete
+      console.warn(`Warning: No Rust type mapping for XRPL type: ${xrplType}`)
+      addLine(
+        `pub const ${fieldName}: SField<u8, ${fieldCode}> = SField::new();`,
+      )
     }
   }
 

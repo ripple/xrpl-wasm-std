@@ -31,7 +31,7 @@ pub fn get_u64_from_buffer(bytes: &[u8]) -> u64 {
 
 pub fn get_price_from_oracle(slot: i32) -> Result<u64> {
     let mut locator = Locator::new();
-    locator.pack(sfield::PriceDataSeries);
+    locator.pack(sfield::PriceDataSeries.into());
     locator.pack(0);
     locator.pack(sfield::AssetPrice.into());
 

@@ -243,6 +243,16 @@ unsafe extern "C" {
     /// - Returns a positive number of array length on success
     /// - Returns a negative error code on failure. The list of error codes is defined in
     ///   ../core/error_codes.rs
+    /// Retrieves the length of an array based on the provided field value.
+    ///
+    /// # Parameters
+    /// - `field` (i32): The integer identifier for the desired field.
+    ///
+    /// # Returns
+    ///
+    /// - Returns a positive number of array length on success
+    /// - Returns a negative error code on failure. The list of error codes is defined in
+    ///   ../core/error_codes.rs
     pub fn get_tx_array_len(field: i32) -> i32;
 
     /// Retrieves the length of an array based on the provided field value.

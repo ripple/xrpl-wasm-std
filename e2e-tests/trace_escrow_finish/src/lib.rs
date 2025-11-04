@@ -114,15 +114,15 @@ pub extern "C" fn finish() -> i32 {
             let _ = trace_num("  TicketSequence:", ticket_sequence as i64);
         }
 
-        let array_len = unsafe { host::get_tx_array_len(sfield::Memos) };
+        let array_len = unsafe { host::get_tx_array_len(sfield::Memos.into()) };
         assert_eq!(array_len, 1);
         let _ = trace_num("  Memos array len:", array_len as i64);
 
         let mut memo_buf = [0u8; 1024];
         let mut locator = Locator::new();
-        locator.pack(sfield::Memos);
+        locator.pack(sfield::Memos.into());
         locator.pack(0);
-        locator.pack(sfield::Memo);
+        locator.pack(sfield::Memo.into());
         locator.pack(sfield::MemoType.into());
         let output_len = unsafe {
             host::get_tx_nested_field(
@@ -169,14 +169,14 @@ pub extern "C" fn finish() -> i32 {
             DataRepr::AsHex,
         );
 
-        let array_len = unsafe { host::get_tx_array_len(sfield::Signers) };
+        let array_len = unsafe { host::get_tx_array_len(sfield::Signers.into()) };
         assert_eq!(array_len, 2);
         let _ = trace_num("  Signers array len:", array_len as i64);
 
         for i in 0..array_len {
             let mut buf = [0x00; 64];
             let mut locator = Locator::new();
-            locator.pack(sfield::Signers);
+            locator.pack(sfield::Signers.into());
             locator.pack(i);
             locator.pack(sfield::Account.into());
             let output_len = unsafe {
@@ -283,12 +283,12 @@ pub extern "C" fn finish() -> i32 {
         }
 
         // CredentialIDs (Array of Hashes)
-        let array_len = unsafe { host::get_tx_array_len(sfield::CredentialIDs) };
+        let array_len = unsafe { host::get_tx_array_len(sfield::CredentialIDs.into()) };
         let _ = trace_num("  CredentialIDs array len:", array_len as i64);
         for i in 0..array_len {
             let mut buf = [0x00; 32];
             let mut locator = Locator::new();
-            locator.pack(sfield::CredentialIDs);
+            locator.pack(sfield::CredentialIDs.into());
             locator.pack(i);
             let output_len = unsafe {
                 host::get_tx_nested_field(

@@ -288,7 +288,10 @@ fn benchmark_locator_pack_nested() -> u64 {
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         let mut locator = Locator::new();
-        if locator.pack(sfield::Memos) && locator.pack(0) && locator.pack(sfield::MemoType.into()) {
+        if locator.pack(sfield::Memos.into())
+            && locator.pack(0)
+            && locator.pack(sfield::MemoType.into())
+        {
             count += 1;
         }
     }
@@ -300,7 +303,7 @@ fn benchmark_locator_repack_last() -> u64 {
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         let mut locator = Locator::new();
-        locator.pack(sfield::Memos);
+        locator.pack(sfield::Memos.into());
         locator.pack(0);
         if locator.repack_last(sfield::MemoData.into()) {
             count += 1;

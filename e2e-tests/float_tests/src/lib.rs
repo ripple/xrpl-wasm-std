@@ -41,7 +41,7 @@ fn test_float_from_host() {
     let _ = trace_float("  LPTokenBalance value:", &f_lptokenbalance);
 
     let mut locator = Locator::new();
-    locator.pack(sfield::AuctionSlot);
+    locator.pack(sfield::AuctionSlot.into());
     locator.pack(sfield::Price.into());
     let output_len = unsafe {
         get_ledger_obj_nested_field(

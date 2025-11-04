@@ -1,6 +1,7 @@
-#![allow(non_upper_case_globals)]
+#![allow(non_upper_case_globals, unused_imports)]
 
 use crate::core::ledger_objects::FieldGetter;
+use crate::core::ledger_objects::array_object::{Array, Object};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
@@ -24,22 +25,19 @@ use core::marker::PhantomData;
 /// let flags = ledger_object::get_field(0, sfield::Flags).unwrap();  // u32
 /// let balance = ledger_object::get_field(0, sfield::Balance).unwrap();  // u64
 /// ```
+#[derive(Copy, Clone)]
 pub struct SField<T: FieldGetter, const CODE: i32> {
     _phantom: PhantomData<T>,
 }
 
 impl<T: FieldGetter, const CODE: i32> SField<T, CODE> {
-    /// Creates a new SField constant. This is a const fn that can be used in const contexts.
+    /// Creates a new SField constant.
+    ///
+    /// This is a const function that can be used to initialize SField constants.
     pub const fn new() -> Self {
         SField {
             _phantom: PhantomData,
         }
-    }
-}
-
-impl<T: FieldGetter, const CODE: i32> Default for SField<T, CODE> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -49,13 +47,19 @@ impl<T: FieldGetter, const CODE: i32> From<SField<T, CODE>> for i32 {
     }
 }
 
-pub const Invalid: i32 = -1;
-pub const Generic: i32 = 0;
-pub const hash: i32 = -1;
-pub const index: i32 = 0;
+impl<T: FieldGetter, const CODE: i32> Default for SField<T, CODE> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
-// Legacy i32 constants for backward compatibility with current_tx functions
-// These are kept for use with get_field(field_code: i32) in current_tx module
+pub const Invalid: SField<u8, -1> = SField::new();
+pub const Generic: SField<u8, 0> = SField::new();
+pub const hash: SField<u8, -1> = SField::new();
+pub const index: SField<u8, 0> = SField::new();
+
+// Placeholder SField constants for array and object types
+// These types don't have FieldGetter implementations but are represented as SField<Array/Object, CODE>
 pub const LedgerEntryType: SField<u16, 65537> = SField::new();
 pub const TransactionType: SField<u16, 65538> = SField::new();
 pub const SignerWeight: SField<u16, 65539> = SField::new();
@@ -263,72 +267,72 @@ pub const AttestationRewardAccount: SField<AccountID, 524309> = SField::new();
 pub const LockingChainDoor: SField<AccountID, 524310> = SField::new();
 pub const IssuingChainDoor: SField<AccountID, 524311> = SField::new();
 pub const Subject: SField<AccountID, 524312> = SField::new();
-pub const Number: i32 = 589825;
-pub const AssetsAvailable: i32 = 589826;
-pub const AssetsMaximum: i32 = 589827;
-pub const AssetsTotal: i32 = 589828;
-pub const LossUnrealized: i32 = 589829;
-pub const WasmReturnCode: i32 = 655361;
-pub const TransactionMetaData: i32 = 917506;
-pub const CreatedNode: i32 = 917507;
-pub const DeletedNode: i32 = 917508;
-pub const ModifiedNode: i32 = 917509;
-pub const PreviousFields: i32 = 917510;
-pub const FinalFields: i32 = 917511;
-pub const NewFields: i32 = 917512;
-pub const TemplateEntry: i32 = 917513;
-pub const Memo: i32 = 917514;
-pub const SignerEntry: i32 = 917515;
-pub const NFToken: i32 = 917516;
-pub const EmitDetails: i32 = 917517;
-pub const Hook: i32 = 917518;
-pub const Permission: i32 = 917519;
-pub const Signer: i32 = 917520;
-pub const Majority: i32 = 917522;
-pub const DisabledValidator: i32 = 917523;
-pub const EmittedTxn: i32 = 917524;
-pub const HookExecution: i32 = 917525;
-pub const HookDefinition: i32 = 917526;
-pub const HookParameter: i32 = 917527;
-pub const HookGrant: i32 = 917528;
-pub const VoteEntry: i32 = 917529;
-pub const AuctionSlot: i32 = 917530;
-pub const AuthAccount: i32 = 917531;
-pub const XChainClaimProofSig: i32 = 917532;
-pub const XChainCreateAccountProofSig: i32 = 917533;
-pub const XChainClaimAttestationCollectionElement: i32 = 917534;
-pub const XChainCreateAccountAttestationCollectionElement: i32 = 917535;
-pub const PriceData: i32 = 917536;
-pub const Credential: i32 = 917537;
-pub const RawTransaction: i32 = 917538;
-pub const BatchSigner: i32 = 917539;
-pub const Book: i32 = 917540;
-pub const Signers: i32 = 983043;
-pub const SignerEntries: i32 = 983044;
-pub const Template: i32 = 983045;
-pub const Necessary: i32 = 983046;
-pub const Sufficient: i32 = 983047;
-pub const AffectedNodes: i32 = 983048;
-pub const Memos: i32 = 983049;
-pub const NFTokens: i32 = 983050;
-pub const Hooks: i32 = 983051;
-pub const VoteSlots: i32 = 983052;
-pub const AdditionalBooks: i32 = 983053;
-pub const Majorities: i32 = 983056;
-pub const DisabledValidators: i32 = 983057;
-pub const HookExecutions: i32 = 983058;
-pub const HookParameters: i32 = 983059;
-pub const HookGrants: i32 = 983060;
-pub const XChainClaimAttestations: i32 = 983061;
-pub const XChainCreateAccountAttestations: i32 = 983062;
-pub const PriceDataSeries: i32 = 983064;
-pub const AuthAccounts: i32 = 983065;
-pub const AuthorizeCredentials: i32 = 983066;
-pub const UnauthorizeCredentials: i32 = 983067;
-pub const AcceptedCredentials: i32 = 983068;
-pub const Permissions: i32 = 983069;
-pub const RawTransactions: i32 = 983070;
-pub const BatchSigners: i32 = 983071;
+pub const Number: SField<u8, 589825> = SField::new();
+pub const AssetsAvailable: SField<u8, 589826> = SField::new();
+pub const AssetsMaximum: SField<u8, 589827> = SField::new();
+pub const AssetsTotal: SField<u8, 589828> = SField::new();
+pub const LossUnrealized: SField<u8, 589829> = SField::new();
+pub const WasmReturnCode: SField<u8, 655361> = SField::new();
+pub const TransactionMetaData: SField<Object, 917506> = SField::new();
+pub const CreatedNode: SField<Object, 917507> = SField::new();
+pub const DeletedNode: SField<Object, 917508> = SField::new();
+pub const ModifiedNode: SField<Object, 917509> = SField::new();
+pub const PreviousFields: SField<Object, 917510> = SField::new();
+pub const FinalFields: SField<Object, 917511> = SField::new();
+pub const NewFields: SField<Object, 917512> = SField::new();
+pub const TemplateEntry: SField<Object, 917513> = SField::new();
+pub const Memo: SField<Object, 917514> = SField::new();
+pub const SignerEntry: SField<Object, 917515> = SField::new();
+pub const NFToken: SField<Object, 917516> = SField::new();
+pub const EmitDetails: SField<Object, 917517> = SField::new();
+pub const Hook: SField<Object, 917518> = SField::new();
+pub const Permission: SField<Object, 917519> = SField::new();
+pub const Signer: SField<Object, 917520> = SField::new();
+pub const Majority: SField<Object, 917522> = SField::new();
+pub const DisabledValidator: SField<Object, 917523> = SField::new();
+pub const EmittedTxn: SField<Object, 917524> = SField::new();
+pub const HookExecution: SField<Object, 917525> = SField::new();
+pub const HookDefinition: SField<Object, 917526> = SField::new();
+pub const HookParameter: SField<Object, 917527> = SField::new();
+pub const HookGrant: SField<Object, 917528> = SField::new();
+pub const VoteEntry: SField<Object, 917529> = SField::new();
+pub const AuctionSlot: SField<Object, 917530> = SField::new();
+pub const AuthAccount: SField<Object, 917531> = SField::new();
+pub const XChainClaimProofSig: SField<Object, 917532> = SField::new();
+pub const XChainCreateAccountProofSig: SField<Object, 917533> = SField::new();
+pub const XChainClaimAttestationCollectionElement: SField<Object, 917534> = SField::new();
+pub const XChainCreateAccountAttestationCollectionElement: SField<Object, 917535> = SField::new();
+pub const PriceData: SField<Object, 917536> = SField::new();
+pub const Credential: SField<Object, 917537> = SField::new();
+pub const RawTransaction: SField<Object, 917538> = SField::new();
+pub const BatchSigner: SField<Object, 917539> = SField::new();
+pub const Book: SField<Object, 917540> = SField::new();
+pub const Signers: SField<Array, 983043> = SField::new();
+pub const SignerEntries: SField<Array, 983044> = SField::new();
+pub const Template: SField<Array, 983045> = SField::new();
+pub const Necessary: SField<Array, 983046> = SField::new();
+pub const Sufficient: SField<Array, 983047> = SField::new();
+pub const AffectedNodes: SField<Array, 983048> = SField::new();
+pub const Memos: SField<Array, 983049> = SField::new();
+pub const NFTokens: SField<Array, 983050> = SField::new();
+pub const Hooks: SField<Array, 983051> = SField::new();
+pub const VoteSlots: SField<Array, 983052> = SField::new();
+pub const AdditionalBooks: SField<Array, 983053> = SField::new();
+pub const Majorities: SField<Array, 983056> = SField::new();
+pub const DisabledValidators: SField<Array, 983057> = SField::new();
+pub const HookExecutions: SField<Array, 983058> = SField::new();
+pub const HookParameters: SField<Array, 983059> = SField::new();
+pub const HookGrants: SField<Array, 983060> = SField::new();
+pub const XChainClaimAttestations: SField<Array, 983061> = SField::new();
+pub const XChainCreateAccountAttestations: SField<Array, 983062> = SField::new();
+pub const PriceDataSeries: SField<Array, 983064> = SField::new();
+pub const AuthAccounts: SField<Array, 983065> = SField::new();
+pub const AuthorizeCredentials: SField<Array, 983066> = SField::new();
+pub const UnauthorizeCredentials: SField<Array, 983067> = SField::new();
+pub const AcceptedCredentials: SField<Array, 983068> = SField::new();
+pub const Permissions: SField<Array, 983069> = SField::new();
+pub const RawTransactions: SField<Array, 983070> = SField::new();
+pub const BatchSigners: SField<Array, 983071> = SField::new();
 pub const CloseResolution: SField<u8, 1048577> = SField::new();
 pub const Method: SField<u8, 1048578> = SField::new();
 pub const TransactionResult: SField<u8, 1048579> = SField::new();
@@ -343,22 +347,22 @@ pub const TakerPaysCurrency: SField<Hash160, 1114113> = SField::new();
 pub const TakerPaysIssuer: SField<Hash160, 1114114> = SField::new();
 pub const TakerGetsCurrency: SField<Hash160, 1114115> = SField::new();
 pub const TakerGetsIssuer: SField<Hash160, 1114116> = SField::new();
-pub const Paths: i32 = 1179649;
-pub const Indexes: i32 = 1245185;
-pub const Hashes: i32 = 1245186;
-pub const Amendments: i32 = 1245187;
-pub const NFTokenOffers: i32 = 1245188;
-pub const CredentialIDs: i32 = 1245189;
+pub const Paths: SField<u8, 1179649> = SField::new();
+pub const Indexes: SField<u8, 1245185> = SField::new();
+pub const Hashes: SField<u8, 1245186> = SField::new();
+pub const Amendments: SField<u8, 1245187> = SField::new();
+pub const NFTokenOffers: SField<u8, 1245188> = SField::new();
+pub const CredentialIDs: SField<u8, 1245189> = SField::new();
 pub const MPTokenIssuanceID: SField<Hash192, 1376257> = SField::new();
 pub const ShareMPTID: SField<Hash192, 1376258> = SField::new();
 pub const LockingChainIssue: SField<Issue, 1572865> = SField::new();
 pub const IssuingChainIssue: SField<Issue, 1572866> = SField::new();
 pub const Asset: SField<Issue, 1572867> = SField::new();
 pub const Asset2: SField<Issue, 1572868> = SField::new();
-pub const XChainBridge: i32 = 1638401;
+pub const XChainBridge: SField<u8, 1638401> = SField::new();
 pub const BaseAsset: SField<Currency, 1703937> = SField::new();
 pub const QuoteAsset: SField<Currency, 1703938> = SField::new();
-pub const Transaction: i32 = 655425793;
-pub const LedgerEntry: i32 = 655491329;
-pub const Validation: i32 = 655556865;
-pub const Metadata: i32 = 655622401;
+pub const Transaction: SField<u8, 655425793> = SField::new();
+pub const LedgerEntry: SField<u8, 655491329> = SField::new();
+pub const Validation: SField<u8, 655556865> = SField::new();
+pub const Metadata: SField<u8, 655622401> = SField::new();

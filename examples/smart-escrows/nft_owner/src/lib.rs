@@ -18,7 +18,7 @@ use xrpl_wasm_stdlib::types::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 pub fn get_first_memo() -> Result<Option<ContractData>> {
     let mut data: ContractData = [0; XRPL_CONTRACT_DATA_SIZE];
     let mut locator = Locator::new();
-    locator.pack(sfield::Memos);
+    locator.pack(sfield::Memos.into());
     locator.pack(0);
     locator.pack(sfield::MemoData.into());
     let result_code = unsafe {
