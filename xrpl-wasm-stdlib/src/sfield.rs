@@ -1,4 +1,4 @@
-#![allow(non_upper_case_globals, unused_imports)]
+#![allow(non_upper_case_globals)]
 
 use crate::core::ledger_objects::FieldGetter;
 use crate::core::ledger_objects::array_object::{Array, Object};
