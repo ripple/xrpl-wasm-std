@@ -301,21 +301,6 @@ pub trait TransactionCommonFields {
 /// - Only be used in the context of processing EscrowFinish transactions
 /// - Ensure proper error handling when accessing conditional fields
 pub trait EscrowFinishFields: TransactionCommonFields {
-    /// Retrieves the transaction ID (hash) from the current transaction.
-    ///
-    /// This field provides the unique hash identifier of the current EscrowFinish transaction.
-    /// Transaction hashes are deterministically calculated from the transaction contents
-    /// and serve as unique identifiers for referencing transactions across the XRPL network.
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Hash256>` where:
-    /// * `Ok(Hash256)` - The 256-bit transaction hash identifier
-    /// * `Err(Error)` - If the field cannot be retrieved or has an unexpected size
-    fn get_id(&self) -> Result<Hash256> {
-        get_field(sfield::hash)
-    }
-
     /// Retrieves the owner account from the current EscrowFinish transaction.
     ///
     /// This mandatory field identifies the XRPL account that originally created the escrow
