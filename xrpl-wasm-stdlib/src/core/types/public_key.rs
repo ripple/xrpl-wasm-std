@@ -8,13 +8,10 @@ pub const PUBLIC_KEY_BUFFER_SIZE: usize = 33;
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Reasonable for this 33-byte struct when explicit copying is needed
-/// - `PartialEq, Eq`: Enable public key comparisons and use in collections
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived due to the struct's size (33 bytes).
-/// Large `Copy` types can lead to accidental expensive copies and poor performance.
-/// Use `.clone()` when you need to duplicate a public key.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PublicKey(pub [u8; PUBLIC_KEY_BUFFER_SIZE]);
 

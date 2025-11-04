@@ -8,13 +8,10 @@ pub const XRPL_CONTRACT_DATA_SIZE: usize = 4096; //TODO size??
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Reasonable for this struct when explicit copying is needed
-/// - `PartialEq, Eq`: Enable contract data comparisons
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived due to the struct's size (4096+ bytes).
-/// Large `Copy` types can lead to accidental expensive copies and poor performance.
-/// Use `.clone()` when you need to duplicate contract data.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContractData {
     pub data: [u8; XRPL_CONTRACT_DATA_SIZE],

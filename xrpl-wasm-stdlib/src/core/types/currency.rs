@@ -9,15 +9,9 @@ pub const STANDARD_CURRENCY_SIZE: usize = 3; // For standard currencies like USD
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
-/// - `Copy`: Efficient for this small 20-byte struct, enabling implicit copying
-/// - `PartialEq, Eq`: Enable currency comparisons and use in hash-based collections
-///
-/// The `Copy` trait is appropriate here because:
-/// - The struct is only 20 bytes, making copies very cheap
-/// - Currency codes are frequently used in amount and trustline operations
-/// - Implicit copying improves ergonomics without performance concerns
+/// - `Copy`: Efficient for this 20-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons and use in hash-based collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct Currency(pub [u8; CURRENCY_SIZE]);

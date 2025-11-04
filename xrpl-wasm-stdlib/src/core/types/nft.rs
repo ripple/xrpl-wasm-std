@@ -53,15 +53,9 @@ pub mod flags {
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
 /// - `Copy`: Efficient for this 2-byte struct, enabling implicit copying
-/// - `PartialEq, Eq`: Enable flag comparisons
-///
-/// The `Copy` trait is appropriate here because:
-/// - The struct is only 2 bytes (u16), making copies extremely cheap
-/// - Flags are frequently checked and compared
-/// - Implicit copying improves ergonomics
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NftFlags(u16);
 
@@ -143,15 +137,9 @@ impl From<NftFlags> for u16 {
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
 /// - `Copy`: Efficient for this 32-byte struct, enabling implicit copying
-/// - `PartialEq, Eq`: Enable NFToken comparisons and use in collections
-///
-/// The `Copy` trait is appropriate here because:
-/// - The struct is only 32 bytes, making copies reasonably cheap
-/// - NFTokens are frequently passed around in NFT operations
-/// - Implicit copying improves ergonomics without significant performance concerns
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct NFToken(pub [u8; NFT_ID_SIZE]);

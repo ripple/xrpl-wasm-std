@@ -12,14 +12,10 @@
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Reasonable for explicit copying when needed
 /// - `PartialEq, Eq`: Essential for comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived because `N` can be arbitrarily large.
-/// For small UInts (e.g., `UInt<8>`), copying might be cheap, but for larger UInts
-/// (e.g., `UInt<32>` or larger), implicit copying would be expensive.
-/// Use `.clone()` when you need to duplicate a UInt.
 #[repr(C)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UInt<const N: usize>(pub [u8; N]);

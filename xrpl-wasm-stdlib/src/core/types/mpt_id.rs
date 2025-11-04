@@ -11,15 +11,9 @@ pub const MPT_SEQUENCE_NUM_SIZE: usize = 4;
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
 /// - `Copy`: Efficient for this 24-byte struct, enabling implicit copying
-/// - `PartialEq, Eq`: Enable MPT ID comparisons and use in hash-based collections
-///
-/// The `Copy` trait is appropriate here because:
-/// - The struct is only 24 bytes, making copies very cheap
-/// - MPT IDs are frequently used in token operations
-/// - Implicit copying improves ergonomics without performance concerns
+/// - `PartialEq, Eq`: Enable comparisons and use in hash-based collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct MptId([u8; MPT_ID_SIZE]);

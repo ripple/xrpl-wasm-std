@@ -52,15 +52,12 @@ pub const SIGNATURE_MAX_SIZE: usize = 72;
 /// When loading signature data from the ledger, the actual signature type
 /// may not be known, so this type can accommodate both.
 ///
-/// // ## Derived Traits
+/// ## Derived Traits
 ///
-/// - `Clone`: Reasonable for this 72-byte struct when explicit copying is needed
-/// - `PartialEq, Eq`: Enable signature comparisons and use in collections
-/// - `Debug`: Useful for development and debugging
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived due to the struct's size (72 bytes).
-/// Large `Copy` types can lead to accidental expensive copies and poor performance.
-/// Use `.clone()` when you need to duplicate a signature.
 ///
 /// # Why a Struct Instead of a Type Alias?
 ///

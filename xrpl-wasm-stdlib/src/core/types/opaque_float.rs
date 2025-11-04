@@ -24,15 +24,9 @@
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
 /// - `Copy`: Efficient for this 8-byte struct, enabling implicit copying
-/// - `PartialEq, Eq`: Enable amount comparisons (bitwise equality only)
-///
-/// The `Copy` trait is appropriate here because:
-/// - The struct is only 8 bytes, making copies very cheap
-/// - Amounts are frequently passed around in financial operations
-/// - Implicit copying improves ergonomics without performance concerns
+/// - `PartialEq, Eq`: Enable comparisons (bitwise comparison only)
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// **Note**: `PartialEq` and `Eq` perform bitwise comparison only. For semantic
 /// comparison of amounts (e.g., handling different representations of zero),

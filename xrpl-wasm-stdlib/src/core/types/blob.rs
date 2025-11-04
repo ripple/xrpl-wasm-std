@@ -18,14 +18,10 @@ pub const MEMO_BLOB_SIZE: usize = DEFAULT_BLOB_SIZE;
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Reasonable for explicit copying when needed
-/// - `PartialEq, Eq`: Enable blob comparisons and use in collections
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived because `N` can be arbitrarily large.
-/// For small blobs (e.g., `Blob<8>`), copying might be cheap, but for larger blobs
-/// (e.g., `Blob<1024>` or `Blob<4096>`), implicit copying would be expensive.
-/// Use `.clone()` when you need to duplicate a blob.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct Blob<const N: usize> {

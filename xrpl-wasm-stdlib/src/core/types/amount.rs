@@ -74,13 +74,10 @@ pub const AMOUNT_SIZE: usize = 48;
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Reasonable for this 48-byte enum when explicit copying is needed
-/// - `PartialEq, Eq`: Enable amount comparisons and use in collections
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived due to the enum's size (48 bytes).
-/// Large `Copy` types can lead to accidental expensive copies and poor performance.
-/// Use `.clone()` when you need to duplicate an amount.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub enum Amount {

@@ -2,15 +2,11 @@
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
-/// - `Copy`: Derived despite the 256-byte size to enable array initialization patterns
-/// - `PartialEq, Eq`: Enable credential ID comparisons and use in collections
+/// - `Copy`: Derived despite 256-byte size to enable array initialization patterns
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
-/// Note: `Copy` is derived here as an exception to the usual size guidelines (>32 bytes).
-/// This is necessary because `CredentialID` is used in fixed-size arrays (e.g., `[CredentialID; 10]`)
-/// which require `Copy` for array initialization syntax. While this means copies are expensive,
-/// the usage pattern (storing in arrays, not frequently copied) makes this acceptable.
+/// Note: `Copy` is an exception to usual size guidelines, required for array initialization.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct CredentialID(pub [u8; 256]);
@@ -19,13 +15,10 @@ pub struct CredentialID(pub [u8; 256]);
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Reasonable for this large struct when explicit copying is needed
-/// - `PartialEq, Eq`: Enable credential ID collection comparisons
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived due to the struct's size (2560+ bytes).
-/// Large `Copy` types can lead to accidental expensive copies and poor performance.
-/// Use `.clone()` when you need to duplicate a credential ID collection.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct CredentialIDs {

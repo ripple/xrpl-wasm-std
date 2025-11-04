@@ -12,15 +12,9 @@ pub const HASH256_SIZE: usize = 32;
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
 /// - `Copy`: Efficient for this 32-byte struct, enabling implicit copying
-/// - `PartialEq, Eq`: Enable hash comparisons and use in hash-based collections
-///
-/// The `Copy` trait is appropriate here because:
-/// - The struct is only 32 bytes, making copies reasonably cheap
-/// - Hashes are frequently passed around and compared in ledger operations
-/// - Implicit copying improves ergonomics without significant performance concerns
+/// - `PartialEq, Eq`: Enable comparisons and use in hash-based collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct Hash256(pub [u8; HASH256_SIZE]);

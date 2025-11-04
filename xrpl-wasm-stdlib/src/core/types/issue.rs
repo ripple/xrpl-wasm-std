@@ -7,12 +7,9 @@ use crate::core::types::mpt_id::MptId;
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
-/// - `Copy`: Efficient for this zero-sized struct
+/// - `Copy`: Efficient for this zero-sized type
 /// - `PartialEq, Eq`: Enable comparisons
-///
-/// The `Copy` trait is appropriate here because this is a zero-sized type.
+/// - `Debug, Clone`: Standard traits for development and consistency
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct XrpIssue {}
@@ -21,13 +18,10 @@ pub struct XrpIssue {}
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Reasonable for this 40-byte struct when explicit copying is needed
-/// - `PartialEq, Eq`: Enable issue comparisons and use in collections
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived due to the struct's size (40 bytes).
-/// Large `Copy` types can lead to accidental expensive copies and poor performance.
-/// Use `.clone()` when you need to duplicate an IOU issue.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct IouIssue {
@@ -58,15 +52,9 @@ impl IouIssue {
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Automatically derived with Copy for consistency
-/// - `Copy`: Efficient for this 24-byte struct
-/// - `PartialEq, Eq`: Enable MPT issue comparisons
-///
-/// The `Copy` trait is appropriate here because:
-/// - The struct is only 24 bytes (wrapping MptId)
-/// - MPT issues are frequently used in token operations
-/// - Implicit copying improves ergonomics
+/// - `Copy`: Efficient for this 24-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct MptIssue {
@@ -78,13 +66,10 @@ pub struct MptIssue {
 ///
 /// ## Derived Traits
 ///
-/// - `Debug`: Useful for development and debugging
-/// - `Clone`: Reasonable for this enum when explicit copying is needed
-/// - `PartialEq, Eq`: Enable issue comparisons and use in collections
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
 ///
 /// Note: `Copy` is intentionally not derived because the `IOU` variant is 40 bytes.
-/// Large `Copy` types can lead to accidental expensive copies and poor performance.
-/// Use `.clone()` when you need to duplicate an issue.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub enum Issue {
