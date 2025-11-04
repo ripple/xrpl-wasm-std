@@ -116,6 +116,53 @@ pub trait FieldGetter: Sized {
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>>;
 }
 
+/// Implementation of `FieldGetter` for 8-bit unsigned integers.
+///
+/// This implementation handles 1-byte integer fields in XRPL ledger objects.
+/// Common use cases include ledger entry types and small enumerated values.
+///
+/// # Buffer Management
+///
+/// Uses a 1-byte buffer and validates that exactly 1 byte is returned
+/// from the host function to ensure data integrity.
+impl FieldGetter for u8 {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut value = core::mem::MaybeUninit::<u8>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 1) };
+        match_result_code_with_expected_bytes(result_code, 1, || unsafe { value.assume_init() })
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut value = core::mem::MaybeUninit::<u8>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 1) };
+        match_result_code_with_expected_bytes_optional(result_code, 1, || {
+            Some(unsafe { value.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut value = core::mem::MaybeUninit::<u8>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 1) };
+        match_result_code_with_expected_bytes(result_code, 1, || unsafe { value.assume_init() })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut value = core::mem::MaybeUninit::<u8>::uninit();
+        let result_code =
+            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 1) };
+        match_result_code_with_expected_bytes_optional(result_code, 1, || {
+            Some(unsafe { value.assume_init() })
+        })
+    }
+}
+
 /// Implementation of `FieldGetter` for 16-bit unsigned integers.
 ///
 /// This implementation handles 2-byte integer fields in XRPL ledger objects.

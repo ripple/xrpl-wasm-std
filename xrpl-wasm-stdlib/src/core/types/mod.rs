@@ -1,5 +1,6 @@
 pub mod account_id;
 pub mod amount;
+pub mod array;
 pub mod blob;
 pub mod contract_data;
 pub mod credentials;
@@ -9,6 +10,7 @@ pub mod issue;
 pub mod keylets;
 pub mod mpt_id;
 pub mod nft;
+pub mod object;
 pub mod opaque_float;
 pub mod public_key;
 pub mod transaction_type;
