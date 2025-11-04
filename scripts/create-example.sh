@@ -15,16 +15,18 @@ usage() {
     echo "Creates a new XRPL WASM example project with the standard structure."
     echo ""
     echo "Arguments:"
-    echo "  project-path          Path where the project should be created (e.g., examples/smart-escrows/my_project)"
+    echo "  project-path          Path where the project should be created (e.g., my_project or examples/smart-escrows/my_project)"
     echo ""
     echo "Options:"
     echo "  -d, --description     Project description (default: 'TODO: Add description')"
+    echo "  -v, --version         xrpl-wasm-stdlib version (default: latest from crates.io)"
+    echo "  --local               Use local path dependency (for development within the repo)"
     echo "  -h, --help           Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 examples/smart-escrows/my_project"
-    echo "  $0 examples/smart-escrows/my_project -d 'A custom smart escrow'"
-    echo "  $0 examples/my-category/my_project"
+    echo "  $0 my_project"
+    echo "  $0 my_project -d 'A custom smart escrow'"
+    echo "  $0 examples/smart-escrows/my_project --local"
     exit 1
 }
 
@@ -36,12 +38,22 @@ fi
 # Parse arguments
 PROJECT_PATH=""
 DESCRIPTION="TODO: Add description"
+VERSION=""
+USE_LOCAL=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -d|--description)
             DESCRIPTION="$2"
             shift 2
+            ;;
+        -v|--version)
+            VERSION="$2"
+            shift 2
+            ;;
+        --local)
+            USE_LOCAL=true
+            shift
             ;;
         -h|--help)
             usage
@@ -68,13 +80,25 @@ if [ -z "$PROJECT_PATH" ]; then
     usage
 fi
 
-# Get the script directory and repository root
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Determine if we're running from within the repo or standalone
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || pwd)"
+if [ -f "$SCRIPT_DIR/../xrpl-wasm-stdlib/Cargo.toml" ]; then
+    REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+    IN_REPO=true
+else
+    REPO_ROOT=""
+    IN_REPO=false
+fi
 
 # Convert to absolute path if relative
 if [[ "$PROJECT_PATH" != /* ]]; then
-    PROJECT_PATH="$REPO_ROOT/$PROJECT_PATH"
+    if [ "$IN_REPO" = true ] && [ "$USE_LOCAL" = true ]; then
+        # Only use REPO_ROOT if we're in the repo AND using local dependencies
+        PROJECT_PATH="$REPO_ROOT/$PROJECT_PATH"
+    else
+        # Use current working directory for standalone projects
+        PROJECT_PATH="$(pwd)/$PROJECT_PATH"
+    fi
 fi
 
 # Extract project name from path
@@ -92,14 +116,32 @@ if [ -d "$PROJECT_PATH" ]; then
     exit 1
 fi
 
-# Calculate relative path from project to xrpl-wasm-stdlib
-PROJECT_DIR=$(dirname "$PROJECT_PATH")
-RELATIVE_PATH=$(python3 -c "import os.path; print(os.path.relpath('$REPO_ROOT/xrpl-wasm-stdlib', '$PROJECT_PATH'))")
+# Determine dependency configuration
+if [ "$USE_LOCAL" = true ] && [ "$IN_REPO" = true ]; then
+    # Calculate relative path from project to xrpl-wasm-stdlib
+    RELATIVE_PATH=$(python3 -c "import os.path; print(os.path.relpath('$REPO_ROOT/xrpl-wasm-stdlib', '$PROJECT_PATH'))")
+    DEPENDENCY_LINE="xrpl-wasm-stdlib = { path = \"$RELATIVE_PATH\" }"
+elif [ "$USE_LOCAL" = true ] && [ "$IN_REPO" = false ]; then
+    echo -e "${YELLOW}Warning: --local flag ignored (not in repository). Using crates.io version.${NC}"
+    if [ -n "$VERSION" ]; then
+        DEPENDENCY_LINE="xrpl-wasm-stdlib = \"$VERSION\""
+    else
+        DEPENDENCY_LINE="xrpl-wasm-stdlib = \"0.7.1\""
+    fi
+else
+    # Use crates.io version
+    if [ -n "$VERSION" ]; then
+        DEPENDENCY_LINE="xrpl-wasm-stdlib = \"$VERSION\""
+    else
+        DEPENDENCY_LINE="xrpl-wasm-stdlib = \"0.7.1\""
+    fi
+fi
 
 echo -e "${GREEN}Creating new XRPL WASM example project...${NC}"
 echo -e "  Name: ${YELLOW}$PROJECT_NAME${NC}"
 echo -e "  Path: ${YELLOW}$PROJECT_PATH${NC}"
 echo -e "  Description: ${YELLOW}$DESCRIPTION${NC}"
+echo -e "  Dependency: ${YELLOW}$DEPENDENCY_LINE${NC}"
 echo ""
 
 # Create project directory structure
@@ -118,7 +160,7 @@ license = "ISC"
 crate-type = ["cdylib"]
 
 [dependencies]
-xrpl-wasm-stdlib = { path = "$RELATIVE_PATH" }
+$DEPENDENCY_LINE
 EOF
 
 # Create src/lib.rs
@@ -169,8 +211,10 @@ async function test(testContext) {
 module.exports = { test }
 EOF
 
-# Create README.md
-cat > "$PROJECT_PATH/README.md" << EOF
+# Create README.md with appropriate instructions
+if [ "$USE_LOCAL" = true ] && [ "$IN_REPO" = true ]; then
+    # In-repo version with test script
+    cat > "$PROJECT_PATH/README.md" << EOF
 # $PROJECT_NAME
 
 $DESCRIPTION
@@ -220,6 +264,79 @@ This will:
 
 Expected result: \`tesSUCCESS\` and "Escrow finished successfully!".
 EOF
+else
+    # Standalone version
+    cat > "$PROJECT_PATH/README.md" << EOF
+# $PROJECT_NAME
+
+$DESCRIPTION
+
+## Prerequisites
+
+- Rust toolchain with \`wasm32v1-none\` target
+- Node.js 18+
+
+## Quick Setup
+
+### 1. Install Rust and WASM target
+
+\`\`\`shell
+# Install Rust (if not already installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Add WASM target
+rustup target add wasm32v1-none
+\`\`\`
+
+### 2. Install Node.js dependencies
+
+\`\`\`shell
+npm install
+\`\`\`
+
+### 3. Build the WASM
+
+\`\`\`shell
+cargo build --target wasm32v1-none --release
+\`\`\`
+
+Your compiled WASM will be at:
+
+\`\`\`
+./target/wasm32v1-none/release/${PROJECT_NAME}.wasm
+\`\`\`
+
+### 4. Test your contract
+
+\`\`\`shell
+node runTest.js
+\`\`\`
+
+This will:
+
+- Connect to WASM Devnet (\`wss://wasm.devnet.rippletest.net:51233\`)
+- Create and fund two test wallets (Origin and Destination)
+- Create an EscrowCreate transaction with your compiled \`FinishFunction\`
+- Finish the escrow, executing your WASM code
+
+Expected result: \`tesSUCCESS\` and "Escrow finished successfully!".
+
+## Testing on the Web UI
+
+You can also test your contract using the web interface:
+
+1. Build your contract: \`cargo build --target wasm32v1-none --release\`
+2. Open https://ripple.github.io/xrpl-wasm-stdlib/ui/
+3. Upload your WASM file from \`target/wasm32v1-none/release/${PROJECT_NAME}.wasm\`
+4. Configure test scenarios and execute
+
+## Next Steps
+
+- Edit \`src/lib.rs\` to implement your smart escrow logic
+- See the [Complete Developer Guide](https://ripple.github.io/xrpl-wasm-stdlib/xrpl_wasm_stdlib/guide/index.html)
+- Explore [example contracts](https://github.com/ripple/xrpl-wasm-stdlib/tree/main/examples/smart-escrows)
+EOF
+fi
 
 echo -e "${GREEN}✓ Project created successfully!${NC}"
 echo ""
@@ -227,7 +344,11 @@ echo "Next steps:"
 echo "  1. cd $PROJECT_PATH"
 echo "  2. Edit src/lib.rs to implement your logic"
 echo "  3. cargo build --target wasm32v1-none --release"
-echo "  4. CI=1 $REPO_ROOT/scripts/run-tests.sh ${PROJECT_PATH#$REPO_ROOT/}"
+if [ "$USE_LOCAL" = true ] && [ "$IN_REPO" = true ]; then
+    echo "  4. CI=1 $REPO_ROOT/scripts/run-tests.sh ${PROJECT_PATH#$REPO_ROOT/}"
+else
+    echo "  4. node runTest.js"
+fi
 echo ""
 echo -e "${YELLOW}Files created:${NC}"
 echo "  - Cargo.toml"
