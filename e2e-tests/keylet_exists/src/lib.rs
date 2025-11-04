@@ -156,6 +156,10 @@ pub extern "C" fn finish() -> i32 {
     check_object_exists!(offer_keylet, "Offer", sfield::Account);
     seq += 1;
 
+    let oracle_keylet = keylets::oracle_keylet(&account, seq);
+    check_object_exists!(oracle_keylet, "Oracle", sfield::Owner);
+    seq += 1;
+
     let paychan_keylet = keylets::paychan_keylet(&account, &destination, seq);
     check_object_exists!(paychan_keylet, "PayChannel", sfield::Account);
     seq += 1;

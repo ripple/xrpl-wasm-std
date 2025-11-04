@@ -112,7 +112,7 @@ impl Amount {
     ///
     /// All Amount types return a 48-byte array for consistency with the XRPL STAmount format.
     /// The format follows the XRPL binary layout:
-    /// - XRP: Raw drop amount (no flag bits) in first 8 bytes + 40 bytes padding
+    /// - XRP: Raw drop amount with sign bit in first 8 bytes + 40 bytes padding
     /// - MPT: Flag byte (0b_0110_0000) in byte 0, raw amount in bytes 1-9, MptId in bytes 9-33 + 15 bytes padding
     /// - IOU: OpaqueFloat in first 8 bytes, Currency in bytes 8-28, AccountID in bytes 28-48
     ///
@@ -122,10 +122,14 @@ impl Amount {
 
         match self {
             Amount::XRP { num_drops } => {
-                // For tracing, XRP uses raw drop amount without flag bits
-                // The host function will interpret this as XRP based on the format
+                // For tracing, XRP encodes the drop amount with the sign bit
+                // Bit 6 is set to 1 for positive amounts, 0 for negative
                 let abs_drops = num_drops.unsigned_abs();
-                bytes[0..8].copy_from_slice(&abs_drops.to_be_bytes());
+                let mut value = abs_drops;
+                if *num_drops >= 0 {
+                    value |= 0x4000000000000000u64; // Set bit 6 for positive
+                }
+                bytes[0..8].copy_from_slice(&value.to_be_bytes());
                 // Remaining 40 bytes stay as zeros (padding)
             }
 
@@ -461,10 +465,11 @@ mod tests {
         let parsed = Amount::from_bytes(&expected_bytes).unwrap();
         assert_eq!(parsed, original);
 
-        // Test to_stamount_bytes format (should be raw drops for STAmount)
+        // Test to_stamount_bytes format (should include sign bit for positive)
         let (stamount_bytes, len) = original.to_stamount_bytes();
         assert_eq!(len, 48);
-        assert_eq!(&stamount_bytes[0..8], &1_000_000u64.to_be_bytes());
+        let expected_value = 1_000_000u64 | 0x4000000000000000u64; // Add positive sign bit
+        assert_eq!(&stamount_bytes[0..8], &expected_value.to_be_bytes());
         // Remaining bytes should be zero padding
         assert_eq!(&stamount_bytes[8..48], &[0u8; 40]);
     }
@@ -486,7 +491,7 @@ mod tests {
         let parsed = Amount::from_bytes(&expected_bytes).unwrap();
         assert_eq!(parsed, original);
 
-        // Test to_stamount_bytes format (should be raw absolute drops for STAmount)
+        // Test to_stamount_bytes format (should NOT include sign bit for negative)
         let (stamount_bytes, len) = original.to_stamount_bytes();
         assert_eq!(len, 48);
         assert_eq!(&stamount_bytes[0..8], &500_000u64.to_be_bytes());
@@ -619,7 +624,7 @@ mod tests {
         assert_eq!(len, 48);
         assert_eq!(&stamount_bytes[0..8], &opaque_float_bytes); // OpaqueFloat
         assert_eq!(&stamount_bytes[8..28], &CURRENCY_BYTES); // Currency
-        assert_eq!(&stamount_bytes[28..48], &ISSUER_BYTES); // AccountID
+        assert_eq!(&stamount_bytes[28..48], &ISSUER_BYTES); // Issuer
         // No padding for IOU - uses all 48 bytes
     }
 
@@ -659,6 +664,7 @@ mod tests {
         };
 
         // Create the expected byte layout for negative IOU
+        // IOU format: [1/type][0/sign][8/exponent][54/mantissa][160/currency][160/issuer]
         let mut expected_bytes = [0u8; 48];
         expected_bytes[0..8].copy_from_slice(&opaque_float_bytes);
         expected_bytes[8..28].copy_from_slice(&CURRENCY_BYTES);
@@ -673,7 +679,7 @@ mod tests {
         assert_eq!(len, 48);
         assert_eq!(&stamount_bytes[0..8], &opaque_float_bytes); // OpaqueFloat
         assert_eq!(&stamount_bytes[8..28], &CURRENCY_BYTES); // Currency
-        assert_eq!(&stamount_bytes[28..48], &ISSUER_BYTES); // AccountID
+        assert_eq!(&stamount_bytes[28..48], &ISSUER_BYTES); // Issuer
         // No padding for IOU - uses all 48 bytes
     }
 
