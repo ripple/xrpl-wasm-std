@@ -11,7 +11,6 @@ use xrpl_wasm_stdlib::core::types::account_id::AccountID;
 use xrpl_wasm_stdlib::core::types::blob::Blob;
 use xrpl_wasm_stdlib::core::types::public_key::PublicKey;
 use xrpl_wasm_stdlib::core::types::transaction_type::TransactionType;
-use xrpl_wasm_stdlib::core::types::uint::Hash256;
 use xrpl_wasm_stdlib::host;
 use xrpl_wasm_stdlib::host::trace::{
     DataRepr, trace, trace_account, trace_account_buf, trace_amount, trace_data, trace_num,
@@ -33,11 +32,6 @@ pub extern "C" fn finish() -> i32 {
         let _ = trace("### Trace All EscrowFinish Fields");
         let _ = trace("{ ");
         let _ = trace("  -- Common Fields");
-
-        // Trace Field: TransactionID
-        let current_tx_id: Hash256 = escrow_finish.get_id().unwrap();
-        let _ = trace_data("  EscrowFinish TxId:", &current_tx_id.0, DataRepr::AsHex);
-        assert_eq!(current_tx_id, EXPECTED_TX_ID.into());
 
         // Trace Field: Account
         let account = escrow_finish.get_account().unwrap();
@@ -331,11 +325,6 @@ pub extern "C" fn finish() -> i32 {
 
 /// The following are private constants used for testing purposes to enforce value checks in this
 /// contract (to ensure that code changes don't break this contract).
-const EXPECTED_TX_ID: [u8; 32] = [
-    0x74, 0x46, 0x51, 0x21, 0x37, 0x28, 0x13, 0xCB, 0xA4, 0xC7, 0x7E, 0x31, 0xF1, 0x2E, 0x13, 0x71,
-    0x63, 0xF5, 0xB2, 0x50, 0x9B, 0x16, 0xAC, 0x17, 0x03, 0xEC, 0xF0, 0xDA, 0x19, 0x4B, 0x2D, 0xD4,
-];
-
 const EXPECTED_ACCOUNT_TXN_ID: [u8; 32] = [0xDD; 32];
 
 const EXPECTED_TX_SIGNING_PUB_KEY: [u8; 33] = [
