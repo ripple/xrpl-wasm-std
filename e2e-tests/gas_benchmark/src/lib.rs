@@ -4,7 +4,9 @@
 extern crate std;
 
 use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
-use xrpl_wasm_stdlib::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
+use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
+use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::{CurrentEscrow, get_current_escrow};
+use xrpl_wasm_stdlib::core::ledger_objects::traits::CurrentEscrowFields;
 use xrpl_wasm_stdlib::core::locator::Locator;
 use xrpl_wasm_stdlib::host::Result;
 use xrpl_wasm_stdlib::host::error_codes::{
@@ -35,6 +37,7 @@ pub extern "C" fn finish() -> i32 {
 
     // Get the current transaction
     let escrow_finish: EscrowFinish = get_current_escrow_finish();
+    let escrow: CurrentEscrow = get_current_escrow();
 
     // Accumulate results to prevent compiler optimization
     let mut accumulator: u64 = 0;
@@ -62,7 +65,7 @@ pub extern "C" fn finish() -> i32 {
     accumulator = accumulator.wrapping_add(benchmark_amount_field(&escrow_finish));
 
     let _ = trace("BENCHMARK: get_hash256_field");
-    accumulator = accumulator.wrapping_add(benchmark_hash256_field(&escrow_finish));
+    accumulator = accumulator.wrapping_add(benchmark_hash256_field(&escrow));
 
     let _ = trace("BENCHMARK: get_u16_field");
     accumulator = accumulator.wrapping_add(benchmark_u16_field(&escrow_finish));
@@ -334,11 +337,11 @@ fn benchmark_amount_field(escrow_finish: &EscrowFinish) -> u64 {
 }
 
 /// Benchmark Hash256 field access (32-byte buffer)
-fn benchmark_hash256_field(escrow_finish: &EscrowFinish) -> u64 {
+fn benchmark_hash256_field(escrow: &CurrentEscrow) -> u64 {
     let mut count = 0u64;
     for _ in 0..ITERATIONS {
         // Using get_id as a Hash256 field example
-        if escrow_finish.get_id().is_ok() {
+        if escrow.get_previous_txn_id().is_ok() {
             count += 1;
         }
     }
