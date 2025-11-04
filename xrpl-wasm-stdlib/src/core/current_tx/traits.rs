@@ -349,7 +349,7 @@ pub trait EscrowFinishFields: TransactionCommonFields {
         let mut buffer = [0u8; 32];
 
         let result_code =
-            unsafe { get_tx_field(sfield::Condition, buffer.as_mut_ptr(), buffer.len()) };
+            unsafe { get_tx_field(sfield::Condition.into(), buffer.as_mut_ptr(), buffer.len()) };
 
         match_result_code_with_expected_bytes_optional(result_code, 32, || Some(buffer.into()))
     }
@@ -386,7 +386,8 @@ pub trait EscrowFinishFields: TransactionCommonFields {
 
         let mut buffer = [0u8; 256]; // <-- 256 is the current rippled cap.
 
-        let result_code = unsafe { get_tx_field(sfield::Fulfillment, buffer.as_mut_ptr(), 256) };
+        let result_code =
+            unsafe { get_tx_field(sfield::Fulfillment.into(), buffer.as_mut_ptr(), 256) };
         match_result_code_optional(result_code, || {
             Some(Fulfillment {
                 data: buffer,

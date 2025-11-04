@@ -149,7 +149,7 @@ fn test_transaction_data_functions() -> i32 {
     let mut account_buffer = [0u8; 20];
     let account_len = unsafe {
         host::get_tx_field(
-            sfield::Account,
+            sfield::Account.into(),
             account_buffer.as_mut_ptr(),
             account_buffer.len(),
         )
@@ -167,8 +167,13 @@ fn test_transaction_data_functions() -> i32 {
     // Test with Fee field (XRP amount - 8 bytes in new serialized format)
     // New format: XRP amounts are always 8 bytes (positive: value | cPositive flag, negative: just value)
     let mut fee_buffer = [0u8; 8];
-    let fee_len =
-        unsafe { host::get_tx_field(sfield::Fee, fee_buffer.as_mut_ptr(), fee_buffer.len()) };
+    let fee_len = unsafe {
+        host::get_tx_field(
+            sfield::Fee.into(),
+            fee_buffer.as_mut_ptr(),
+            fee_buffer.len(),
+        )
+    };
 
     if fee_len != 8 {
         let _ = trace_num(
@@ -186,8 +191,13 @@ fn test_transaction_data_functions() -> i32 {
 
     // Test with Sequence field (required, 4 bytes uint32)
     let mut seq_buffer = [0u8; 4];
-    let seq_len =
-        unsafe { host::get_tx_field(sfield::Sequence, seq_buffer.as_mut_ptr(), seq_buffer.len()) };
+    let seq_len = unsafe {
+        host::get_tx_field(
+            sfield::Sequence.into(),
+            seq_buffer.as_mut_ptr(),
+            seq_buffer.len(),
+        )
+    };
 
     if seq_len != 4 {
         let _ = trace_num(
@@ -262,7 +272,7 @@ fn test_current_ledger_object_functions() -> i32 {
     let mut balance_buffer = [0u8; 8];
     let balance_result = unsafe {
         host::get_current_ledger_obj_field(
-            sfield::Balance,
+            sfield::Balance.into(),
             balance_buffer.as_mut_ptr(),
             balance_buffer.len(),
         )
@@ -300,7 +310,7 @@ fn test_current_ledger_object_functions() -> i32 {
     let mut current_account_buffer = [0u8; 20];
     let current_account_result = unsafe {
         host::get_current_ledger_obj_field(
-            sfield::Account,
+            sfield::Account.into(),
             current_account_buffer.as_mut_ptr(),
             current_account_buffer.len(),
         )
@@ -415,7 +425,7 @@ fn test_any_ledger_object_functions() -> i32 {
         let field_result = unsafe {
             host::get_ledger_obj_field(
                 1,
-                sfield::Balance,
+                sfield::Balance.into(),
                 test_buffer.as_mut_ptr(),
                 test_buffer.len(),
             )
@@ -477,7 +487,7 @@ fn test_any_ledger_object_functions() -> i32 {
     let cached_balance_result = unsafe {
         host::get_ledger_obj_field(
             slot,
-            sfield::Balance,
+            sfield::Balance.into(),
             cached_balance_buffer.as_mut_ptr(),
             cached_balance_buffer.len(),
         )

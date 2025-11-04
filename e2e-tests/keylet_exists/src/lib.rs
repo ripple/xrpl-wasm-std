@@ -35,8 +35,8 @@ pub fn object_exists(
             }
             if field == 0 {
                 let new_field = sfield::PreviousTxnID;
-                let _ = trace_num("Getting field: ", new_field.into());
-                match ledger_object::get_field::<Hash256>(slot, new_field) {
+                let _ = trace_num("Getting field: ", 327685i64);
+                match ledger_object::get_field::<Hash256, 327685>(slot, new_field) {
                     Ok(data) => {
                         let _ = trace_data("Field data: ", &data.0, DataRepr::AsHex);
                     }
@@ -47,7 +47,7 @@ pub fn object_exists(
                 }
             } else {
                 let _ = trace_num("Getting field: ", field.into());
-                match ledger_object::get_field::<AccountID>(slot, field) {
+                match ledger_object::get_field::<AccountID, 524289>(slot, sfield::Account) {
                     Ok(data) => {
                         let _ = trace_data("Field data: ", &data.0, DataRepr::AsHex);
                     }
@@ -100,7 +100,7 @@ pub extern "C" fn finish() -> i32 {
     }
 
     let account_keylet = keylets::account_keylet(&account);
-    check_object_exists!(account_keylet, "Account", sfield::Account);
+    check_object_exists!(account_keylet, "Account", sfield::Account.into());
 
     let currency: &[u8; 3] = b"USD";
     let currency: Currency = Currency::from(*currency);
@@ -113,59 +113,63 @@ pub extern "C" fn finish() -> i32 {
     check_object_exists!(
         keylets::amm_keylet(&issue1, &issue2),
         "AMM",
-        sfield::Account
+        sfield::Account.into()
     );
 
     let check_keylet = keylets::check_keylet(&account, seq);
-    check_object_exists!(check_keylet, "Check", sfield::Account);
+    check_object_exists!(check_keylet, "Check", sfield::Account.into());
     seq += 1;
 
     let cred_type: &[u8] = b"termsandconditions";
     let credential_keylet = keylets::credential_keylet(&account, &account, cred_type);
-    check_object_exists!(credential_keylet, "Credential", sfield::Subject);
+    check_object_exists!(credential_keylet, "Credential", sfield::Subject.into());
     seq += 1;
 
     let delegate_keylet = keylets::delegate_keylet(&account, &destination);
-    check_object_exists!(delegate_keylet, "Delegate", sfield::Account);
+    check_object_exists!(delegate_keylet, "Delegate", sfield::Account.into());
     seq += 1;
 
     let deposit_preauth_keylet = keylets::deposit_preauth_keylet(&account, &destination);
-    check_object_exists!(deposit_preauth_keylet, "DepositPreauth", sfield::Account);
+    check_object_exists!(
+        deposit_preauth_keylet,
+        "DepositPreauth",
+        sfield::Account.into()
+    );
     seq += 1;
 
     let did_keylet = keylets::did_keylet(&account);
-    check_object_exists!(did_keylet, "DID", sfield::Account);
+    check_object_exists!(did_keylet, "DID", sfield::Account.into());
     seq += 1;
 
     let escrow_keylet = keylets::escrow_keylet(&account, seq);
-    check_object_exists!(escrow_keylet, "Escrow", sfield::Account);
+    check_object_exists!(escrow_keylet, "Escrow", sfield::Account.into());
     seq += 1;
 
     let mpt_issuance_keylet = keylets::mpt_issuance_keylet(&account, seq);
     let mpt_id = MptId::new(seq.try_into().unwrap(), account);
-    check_object_exists!(mpt_issuance_keylet, "MPTIssuance", sfield::Issuer);
+    check_object_exists!(mpt_issuance_keylet, "MPTIssuance", sfield::Issuer.into());
     seq += 1;
 
     let mptoken_keylet = keylets::mptoken_keylet(&mpt_id, &destination);
-    check_object_exists!(mptoken_keylet, "MPToken", sfield::Account);
+    check_object_exists!(mptoken_keylet, "MPToken", sfield::Account.into());
 
     let nft_offer_keylet = keylets::nft_offer_keylet(&destination, 6);
-    check_object_exists!(nft_offer_keylet, "NFTokenOffer", sfield::Owner);
+    check_object_exists!(nft_offer_keylet, "NFTokenOffer", sfield::Owner.into());
 
     let offer_keylet = keylets::offer_keylet(&account, seq);
-    check_object_exists!(offer_keylet, "Offer", sfield::Account);
+    check_object_exists!(offer_keylet, "Offer", sfield::Account.into());
     seq += 1;
 
     let oracle_keylet = keylets::oracle_keylet(&account, seq);
-    check_object_exists!(oracle_keylet, "Oracle", sfield::Owner);
+    check_object_exists!(oracle_keylet, "Oracle", sfield::Owner.into());
     seq += 1;
 
     let paychan_keylet = keylets::paychan_keylet(&account, &destination, seq);
-    check_object_exists!(paychan_keylet, "PayChannel", sfield::Account);
+    check_object_exists!(paychan_keylet, "PayChannel", sfield::Account.into());
     seq += 1;
 
     let pd_keylet = keylets::permissioned_domain_keylet(&account, seq);
-    check_object_exists!(pd_keylet, "PermissionedDomain", sfield::Owner);
+    check_object_exists!(pd_keylet, "PermissionedDomain", sfield::Owner.into());
     seq += 1;
 
     let signers_keylet = keylets::signers_keylet(&account);
@@ -174,11 +178,11 @@ pub extern "C" fn finish() -> i32 {
 
     seq += 1; // ticket sequence number is one greater
     let ticket_keylet = keylets::ticket_keylet(&account, seq);
-    check_object_exists!(ticket_keylet, "Ticket", sfield::Account);
+    check_object_exists!(ticket_keylet, "Ticket", sfield::Account.into());
     seq += 1;
 
     let vault_keylet = keylets::vault_keylet(&account, seq);
-    check_object_exists!(vault_keylet, "Vault", sfield::Account);
+    check_object_exists!(vault_keylet, "Vault", sfield::Account.into());
     // seq += 1;
 
     1 // All keylets exist, finish the escrow.

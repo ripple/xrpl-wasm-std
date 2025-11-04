@@ -123,7 +123,7 @@ pub extern "C" fn finish() -> i32 {
         locator.pack(sfield::Memos);
         locator.pack(0);
         locator.pack(sfield::Memo);
-        locator.pack(sfield::MemoType);
+        locator.pack(sfield::MemoType.into());
         let output_len = unsafe {
             host::get_tx_nested_field(
                 locator.as_ptr(),
@@ -139,7 +139,7 @@ pub extern "C" fn finish() -> i32 {
             DataRepr::AsHex,
         );
 
-        locator.repack_last(sfield::MemoData);
+        locator.repack_last(sfield::MemoData.into());
         let output_len = unsafe {
             host::get_tx_nested_field(
                 locator.as_ptr(),
@@ -154,7 +154,7 @@ pub extern "C" fn finish() -> i32 {
             DataRepr::AsHex,
         );
 
-        locator.repack_last(sfield::MemoFormat);
+        locator.repack_last(sfield::MemoFormat.into());
         let output_len = unsafe {
             host::get_tx_nested_field(
                 locator.as_ptr(),
@@ -178,7 +178,7 @@ pub extern "C" fn finish() -> i32 {
             let mut locator = Locator::new();
             locator.pack(sfield::Signers);
             locator.pack(i);
-            locator.pack(sfield::Account);
+            locator.pack(sfield::Account.into());
             let output_len = unsafe {
                 host::get_tx_nested_field(
                     locator.as_ptr(),
@@ -194,7 +194,7 @@ pub extern "C" fn finish() -> i32 {
             let _ = trace_num("    Signer #:", i as i64);
             let _ = trace_account_buf("     Account:", &buf[..20].try_into().unwrap());
 
-            locator.repack_last(sfield::TxnSignature);
+            locator.repack_last(sfield::TxnSignature.into());
             let output_len = unsafe {
                 host::get_tx_nested_field(
                     locator.as_ptr(),
@@ -213,7 +213,7 @@ pub extern "C" fn finish() -> i32 {
                 DataRepr::AsHex,
             );
 
-            locator.repack_last(sfield::SigningPubKey);
+            locator.repack_last(sfield::SigningPubKey.into());
             let output_len = unsafe {
                 host::get_tx_nested_field(
                     locator.as_ptr(),

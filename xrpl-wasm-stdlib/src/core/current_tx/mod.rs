@@ -383,7 +383,7 @@ impl CurrentTxFieldGetter for TransactionType {
 ///
 /// # Arguments
 ///
-/// * `field_code` - The field code identifying which field to retrieve
+/// * `field_code` - The field code identifying which field to retrieve (can be an i32 or SField)
 ///
 /// # Returns
 ///
@@ -391,15 +391,15 @@ impl CurrentTxFieldGetter for TransactionType {
 /// * `Ok(T)` - The field value for the specified field
 /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
 #[inline]
-pub fn get_field<T: CurrentTxFieldGetter>(field_code: i32) -> Result<T> {
-    T::get_from_current_tx(field_code)
+pub fn get_field<T: CurrentTxFieldGetter, F: Into<i32>>(field_code: F) -> Result<T> {
+    T::get_from_current_tx(field_code.into())
 }
 
 /// Retrieves an optionally present field from the current transaction.
 ///
 /// # Arguments
 ///
-/// * `field_code` - The field code identifying which field to retrieve
+/// * `field_code` - The field code identifying which field to retrieve (can be an i32 or SField)
 ///
 /// # Returns
 ///
@@ -408,8 +408,10 @@ pub fn get_field<T: CurrentTxFieldGetter>(field_code: i32) -> Result<T> {
 /// * `Ok(None)` - If the field is not present
 /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
 #[inline]
-pub fn get_field_optional<T: CurrentTxFieldGetter>(field_code: i32) -> Result<Option<T>> {
-    T::get_from_current_tx_optional(field_code)
+pub fn get_field_optional<T: CurrentTxFieldGetter, F: Into<i32>>(
+    field_code: F,
+) -> Result<Option<T>> {
+    T::get_from_current_tx_optional(field_code.into())
 }
 
 pub mod escrow_finish;

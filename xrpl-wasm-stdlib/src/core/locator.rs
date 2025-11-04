@@ -10,7 +10,7 @@
 //! let mut l = Locator::new();
 //! l.pack(sfield::Memos);
 //! l.pack(0);
-//! l.pack(sfield::MemoType);
+//! l.pack(sfield::MemoType.into());
 //! # let _ = (l.len() >= 3);
 //! ```
 

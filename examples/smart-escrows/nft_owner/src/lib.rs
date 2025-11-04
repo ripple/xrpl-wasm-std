@@ -20,7 +20,7 @@ pub fn get_first_memo() -> Result<Option<ContractData>> {
     let mut locator = Locator::new();
     locator.pack(sfield::Memos);
     locator.pack(0);
-    locator.pack(sfield::MemoData);
+    locator.pack(sfield::MemoData.into());
     let result_code = unsafe {
         get_tx_nested_field(
             locator.as_ptr(),
