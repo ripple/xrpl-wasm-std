@@ -66,7 +66,7 @@ function main() {
 
   if (resultFiles.length === 0) {
     console.error(`No results files found in ${BENCHMARK_DIR}`)
-    console.error("Run 'node tools/gas_benchmark.js' first to generate results")
+    console.error("Run 'node tools/gasBenchmark.js' first to generate results")
     process.exit(1)
   }
 
