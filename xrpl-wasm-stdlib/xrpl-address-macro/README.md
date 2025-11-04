@@ -1,9 +1,37 @@
 # xrpl-address-macro
 
-A compile-time macro for converting XRPL classic addresses (r-addresses) to 20-byte arrays.
+⚠️ **INTERNAL CRATE - DO NOT USE DIRECTLY** ⚠️
 
-This is an internal procedural macro crate used by `xrpl-wasm-stdlib`. Users should import the macro from `xrpl-wasm-stdlib`
-directly.
+This is an internal procedural macro crate for `xrpl-wasm-stdlib`.
+
+**Users should add `xrpl-wasm-stdlib` to their dependencies, NOT this crate.**
+
+Due to Rust's requirement that procedural macros must be in a separate crate, this is published
+alongside `xrpl-wasm-stdlib` but is not intended for direct use. The macro is re-exported from
+`xrpl-wasm-stdlib` for your convenience.
+
+## For Users
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+xrpl-wasm-stdlib = "0.7.1"
+```
+
+Then use the macro:
+
+```rust
+use xrpl_wasm_stdlib::r_address;
+
+const ACCOUNT: [u8; 20] = r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");
+```
+
+---
+
+## About This Crate
+
+A compile-time macro for converting XRPL classic addresses (r-addresses) to 20-byte arrays.
 
 ## Features
 
