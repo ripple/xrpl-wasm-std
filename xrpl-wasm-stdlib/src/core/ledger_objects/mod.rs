@@ -6,6 +6,9 @@ pub mod traits;
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
 use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
+use crate::core::types::currency::Currency;
+use crate::core::types::issue::{IouIssue, Issue, MptIssue, XrpIssue};
+use crate::core::types::mpt_id::MptId;
 use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
 use crate::host::error_codes::{
     match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
@@ -551,6 +554,225 @@ impl FieldGetter for Blob {
                 len: result_code as usize,
             })
         })
+    }
+}
+
+/// Implementation of `FieldGetter` for XRPL currency codes.
+///
+/// This implementation handles 20-byte currency code fields in XRPL ledger objects.
+/// Currency codes uniquely identify different currencies and assets on the XRPL.
+///
+/// # Buffer Management
+///
+/// Uses a 20-byte buffer and validates that exactly 20 bytes are returned
+/// from the host function to ensure data integrity.
+impl FieldGetter for Currency {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 20) };
+        match_result_code_with_expected_bytes(result_code, 20, || {
+            Currency::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 20) };
+        match_result_code_with_expected_bytes_optional(result_code, 20, || {
+            Some(Currency::from(unsafe { buffer.assume_init() }))
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 20)
+        };
+        match_result_code_with_expected_bytes(result_code, 20, || {
+            Currency::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 20)
+        };
+        match_result_code_with_expected_bytes_optional(result_code, 20, || {
+            Some(Currency::from(unsafe { buffer.assume_init() }))
+        })
+    }
+}
+
+/// Implementation of `FieldGetter` for XRPL issues.
+///
+/// This implementation handles issue fields in XRPL ledger objects.
+/// Supports all three Issue variants: XRP, IOU, and MPT.
+///
+/// # Buffer Management
+///
+/// Uses a 40-byte buffer to accommodate all Issue types:
+/// - XRP: 20 bytes (all zeros)
+/// - IOU: 40 bytes (20 bytes currency + 20 bytes issuer)
+/// - MPT: 24 bytes (4 bytes sequence + 20 bytes issuer)
+///
+/// The implementation detects the Issue type based on the number of bytes returned
+/// from the host function.
+impl FieldGetter for Issue {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 40]>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 40) };
+
+        // Detect Issue type based on returned byte count
+        match result_code {
+            20 => {
+                // XRP Issue (20 bytes)
+                Result::Ok(Issue::XRP(XrpIssue {}))
+            }
+            24 => {
+                // MPT Issue (24 bytes: 4-byte sequence + 20-byte issuer)
+                let buffer = unsafe { buffer.assume_init() };
+                let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
+                let mpt_id = MptId::from(mpt_bytes);
+                Result::Ok(Issue::MPT(MptIssue::new(mpt_id)))
+            }
+            40 => {
+                // IOU Issue (40 bytes: 20-byte currency + 20-byte issuer)
+                let buffer = unsafe { buffer.assume_init() };
+                let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
+                let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
+                let currency = Currency::from(currency_bytes);
+                let issuer = AccountID::from(issuer_bytes);
+                Result::Ok(Issue::IOU(IouIssue::new(issuer, currency)))
+            }
+            _ => {
+                // Unexpected size, treat as error
+                Result::Err(crate::host::Error::from_code(result_code))
+            }
+        }
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 40]>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 40) };
+
+        // Detect Issue type based on returned byte count
+        match result_code {
+            20 => {
+                // XRP Issue (20 bytes)
+                Result::Ok(Some(Issue::XRP(XrpIssue {})))
+            }
+            24 => {
+                // MPT Issue (24 bytes: 4-byte sequence + 20-byte issuer)
+                let buffer = unsafe { buffer.assume_init() };
+                let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
+                let mpt_id = MptId::from(mpt_bytes);
+                Result::Ok(Some(Issue::MPT(MptIssue::new(mpt_id))))
+            }
+            40 => {
+                // IOU Issue (40 bytes: 20-byte currency + 20-byte issuer)
+                let buffer = unsafe { buffer.assume_init() };
+                let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
+                let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
+                let currency = Currency::from(currency_bytes);
+                let issuer = AccountID::from(issuer_bytes);
+                Result::Ok(Some(Issue::IOU(IouIssue::new(issuer, currency))))
+            }
+            code if code < 0 => {
+                // Negative code indicates field not found or error
+                Result::Ok(None)
+            }
+            _ => {
+                // Unexpected size, treat as error
+                Result::Err(crate::host::Error::from_code(result_code))
+            }
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 40]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 40)
+        };
+
+        // Detect Issue type based on returned byte count
+        match result_code {
+            20 => {
+                // XRP Issue (20 bytes)
+                Result::Ok(Issue::XRP(XrpIssue {}))
+            }
+            24 => {
+                // MPT Issue (24 bytes: 4-byte sequence + 20-byte issuer)
+                let buffer = unsafe { buffer.assume_init() };
+                let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
+                let mpt_id = MptId::from(mpt_bytes);
+                Result::Ok(Issue::MPT(MptIssue::new(mpt_id)))
+            }
+            40 => {
+                // IOU Issue (40 bytes: 20-byte currency + 20-byte issuer)
+                let buffer = unsafe { buffer.assume_init() };
+                let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
+                let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
+                let currency = Currency::from(currency_bytes);
+                let issuer = AccountID::from(issuer_bytes);
+                Result::Ok(Issue::IOU(IouIssue::new(issuer, currency)))
+            }
+            _ => {
+                // Unexpected size, treat as error
+                Result::Err(crate::host::Error::from_code(result_code))
+            }
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 40]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 40)
+        };
+
+        // Detect Issue type based on returned byte count
+        match result_code {
+            20 => {
+                // XRP Issue (20 bytes)
+                Result::Ok(Some(Issue::XRP(XrpIssue {})))
+            }
+            24 => {
+                // MPT Issue (24 bytes: 4-byte sequence + 20-byte issuer)
+                let buffer = unsafe { buffer.assume_init() };
+                let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
+                let mpt_id = MptId::from(mpt_bytes);
+                Result::Ok(Some(Issue::MPT(MptIssue::new(mpt_id))))
+            }
+            40 => {
+                // IOU Issue (40 bytes: 20-byte currency + 20-byte issuer)
+                let buffer = unsafe { buffer.assume_init() };
+                let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
+                let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
+                let currency = Currency::from(currency_bytes);
+                let issuer = AccountID::from(issuer_bytes);
+                Result::Ok(Some(Issue::IOU(IouIssue::new(issuer, currency))))
+            }
+            code if code < 0 => {
+                // Negative code indicates field not found or error
+                Result::Ok(None)
+            }
+            _ => {
+                // Unexpected size, treat as error
+                Result::Err(crate::host::Error::from_code(result_code))
+            }
+        }
     }
 }
 

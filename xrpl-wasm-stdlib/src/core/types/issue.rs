@@ -42,6 +42,16 @@ pub struct MptIssue {
     mpt_id: MptId,
 }
 
+impl MptIssue {
+    pub fn new(mpt_id: MptId) -> Self {
+        Self { mpt_id }
+    }
+
+    pub fn mpt_id(&self) -> MptId {
+        self.mpt_id
+    }
+}
+
 /// Represents an issue without a value, such as reading `Asset1` and `Asset2` in AMM ledger
 /// objects.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
