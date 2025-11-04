@@ -75,61 +75,6 @@ async function main() {
     output += line + "\n"
   }
 
-  addLine("#![allow(non_upper_case_globals)]\n")
-  addLine("use core::marker::PhantomData;")
-  addLine("use crate::core::ledger_objects::FieldGetter;")
-  addLine("use crate::core::types::uint::{Hash128, Hash160, Hash192, Hash256};")
-  addLine("use crate::core::types::account_id::AccountID;")
-  addLine("use crate::core::types::amount::Amount;")
-  addLine("use crate::core::types::blob::Blob;")
-  addLine("use crate::core::types::currency::Currency;")
-  addLine("use crate::core::types::issue::Issue;\n")
-  addLine("/// A type-safe wrapper for XRPL serialized field codes.")
-  addLine("///")
-  addLine(
-    "/// This struct encodes both the field code and the expected type as const generics,",
-  )
-  addLine(
-    "/// allowing the compiler to automatically infer the correct type when calling `get_field`.",
-  )
-  addLine("///")
-  addLine("/// # Example")
-  addLine("///")
-  addLine("/// ```rust,no_run")
-  addLine("/// use xrpl_wasm_stdlib::core::ledger_objects::ledger_object;")
-  addLine("/// use xrpl_wasm_stdlib::sfield;")
-  addLine("///")
-  addLine("/// // Type is automatically inferred from the SField constant")
-  addLine(
-    "/// let flags = ledger_object::get_field(0, sfield::Flags).unwrap();  // u32",
-  )
-  addLine(
-    "/// let balance = ledger_object::get_field(0, sfield::Balance).unwrap();  // u64",
-  )
-  addLine("/// ```")
-  addLine("pub struct SField<T: FieldGetter, const CODE: i32> {")
-  addLine("    _phantom: PhantomData<T>,")
-  addLine("}")
-  addLine("")
-  addLine("impl<T: FieldGetter, const CODE: i32> SField<T, CODE> {")
-  addLine(
-    "    /// Creates a new SField constant. This is a const fn that can be used in const contexts.",
-  )
-  addLine("    pub const fn new() -> Self {")
-  addLine("        SField {")
-  addLine("            _phantom: PhantomData,")
-  addLine("        }")
-  addLine("    }")
-  addLine("}")
-  addLine("")
-  addLine(
-    "impl<T: FieldGetter, const CODE: i32> From<SField<T, CODE>> for i32 {",
-  )
-  addLine("    fn from(_: SField<T, CODE>) -> Self {")
-  addLine("        CODE")
-  addLine("    }")
-  addLine("}\n")
-
   // process STypes
   let stypeHits = [
     ...sfieldHeaderFile.matchAll(
@@ -168,6 +113,8 @@ async function main() {
   ////////////////////////////////////////////////////////////////////////
   //  SField processing
   ////////////////////////////////////////////////////////////////////////
+  // NOTE: Output below replaces the constants section in sfield.rs
+  // (starting after the impl blocks at line 52)
 
   addLine("pub const Invalid: i32 = -1;")
   addLine("pub const Generic: i32 = 0;")
@@ -233,7 +180,34 @@ async function main() {
       ? process.argv[3]
       : path.join(__dirname, "../xrpl-wasm-stdlib/src/sfield.rs")
   try {
-    await fs.writeFile(outputFile, output, "utf8")
+    // Read existing file to preserve type definitions
+    let existingContent = ""
+    try {
+      existingContent = await fs.readFile(outputFile, "utf8")
+    } catch {
+      // File doesn't exist yet, that's ok
+    }
+
+    // Find where the constants section starts (after impl blocks)
+    // Look for the first "pub const Invalid" line
+    const constantsStartMarker = "pub const Invalid: i32 = -1;"
+    const existingConstantsStart = existingContent.indexOf(constantsStartMarker)
+
+    let finalOutput
+    if (existingConstantsStart !== -1) {
+      // Extract the type definitions part (everything before the constants)
+      const typeDefinitions = existingContent.substring(
+        0,
+        existingConstantsStart,
+      )
+      // Combine type definitions with new constants
+      finalOutput = typeDefinitions + output
+    } else {
+      // File doesn't have constants section yet, just use the new output
+      finalOutput = output
+    }
+
+    await fs.writeFile(outputFile, finalOutput, "utf8")
     console.log("File written successfully to", outputFile)
   } catch (err) {
     console.error("Error writing to file:", err)
