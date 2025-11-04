@@ -1,10 +1,10 @@
 [package]
 name = "xrpl-address-macro"
-version = "0.1.0"
+version.workspace = true
 edition = "2024"
-description = "Compile-time macro for converting XRPL r-addresses to 20-byte arrays"
-license = "ISC"
-repository = "https://github.com/ripple/xrpl-wasm-stdlib"
+description = "Internal proc macro for xrpl-wasm-stdlib - use xrpl-wasm-stdlib instead"
+license.workspace = true
+repository.workspace = true
 homepage = "https://github.com/ripple/xrpl-wasm-stdlib"
 readme = "README.md"
 keywords = ["xrpl", "macro", "address", "codec"]
