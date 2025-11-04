@@ -21,9 +21,9 @@ scripts/build.sh release
 
 echo "🧪 Running integration tests..."
 if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
-    node tests/setup_ledger.js "wss://wasm.devnet.rippletest.net:51233"
+    node tests/setupLedger.js "wss://wasm.devnet.rippletest.net:51233"
 else
-    node tests/setup_ledger.js
+    node tests/setupLedger.js
 fi
 
 set +e
@@ -33,17 +33,17 @@ run_integration_test() {
     local contract_name="$2"
     local wasm_file_release="$3"
 
-    if [[ ! -f "$dir/run_test.js" ]]; then
-        echo "❌ Error: Test file run_test.js not found in $dir"
+    if [[ ! -f "$dir/runTest.js" ]]; then
+        echo "❌ Error: Test file runTest.js not found in $dir"
         exit 1
     fi
     echo "🔧 Running integration test for $contract_name in $dir"
     exit_code=0
     if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
-        node tests/run_single_test.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
+        node tests/runSingleTest.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
         exit_code=$?
     else
-        node tests/run_single_test.js "$dir" "$wasm_file_release"
+        node tests/runSingleTest.js "$dir" "$wasm_file_release"
         exit_code=$?
     fi
     exit $exit_code
@@ -84,8 +84,8 @@ while read -r cargo_file; do
     contract_name=$(basename "$dir")
     wasm_file_release="e2e-tests/target/wasm32v1-none/release/${contract_name}.wasm"
     # TODO: remove this when tests are written for all the e2e-tests
-    if [[ ! -f "$dir/run_test.js" ]]; then
-        echo "⚠️  Skipping $contract_name: run_test.js not found in $dir"
+    if [[ ! -f "$dir/runTest.js" ]]; then
+        echo "⚠️  Skipping $contract_name: runTest.js not found in $dir"
         continue
     fi
     (run_integration_test "$dir" "$contract_name" "$wasm_file_release")
