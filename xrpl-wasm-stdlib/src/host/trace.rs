@@ -232,7 +232,7 @@ mod tests {
 
         // Check the actual bytes for 10 drops
         // Expected: just the raw drop amount (10)
-        let expected_bytes = 10u64.to_be_bytes();
+        let expected_bytes = [64, 0, 0, 0, 0, 0, 0, 10];
         assert_eq!(&bytes[0..8], &expected_bytes);
 
         // Test IOU format
