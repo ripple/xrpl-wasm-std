@@ -37,7 +37,7 @@
 **All PRs must:**
 
 - Pass all existing tests (`./scripts/run-all.sh` and in CI)
-- Follow general code style guidelines (enforced by CI)
+- Follow general code style guidelines (enforced by CI) and [naming conventions](./docs/NAMING_CONVENTIONS.md).
 - Include tests for new functionality
 - Update documentation as needed
 
