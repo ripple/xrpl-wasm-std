@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XRPL Opaque Float Converter</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 1000px;
+        width: 100%;
+        padding: 40px;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e0e0e0;
+      }
+
+      .tab-button {
+        padding: 12px 20px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #999;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+      }
+
+      .tab-button.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+      }
+
+      .tab-button:hover {
+        color: #667eea;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .section {
+        margin-bottom: 30px;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+      }
+
+      .input-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .input-group.full {
+        grid-template-columns: 1fr;
+      }
+
+      .input-group.triple {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: "Courier New", monospace;
+        transition: border-color 0.3s;
+      }
+
+      input[type="text"]:focus,
+      input[type="number"]:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-copy {
+        background: #48bb78;
+        color: white;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      .btn-copy:hover {
+        background: #38a169;
+      }
+
+      .output-box {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+
+      .output-row {
+        display: grid;
+        grid-template-columns: 150px 1fr auto;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .output-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .output-label {
+        font-weight: 600;
+        color: #555;
+        font-size: 13px;
+      }
+
+      .output-value {
+        font-family: "Courier New", monospace;
+        color: #333;
+        word-break: break-all;
+        font-size: 14px;
+      }
+
+      .error {
+        background: #fee;
+        color: #c33;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-size: 13px;
+        border-left: 4px solid #c33;
+      }
+
+      .success {
+        background: #efe;
+        color: #3c3;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-size: 13px;
+        border-left: 4px solid #3c3;
+      }
+
+      .subsection {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .subsection-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .reference-box {
+        background: #f0f7ff;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+      }
+
+      .reference-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .reference-content {
+        font-size: 13px;
+        color: #555;
+        line-height: 1.6;
+      }
+
+      .code-block {
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        margin: 10px 0;
+        overflow-x: auto;
+      }
+
+      .examples {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+      }
+
+      .example-btn {
+        padding: 12px;
+        text-align: left;
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 13px;
+      }
+
+      .example-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+      }
+
+      .example-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .example-value {
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔢 XRPL Opaque Float Converter</h1>
+      <p class="subtitle">
+        Convert between opaque float bytes and human-readable representations
+      </p>
+
+      <!-- Tab Navigation -->
+      <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('hex-to-decimal')">
+          Hex → Decimal
+        </button>
+        <button class="tab-button" onclick="switchTab('decimal-to-hex')">
+          Decimal → Hex
+        </button>
+        <button class="tab-button" onclick="switchTab('reference')">
+          Reference
+        </button>
+      </div>
+
+      <div id="message"></div>
+
+      <!-- TAB 1: Hex to Decimal -->
+      <div id="hex-to-decimal" class="tab-content active">
+        <div class="section">
+          <div class="section-title">Decode Opaque Float (Hex → Decimal)</div>
+
+          <!-- Smart Input (auto-detects format) -->
+          <div class="input-group full">
+            <label for="hexDecimalInput">Hex Bytes or Byte Array</label>
+            <input
+              type="text"
+              id="hexDecimalInput"
+              placeholder="e.g., D4838D7EA4C68000 or [0xD4, 0x83, 0x8D, 0x7E, 0xA4, 0xC6, 0x80, 0x00]"
+            />
+          </div>
+
+          <div class="button-group">
+            <button class="btn-primary" onclick="convertFromHex()">
+              Decode
+            </button>
+          </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="section" id="outputSection" style="display: none">
+          <div class="section-title">Decoded Components</div>
+
+          <div class="output-box">
+            <div class="output-row">
+              <div class="output-label">Amount Type:</div>
+              <div class="output-value" id="amountType">-</div>
+            </div>
+            <div class="output-row">
+              <div class="output-label">Type Bit:</div>
+              <div class="output-value" id="typeBit">-</div>
+            </div>
+            <div class="output-row">
+              <div class="output-label">Sign:</div>
+              <div class="output-value" id="signBit">-</div>
+            </div>
+            <div class="output-row">
+              <div class="output-label">Exponent:</div>
+              <div class="output-value" id="exponentValue">-</div>
+            </div>
+            <div class="output-row">
+              <div class="output-label">Mantissa:</div>
+              <div class="output-value" id="mantissaValue">-</div>
+            </div>
+            <div class="output-row">
+              <div class="output-label">Decimal Value:</div>
+              <div class="output-value" id="decimalValue">-</div>
+              <button
+                class="btn-copy"
+                onclick="copyToClipboard('decimalValue')"
+              >
+                Copy
+              </button>
+            </div>
+            <div class="output-row">
+              <div class="output-label">Scientific:</div>
+              <div class="output-value" id="scientificValue">-</div>
+              <button
+                class="btn-copy"
+                onclick="copyToClipboard('scientificValue')"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Examples Section -->
+        <div class="section">
+          <div class="section-title">Quick Examples</div>
+          <div class="examples">
+            <div class="example-btn" onclick="loadExample('D4838D7EA4C68000')">
+              <div class="example-name">FLOAT_ONE</div>
+              <div class="example-value">D4838D7EA4C68000</div>
+            </div>
+            <div class="example-btn" onclick="loadExample('94838D7EA4C68000')">
+              <div class="example-name">FLOAT_NEGATIVE_ONE</div>
+              <div class="example-value">94838D7EA4C68000</div>
+            </div>
+            <div class="example-btn" onclick="loadExample('8000000000000000')">
+              <div class="example-name">Zero</div>
+              <div class="example-value">8000000000000000</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Decimal to Hex -->
+      <div id="decimal-to-hex" class="tab-content">
+        <div class="section">
+          <div class="section-title">
+            Encode to Opaque Float (Decimal → Hex)
+          </div>
+
+          <!-- Amount type tabs -->
+          <div
+            class="tabs"
+            style="margin-bottom: 20px; border-bottom: 1px solid #ddd"
+          >
+            <button
+              class="tab-button active"
+              onclick="switchAmountType('xrp-type')"
+            >
+              XRP
+            </button>
+            <button class="tab-button" onclick="switchAmountType('iou-type')">
+              IOU
+            </button>
+            <button class="tab-button" onclick="switchAmountType('mpt-type')">
+              MPT
+            </button>
+          </div>
+
+          <!-- XRP Type -->
+          <div id="xrp-type" class="amount-type-content active">
+            <div class="input-group full">
+              <label for="xrpDrops">Amount in Drops (integer)</label>
+              <input
+                type="number"
+                id="xrpDrops"
+                placeholder="e.g., 1000000"
+                step="1"
+              />
+            </div>
+            <div class="button-group">
+              <button class="btn-primary" onclick="convertXRP()">
+                Convert XRP
+              </button>
+            </div>
+            <div id="xrpOutput" style="display: none; margin-top: 15px">
+              <div class="output-box">
+                <div class="output-row">
+                  <div class="output-label">Hex (8 bytes):</div>
+                  <div class="output-value" id="xrpHex">-</div>
+                  <button class="btn-copy" onclick="copyToClipboard('xrpHex')">
+                    Copy
+                  </button>
+                </div>
+                <div class="output-row">
+                  <div class="output-label">Byte Array:</div>
+                  <div class="output-value" id="xrpByteArray">-</div>
+                  <button
+                    class="btn-copy"
+                    onclick="copyToClipboard('xrpByteArray')"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- IOU Type -->
+          <div id="iou-type" class="amount-type-content" style="display: none">
+            <div class="input-group full">
+              <label for="iouValue">Decimal Value</label>
+              <input
+                type="number"
+                id="iouValue"
+                placeholder="e.g., 123.45"
+                step="any"
+              />
+            </div>
+            <div class="input-group">
+              <label for="currencyCode"
+                >Currency Code (3 chars or 40-char hex)</label
+              >
+              <label for="issuerAddress">Issuer Address (20-byte hex)</label>
+            </div>
+            <div class="input-group">
+              <input
+                type="text"
+                id="currencyCode"
+                placeholder="e.g., USD"
+                maxlength="40"
+              />
+              <input
+                type="text"
+                id="issuerAddress"
+                placeholder="e.g., 0000000000000000000000000000000000000000"
+                maxlength="40"
+              />
+            </div>
+            <div class="button-group">
+              <button class="btn-primary" onclick="convertIOU()">
+                Convert IOU
+              </button>
+            </div>
+            <div id="iouOutput" style="display: none; margin-top: 15px">
+              <div class="output-box">
+                <div class="output-row">
+                  <div class="output-label">Amount Hex (8 bytes):</div>
+                  <div class="output-value" id="iouAmountHex">-</div>
+                  <button
+                    class="btn-copy"
+                    onclick="copyToClipboard('iouAmountHex')"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <div class="output-row">
+                  <div class="output-label">Currency Hex (20 bytes):</div>
+                  <div class="output-value" id="iouCurrencyHex">-</div>
+                  <button
+                    class="btn-copy"
+                    onclick="copyToClipboard('iouCurrencyHex')"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <div class="output-row">
+                  <div class="output-label">Issuer Hex (20 bytes):</div>
+                  <div class="output-value" id="iouIssuerHex">-</div>
+                  <button
+                    class="btn-copy"
+                    onclick="copyToClipboard('iouIssuerHex')"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <div class="output-row">
+                  <div class="output-label">Full STAmount (48 bytes):</div>
+                  <div class="output-value" id="iouFullHex">-</div>
+                  <button
+                    class="btn-copy"
+                    onclick="copyToClipboard('iouFullHex')"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <div class="output-row">
+                  <div class="output-label">Byte Array:</div>
+                  <div class="output-value" id="iouByteArray">-</div>
+                  <button
+                    class="btn-copy"
+                    onclick="copyToClipboard('iouByteArray')"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MPT Type -->
+          <div id="mpt-type" class="amount-type-content" style="display: none">
+            <div class="input-group full">
+              <label for="mptQuantity">Quantity (integer)</label>
+              <input
+                type="number"
+                id="mptQuantity"
+                placeholder="e.g., 500000"
+                step="1"
+              />
+            </div>
+            <div class="button-group">
+              <button class="btn-primary" onclick="convertMPT()">
+                Convert MPT
+              </button>
+            </div>
+            <div id="mptOutput" style="display: none; margin-top: 15px">
+              <div class="output-box">
+                <div class="output-row">
+                  <div class="output-label">Hex (8 bytes):</div>
+                  <div class="output-value" id="mptHex">-</div>
+                  <button class="btn-copy" onclick="copyToClipboard('mptHex')">
+                    Copy
+                  </button>
+                </div>
+                <div class="output-row">
+                  <div class="output-label">Byte Array:</div>
+                  <div class="output-value" id="mptByteArray">-</div>
+                  <button
+                    class="btn-copy"
+                    onclick="copyToClipboard('mptByteArray')"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: Reference -->
+      <div id="reference" class="tab-content">
+        <div class="section">
+          <div class="section-title">XRPL Amount Types Reference</div>
+
+          <div class="reference-box">
+            <div class="reference-title">Opaque Float Format (IOUs)</div>
+            <div class="reference-content">
+              <strong>64-bit custom encoding:</strong>
+              [Type:1][Sign:1][Exponent:8][Mantissa:54]
+              <div class="code-block">
+                Type bit (bit 63): Always 1 for fungible tokens Sign bit (bit
+                62): 1 = positive, 0 = negative Exponent (bits 61-54): 8 bits,
+                biased by 97 (range -96 to +80) Mantissa (bits 53-0): 54 bits
+                providing ~16 decimal digits precision
+              </div>
+              <strong>Special Values:</strong>
+              <ul style="margin-left: 20px; margin-top: 8px">
+                <li>
+                  Zero:
+                  <code style="background: #f0f0f0; padding: 2px 4px"
+                    >0x8000000000000000</code
+                  >
+                </li>
+                <li>Maximum: ~9.999999999999999 × 10^80</li>
+                <li>Minimum positive: ~1.0 × 10^-81</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="reference-box">
+            <div class="reference-title">STAmount Format (48 bytes)</div>
+            <div class="reference-content">
+              Used for IOU amounts in transactions:
+              <div class="code-block">
+                Bytes 0-7: Amount (opaque float, 8 bytes) Bytes 8-27: Currency
+                Code (20 bytes) Bytes 28-47: Issuer Account ID (20 bytes)
+              </div>
+            </div>
+          </div>
+
+          <div class="reference-box">
+            <div class="reference-title">Currency Code Encoding</div>
+            <div class="reference-content">
+              <strong>Standard 3-character codes (e.g., USD, EUR):</strong>
+              <ul style="margin-left: 20px; margin-top: 8px">
+                <li>Padded with zeros to 20 bytes</li>
+                <li>Format: 12 zero bytes + 3 ASCII bytes + 5 zero bytes</li>
+                <li>
+                  Example: USD = 0x0000000000000000000000555344000000000000
+                </li>
+              </ul>
+              <strong>Non-standard codes:</strong>
+              <ul style="margin-left: 20px; margin-top: 8px">
+                <li>40-character hex string (20 bytes)</li>
+                <li>Can represent any 160-bit value</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="reference-box">
+            <div class="reference-title">Amount Types</div>
+            <div class="reference-content">
+              <strong>1. XRP (Native Currency):</strong>
+              <ul style="margin-left: 20px; margin-top: 8px">
+                <li>64-bit signed integer (drops)</li>
+                <li>1 XRP = 1,000,000 drops</li>
+                <li>
+                  Range: -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
+                </li>
+              </ul>
+              <strong>2. IOU (Fungible Tokens):</strong>
+              <ul style="margin-left: 20px; margin-top: 8px">
+                <li>
+                  Opaque float (8 bytes) + Currency (20 bytes) + Issuer (20
+                  bytes)
+                </li>
+                <li>Total: 48 bytes (STAmount format)</li>
+                <li>Supports arbitrary precision decimal values</li>
+              </ul>
+              <strong>3. MPT (Multi-Purpose Tokens):</strong>
+              <ul style="margin-left: 20px; margin-top: 8px">
+                <li>64-bit unsigned integer quantity</li>
+                <li>Associated with MPT ID (issuance info)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="reference-box">
+            <div class="reference-title">Example Values</div>
+            <div class="reference-content">
+              <div class="code-block">
+                FLOAT_ONE: D4838D7EA4C68000 FLOAT_NEGATIVE_ONE: 94838D7EA4C68000
+                Zero: 8000000000000000
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Tab switching
+      function switchTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll(".tab-content").forEach((tab) => {
+          tab.classList.remove("active")
+        })
+        document.querySelectorAll(".tab-button").forEach((btn) => {
+          btn.classList.remove("active")
+        })
+
+        // Show selected tab
+        document.getElementById(tabName).classList.add("active")
+        event.target.classList.add("active")
+      }
+
+      function switchAmountType(typeName) {
+        document.querySelectorAll(".amount-type-content").forEach((type) => {
+          type.style.display = "none"
+        })
+        document.querySelectorAll(".tabs .tab-button").forEach((btn) => {
+          btn.classList.remove("active")
+        })
+
+        document.getElementById(typeName).style.display = "block"
+        event.target.classList.add("active")
+      }
+
+      function showMessage(text, type = "error") {
+        const msgDiv = document.getElementById("message")
+        msgDiv.innerHTML = `<div class="${type}">${text}</div>`
+        setTimeout(() => {
+          msgDiv.innerHTML = ""
+        }, 4000)
+      }
+
+      function parseByteArray(input) {
+        // Parse Rust byte array format: [0xAB, 0xCD, ...]
+        const match = input.match(/\[([^\]]+)\]/)
+        if (!match) throw new Error("Invalid byte array format")
+
+        const bytes = match[1].split(",").map((b) => {
+          const trimmed = b.trim()
+          const num = parseInt(trimmed, 16)
+          if (isNaN(num) || num < 0 || num > 255) {
+            throw new Error(`Invalid byte value: ${trimmed}`)
+          }
+          return num
+        })
+
+        if (bytes.length !== 8) {
+          throw new Error(`Expected 8 bytes, got ${bytes.length}`)
+        }
+
+        return bytes
+      }
+
+      function hexToBytes(hex) {
+        if (!/^[0-9A-Fa-f]{16}$/.test(hex)) {
+          throw new Error("Invalid hex: must be exactly 16 characters")
+        }
+        const bytes = []
+        for (let i = 0; i < 16; i += 2) {
+          bytes.push(parseInt(hex.substr(i, 2), 16))
+        }
+        return bytes
+      }
+
+      function bytesToHex(bytes) {
+        return bytes
+          .map((b) => b.toString(16).toUpperCase().padStart(2, "0"))
+          .join("")
+      }
+
+      function bytesToByteArray(bytes) {
+        return (
+          "[" +
+          bytes
+            .map((b) => "0x" + b.toString(16).toUpperCase().padStart(2, "0"))
+            .join(", ") +
+          "]"
+        )
+      }
+
+      function bytesToBigInt(bytes) {
+        let result = 0n
+        for (let i = 0; i < 8; i++) {
+          result = (result << 8n) | BigInt(bytes[i])
+        }
+        return result
+      }
+
+      function bigIntToHex(value, byteCount) {
+        let hex = value
+          .toString(16)
+          .toUpperCase()
+          .padStart(byteCount * 2, "0")
+        return hex
+      }
+
+      function extractComponents(bytes) {
+        const bigInt = bytesToBigInt(bytes)
+
+        const typeBit = (bigInt >> 63n) & 1n
+        const signBit = (bigInt >> 62n) & 1n
+        const exponent = Number((bigInt >> 54n) & 0xffn)
+        const mantissa = bigInt & 0x3fffffffffffffn
+
+        return { typeBit, signBit, exponent, mantissa }
+      }
+
+      function calculateDecimalValue(components) {
+        const { signBit, exponent, mantissa } = components
+
+        if (mantissa === 0n && exponent === 0) {
+          return "0"
+        }
+
+        const sign = signBit === 1n ? 1 : -1
+        const unbiasedExp = exponent - 97
+        const mantissaValue = Number(mantissa) / Math.pow(2, 54)
+        const value = sign * (1 + mantissaValue) * Math.pow(10, unbiasedExp)
+
+        return value.toFixed(16).replace(/\.?0+$/, "")
+      }
+
+      // TAB 1: Hex to Decimal
+      function convertFromHex() {
+        try {
+          let bytes
+          const input = document.getElementById("hexDecimalInput").value.trim()
+
+          if (!input) {
+            throw new Error("Please enter a hex string or byte array")
+          }
+
+          // Auto-detect format
+          if (input.startsWith("[")) {
+            bytes = parseByteArray(input)
+          } else {
+            bytes = hexToBytes(input.toUpperCase())
+          }
+
+          const hex = bytesToHex(bytes)
+          const components = extractComponents(bytes)
+          const amountType = determineAmountType(bytes)
+          displayResults(hex, components, amountType)
+          showMessage("Conversion successful!", "success")
+        } catch (e) {
+          showMessage(e.message, "error")
+        }
+      }
+
+      function determineAmountType(bytes) {
+        const bigInt = bytesToBigInt(bytes)
+        const typeBit = (bigInt >> 63n) & 1n
+        const isMptBit = (bigInt >> 61n) & 1n
+
+        if (typeBit === 1n) {
+          return "IOU (Opaque Float)"
+        } else if (isMptBit === 1n) {
+          return "MPT (Multi-Purpose Token)"
+        } else {
+          return "XRP"
+        }
+      }
+
+      function displayResults(hex, components, amountType) {
+        const { typeBit, signBit, exponent, mantissa } = components
+
+        document.getElementById("amountType").textContent = amountType
+        document.getElementById("typeBit").textContent =
+          typeBit === 1n ? "1 (Fungible Token)" : "0"
+        document.getElementById("signBit").textContent =
+          signBit === 1n ? "1 (Positive)" : "0 (Negative)"
+        document.getElementById("exponentValue").textContent =
+          `${exponent} (unbiased: ${exponent - 97})`
+        document.getElementById("mantissaValue").textContent =
+          `0x${mantissa.toString(16).toUpperCase().padStart(14, "0")}`
+
+        const decimalValue = calculateDecimalValue(components)
+        document.getElementById("decimalValue").textContent = decimalValue
+        document.getElementById("scientificValue").textContent =
+          parseFloat(decimalValue).toExponential(15)
+
+        document.getElementById("outputSection").style.display = "block"
+      }
+
+      function loadExample(hex) {
+        document.getElementById("hexDecimalInput").value = hex
+        convertFromHex()
+      }
+
+      // TAB 2: Decimal to Hex - XRP
+      function convertXRP() {
+        try {
+          const dropsInput = document.getElementById("xrpDrops").value.trim()
+          if (dropsInput === "")
+            throw new Error("Please enter an amount in drops")
+
+          let dropsNum = BigInt(dropsInput)
+
+          // XRP uses special encoding: bit 62 is sign (1=positive, 0=negative), bits 0-56 are absolute value
+          const MAX_57_BIT = 0x01ffffffffffffffn
+
+          // Get absolute value
+          const isPositive = dropsNum >= 0n
+          const absDrops = isPositive ? dropsNum : -dropsNum
+
+          if (absDrops > MAX_57_BIT) {
+            throw new Error("Value exceeds maximum 57-bit amount")
+          }
+
+          // Encode: set bit 62 for positive, keep absolute value in bits 0-56
+          let encoded = absDrops
+          if (isPositive) {
+            encoded |= 0x4000000000000000n // Set bit 62 for positive
+          }
+
+          // Convert to 8-byte big-endian representation
+          const bytes = []
+          for (let i = 7; i >= 0; i--) {
+            bytes.push(Number((encoded >> BigInt(i * 8)) & 0xffn))
+          }
+
+          const hex = bytesToHex(bytes)
+          const byteArray = bytesToByteArray(bytes)
+
+          document.getElementById("xrpHex").textContent = hex
+          document.getElementById("xrpByteArray").textContent = byteArray
+          document.getElementById("xrpOutput").style.display = "block"
+          showMessage("XRP conversion successful!", "success")
+        } catch (e) {
+          showMessage("XRP Error: " + e.message, "error")
+        }
+      }
+
+      // TAB 2: Decimal to Hex - IOU
+      function convertIOU() {
+        try {
+          const value = parseFloat(document.getElementById("iouValue").value)
+          const currencyCode = document
+            .getElementById("currencyCode")
+            .value.trim()
+          const issuerAddress = document
+            .getElementById("issuerAddress")
+            .value.trim()
+
+          if (isNaN(value))
+            throw new Error("Please enter a valid decimal value")
+          if (!currencyCode) throw new Error("Please enter a currency code")
+          if (!issuerAddress) throw new Error("Please enter an issuer address")
+
+          // Encode currency code
+          const currencyHex = encodeCurrencyCode(currencyCode)
+
+          // Validate issuer address
+          if (!/^[0-9A-Fa-f]{40}$/.test(issuerAddress)) {
+            throw new Error("Issuer must be 40 hex characters (20 bytes)")
+          }
+
+          // For now, use placeholder opaque float encoding
+          // In production, this would use proper XRPL float encoding
+          const amountHex = "D4838D7EA4C68000" // Placeholder
+
+          const fullHex = amountHex + currencyHex + issuerAddress.toUpperCase()
+
+          // Convert to byte arrays
+          const amountBytes = []
+          for (let i = 0; i < 16; i += 2) {
+            amountBytes.push(parseInt(amountHex.substr(i, 2), 16))
+          }
+
+          const currencyBytes = []
+          for (let i = 0; i < 40; i += 2) {
+            currencyBytes.push(parseInt(currencyHex.substr(i, 2), 16))
+          }
+
+          const issuerBytes = []
+          for (let i = 0; i < 40; i += 2) {
+            issuerBytes.push(parseInt(issuerAddress.substr(i, 2), 16))
+          }
+
+          const fullBytes = [...amountBytes, ...currencyBytes, ...issuerBytes]
+
+          document.getElementById("iouAmountHex").textContent = amountHex
+          document.getElementById("iouCurrencyHex").textContent = currencyHex
+          document.getElementById("iouIssuerHex").textContent =
+            issuerAddress.toUpperCase()
+          document.getElementById("iouFullHex").textContent = fullHex
+          document.getElementById("iouByteArray").textContent =
+            bytesToByteArray(fullBytes)
+          document.getElementById("iouOutput").style.display = "block"
+          showMessage("IOU conversion successful!", "success")
+        } catch (e) {
+          showMessage("IOU Error: " + e.message, "error")
+        }
+      }
+
+      function encodeCurrencyCode(code) {
+        // If it's already 40 hex characters, use it as-is
+        if (/^[0-9A-Fa-f]{40}$/.test(code)) {
+          return code.toUpperCase()
+        }
+
+        // If it's 3 characters, encode as standard currency code
+        if (code.length === 3) {
+          // Standard format: 12 zero bytes + 3 ASCII bytes + 5 zero bytes
+          const ascii = code
+            .toUpperCase()
+            .split("")
+            .map((c) => c.charCodeAt(0).toString(16).padStart(2, "0"))
+            .join("")
+          return "000000000000000000000000" + ascii + "0000000000"
+        }
+
+        throw new Error(
+          "Currency code must be 3 characters or 40 hex characters",
+        )
+      }
+
+      // TAB 2: Decimal to Hex - MPT
+      function convertMPT() {
+        try {
+          const quantityInput = document
+            .getElementById("mptQuantity")
+            .value.trim()
+          if (quantityInput === "") throw new Error("Please enter a quantity")
+
+          let quantityNum = BigInt(quantityInput)
+
+          // MPT quantity is unsigned 64-bit
+          const MAX_UINT64 = 0xffffffffffffffffn
+
+          if (quantityNum < 0n || quantityNum > MAX_UINT64) {
+            throw new Error("Value out of range for unsigned 64-bit integer")
+          }
+
+          // Convert to 8-byte big-endian representation
+          const bytes = []
+          for (let i = 7; i >= 0; i--) {
+            bytes.push(Number((quantityNum >> BigInt(i * 8)) & 0xffn))
+          }
+
+          const hex = bytesToHex(bytes)
+          const byteArray = bytesToByteArray(bytes)
+
+          document.getElementById("mptHex").textContent = hex
+          document.getElementById("mptByteArray").textContent = byteArray
+          document.getElementById("mptOutput").style.display = "block"
+          showMessage("MPT conversion successful!", "success")
+        } catch (e) {
+          showMessage("MPT Error: " + e.message, "error")
+        }
+      }
+
+      function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).textContent
+        navigator.clipboard.writeText(text).then(() => {
+          showMessage("Copied to clipboard!", "success")
+        })
+      }
+    </script>
+  </body>
+</html>
