@@ -11,5 +11,5 @@
 /// There are purposefully no FieldGetters for this type, since it cannot be retrieved directly. Instead one must use the `Locator` to fetch information from it.
 ///
 /// TODO: explore using the Locator under the hood here
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Object;
