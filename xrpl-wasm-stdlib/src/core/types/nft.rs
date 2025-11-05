@@ -321,8 +321,8 @@ impl NFToken {
         match result {
             code if code > 0 => {
                 let actual_len = code as usize;
-                // Create a Blob with a properly sized buffer (1024 bytes)
-                let mut blob_data = [0u8; 1024];
+                // Create a Blob with a properly sized buffer (102400 bytes)
+                let mut blob_data = [0u8; 102400];
                 let copy_len = actual_len.min(uri_buf.len()).min(blob_data.len());
                 blob_data[..copy_len].copy_from_slice(&uri_buf[..copy_len]);
                 Result::Ok(Blob::new(blob_data, copy_len))

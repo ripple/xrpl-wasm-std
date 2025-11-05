@@ -335,8 +335,8 @@ impl CurrentTxFieldGetter for PublicKey {
 impl CurrentTxFieldGetter for Blob {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 1024]>::uninit();
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 1024) };
+        let mut buffer = core::mem::MaybeUninit::<[u8; 102400]>::uninit();
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 102400) };
         match_result_code(result_code, || Blob {
             data: unsafe { buffer.assume_init() },
             len: result_code as usize,
@@ -345,8 +345,8 @@ impl CurrentTxFieldGetter for Blob {
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 1024]>::uninit();
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 1024) };
+        let mut buffer = core::mem::MaybeUninit::<[u8; 102400]>::uninit();
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 102400) };
         match_result_code(result_code, || {
             Some(Blob {
                 data: unsafe { buffer.assume_init() },
