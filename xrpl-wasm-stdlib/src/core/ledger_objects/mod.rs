@@ -6,9 +6,8 @@ pub mod traits;
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
 use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
-use crate::core::types::currency::Currency;
-use crate::core::types::issue::{IouIssue, Issue, MptIssue, XrpIssue};
-use crate::core::types::mpt_id::MptId;
+use crate::core::types::currency::{CURRENCY_SIZE, Currency};
+use crate::core::types::issue::Issue;
 use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
 use crate::host::error_codes::{
     match_result_code_with_expected_bytes, match_result_code_with_expected_bytes_optional,
@@ -510,7 +509,7 @@ impl FieldGetter for Blob {
 impl FieldGetter for Currency {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<20, _>(
+        match get_fixed_size_field_with_expected_bytes::<CURRENCY_SIZE, _>(
             field_code,
             |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
         ) {
@@ -521,7 +520,7 @@ impl FieldGetter for Currency {
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<20, _>(
+        match get_fixed_size_field_with_expected_bytes_optional::<CURRENCY_SIZE, _>(
             field_code,
             |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
         ) {
@@ -532,7 +531,7 @@ impl FieldGetter for Currency {
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<20, _>(
+        match get_fixed_size_field_with_expected_bytes::<CURRENCY_SIZE, _>(
             field_code,
             |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
         ) {
@@ -543,7 +542,7 @@ impl FieldGetter for Currency {
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<20, _>(
+        match get_fixed_size_field_with_expected_bytes_optional::<CURRENCY_SIZE, _>(
             field_code,
             |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
         ) {
@@ -573,25 +572,7 @@ impl FieldGetter for Issue {
         match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
             get_current_ledger_obj_field(fc, buf, size)
         }) {
-            Result::Ok((buffer, len)) => {
-                // Detect Issue type based on returned byte count
-                match len {
-                    20 => Result::Ok(Issue::XRP(XrpIssue {})),
-                    24 => {
-                        let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
-                        let mpt_id = MptId::from(mpt_bytes);
-                        Result::Ok(Issue::MPT(MptIssue::new(mpt_id)))
-                    }
-                    40 => {
-                        let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
-                        let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
-                        let currency = Currency::from(currency_bytes);
-                        let issuer = AccountID::from(issuer_bytes);
-                        Result::Ok(Issue::IOU(IouIssue::new(issuer, currency)))
-                    }
-                    _ => Result::Err(crate::host::Error::from_code(len as i32)),
-                }
-            }
+            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
             Result::Err(e) => Result::Err(e),
         }
     }
@@ -601,25 +582,10 @@ impl FieldGetter for Issue {
         match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
             get_current_ledger_obj_field(fc, buf, size)
         }) {
-            Result::Ok(Some((buffer, len))) => {
-                // Detect Issue type based on returned byte count
-                match len {
-                    20 => Result::Ok(Some(Issue::XRP(XrpIssue {}))),
-                    24 => {
-                        let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
-                        let mpt_id = MptId::from(mpt_bytes);
-                        Result::Ok(Some(Issue::MPT(MptIssue::new(mpt_id))))
-                    }
-                    40 => {
-                        let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
-                        let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
-                        let currency = Currency::from(currency_bytes);
-                        let issuer = AccountID::from(issuer_bytes);
-                        Result::Ok(Some(Issue::IOU(IouIssue::new(issuer, currency))))
-                    }
-                    _ => Result::Err(crate::host::Error::from_code(len as i32)),
-                }
-            }
+            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
+                Result::Ok(issue) => Result::Ok(Some(issue)),
+                Result::Err(e) => Result::Err(e),
+            },
             Result::Ok(None) => Result::Ok(None),
             Result::Err(e) => Result::Err(e),
         }
@@ -630,25 +596,7 @@ impl FieldGetter for Issue {
         match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
             get_ledger_obj_field(register_num, fc, buf, size)
         }) {
-            Result::Ok((buffer, len)) => {
-                // Detect Issue type based on returned byte count
-                match len {
-                    20 => Result::Ok(Issue::XRP(XrpIssue {})),
-                    24 => {
-                        let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
-                        let mpt_id = MptId::from(mpt_bytes);
-                        Result::Ok(Issue::MPT(MptIssue::new(mpt_id)))
-                    }
-                    40 => {
-                        let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
-                        let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
-                        let currency = Currency::from(currency_bytes);
-                        let issuer = AccountID::from(issuer_bytes);
-                        Result::Ok(Issue::IOU(IouIssue::new(issuer, currency)))
-                    }
-                    _ => Result::Err(crate::host::Error::from_code(len as i32)),
-                }
-            }
+            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
             Result::Err(e) => Result::Err(e),
         }
     }
@@ -658,25 +606,10 @@ impl FieldGetter for Issue {
         match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
             get_ledger_obj_field(register_num, fc, buf, size)
         }) {
-            Result::Ok(Some((buffer, len))) => {
-                // Detect Issue type based on returned byte count
-                match len {
-                    20 => Result::Ok(Some(Issue::XRP(XrpIssue {}))),
-                    24 => {
-                        let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
-                        let mpt_id = MptId::from(mpt_bytes);
-                        Result::Ok(Some(Issue::MPT(MptIssue::new(mpt_id))))
-                    }
-                    40 => {
-                        let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
-                        let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
-                        let currency = Currency::from(currency_bytes);
-                        let issuer = AccountID::from(issuer_bytes);
-                        Result::Ok(Some(Issue::IOU(IouIssue::new(issuer, currency))))
-                    }
-                    _ => Result::Err(crate::host::Error::from_code(len as i32)),
-                }
-            }
+            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
+                Result::Ok(issue) => Result::Ok(Some(issue)),
+                Result::Err(e) => Result::Err(e),
+            },
             Result::Ok(None) => Result::Ok(None),
             Result::Err(e) => Result::Err(e),
         }
