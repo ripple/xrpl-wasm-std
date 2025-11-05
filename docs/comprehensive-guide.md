@@ -152,7 +152,7 @@ panic = "abort"
 cargo build --target wasm32v1-none --release
 
 # Test with provided tools
-node ../examples/smart-escrows/hello_world/run_test.js
+node ../examples/smart-escrows/hello_world/runTest.js
 ```
 
 ### Core Concepts
@@ -494,7 +494,7 @@ The simplest possible smart escrow that demonstrates basic concepts.
 
 - [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/hello_world/src/lib.rs) - Main contract code
 - [`README.md`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/hello_world/README.md) - Detailed explanation
-- [`run_test.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/hello_world/run_test.js) - Integration test
+- [`runTest.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/hello_world/runTest.js) - Integration test
 
 ### Oracle Example
 
@@ -513,7 +513,7 @@ A price-based escrow that releases funds when an asset price meets conditions.
 
 - [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/oracle/src/lib.rs) - Oracle price checking logic
 - [`README.md`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/oracle/README.md) - Oracle integration guide
-- [`run_test.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/oracle/run_test.js) - Price simulation test
+- [`runTest.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/oracle/runTest.js) - Price simulation test
 
 ### KYC Example
 
@@ -533,7 +533,7 @@ A compliance-focused escrow that requires credential verification.
 
 - [`src/lib.rs`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/kyc/src/lib.rs) - KYC credential verification
 - [`README.md`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/kyc/README.md) - Compliance implementation guide
-- [`run_test.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/kyc/run_test.js) - Credential verification test
+- [`runTest.js`](https://github.com/ripple/xrpl-wasm-stdlib/blob/main/examples/smart-escrows/kyc/runTest.js) - Credential verification test
 
 ### Advanced Examples
 

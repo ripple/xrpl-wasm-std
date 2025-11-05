@@ -91,10 +91,10 @@ async function main() {
   const wasmSource = args[1]
   const finish = getFinishFunctionFromFile(wasmSource)
 
-  const { deploy } = require("./deploy_wasm_code.js")
+  const { deploy } = require("./deployWasmCode.js")
 
   console.log(`Running test in directory: ${targetDir}`)
-  const runTestPath = path.resolve(targetDir, "run_test.js")
+  const runTestPath = path.resolve(targetDir, "runTest.js")
   const { test } = require(runTestPath)
 
   // Dynamically import the test function from the target directory

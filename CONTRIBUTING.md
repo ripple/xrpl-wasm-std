@@ -37,14 +37,14 @@
 **All PRs must:**
 
 - Pass all existing tests (`./scripts/run-all.sh` and in CI)
-- Follow general code style guidelines (enforced by CI)
+- Follow general code style guidelines (enforced by CI) and [naming conventions](./docs/NAMING_CONVENTIONS.md).
 - Include tests for new functionality
 - Update documentation as needed
 
 **For new examples:**
 
 - Include comprehensive README with functionality description, build/test instructions, and code walkthrough
-- Add integration test (`run_test.js`)
+- Add integration test (`runTest.js`)
 - Test on WASM devnet
 - Add to main README examples list
 
@@ -103,7 +103,7 @@ pub extern "C" fn finish() -> i32 {
 }
 ```
 
-**Integration test template (`run_test.js`):**
+**Integration test template (`runTest.js`):**
 
 ```javascript
 const CONFIG = {
@@ -150,7 +150,7 @@ xrpl-wasm-stdlib/
    - `Cargo.toml` - Package configuration with proper WASM settings
    - `src/lib.rs` - Contract implementation with `#![no_std]` and `#![no_main]`
    - `README.md` - Comprehensive documentation (see other examples for a template)
-   - `run_test.js` - Integration test
+   - `runTest.js` - Integration test
 
 4. **Test and integrate:**
 
