@@ -299,8 +299,7 @@ impl FieldGetter for Amount {
             field_code,
             |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
         ) {
-            Result::Ok(Some((buffer, _len))) => Result::Ok(Some(Amount::from(buffer))),
-            Result::Ok(None) => Result::Ok(None),
+            Result::Ok(opt) => Result::Ok(opt.map(|(buffer, _len)| Amount::from(buffer))),
             Result::Err(e) => Result::Err(e),
         }
     }
@@ -323,8 +322,7 @@ impl FieldGetter for Amount {
             field_code,
             |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
         ) {
-            Result::Ok(Some((buffer, _len))) => Result::Ok(Some(Amount::from(buffer))),
-            Result::Ok(None) => Result::Ok(None),
+            Result::Ok(opt) => Result::Ok(opt.map(|(buffer, _len)| Amount::from(buffer))),
             Result::Err(e) => Result::Err(e),
         }
     }
@@ -473,8 +471,7 @@ impl FieldGetter for Blob {
             field_code,
             |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
         ) {
-            Result::Ok(Some((data, len))) => Result::Ok(Some(Blob { data, len })),
-            Result::Ok(None) => Result::Ok(None),
+            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
             Result::Err(e) => Result::Err(e),
         }
     }
@@ -495,8 +492,7 @@ impl FieldGetter for Blob {
             field_code,
             |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
         ) {
-            Result::Ok(Some((data, len))) => Result::Ok(Some(Blob { data, len })),
-            Result::Ok(None) => Result::Ok(None),
+            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
             Result::Err(e) => Result::Err(e),
         }
     }

@@ -257,8 +257,7 @@ impl CurrentTxFieldGetter for Amount {
             field_code,
             |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
         ) {
-            Result::Ok(Some((buffer, _len))) => Result::Ok(Some(Amount::from(buffer))),
-            Result::Ok(None) => Result::Ok(None),
+            Result::Ok(opt) => Result::Ok(opt.map(|(buffer, _len)| Amount::from(buffer))),
             Result::Err(e) => Result::Err(e),
         }
     }
@@ -361,8 +360,7 @@ impl CurrentTxFieldGetter for Blob {
         match get_variable_size_field_optional::<1024, _>(field_code, |fc, buf, size| unsafe {
             get_tx_field(fc, buf, size)
         }) {
-            Result::Ok(Some((data, len))) => Result::Ok(Some(Blob { data, len })),
-            Result::Ok(None) => Result::Ok(None),
+            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
             Result::Err(e) => Result::Err(e),
         }
     }
