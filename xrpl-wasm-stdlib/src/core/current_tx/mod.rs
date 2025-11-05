@@ -64,9 +64,9 @@ use crate::core::types::blob::Blob;
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::{HASH256_SIZE, Hash256};
-use crate::host::error_codes::{
-    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
-    match_result_code_with_expected_bytes_optional,
+use crate::host::field_helpers::{
+    get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
+    get_variable_size_field, get_variable_size_field_optional,
 };
 use crate::host::{Result, get_tx_field};
 
@@ -173,20 +173,23 @@ pub trait CurrentTxFieldGetter: Sized {
 impl CurrentTxFieldGetter for u32 {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 4]>::uninit();
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 4) };
-        match_result_code_with_expected_bytes(result_code, 4, || {
-            u32::from_le_bytes(unsafe { buffer.assume_init() })
-        })
+        match get_fixed_size_field_with_expected_bytes::<4, _>(field_code, |fc, buf, size| unsafe {
+            get_tx_field(fc, buf, size)
+        }) {
+            Result::Ok(buffer) => Result::Ok(u32::from_le_bytes(buffer)),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 4]>::uninit();
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 4) };
-        match_result_code_with_expected_bytes_optional(result_code, 4, || {
-            Some(u32::from_le_bytes(unsafe { buffer.assume_init() }))
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<4, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(u32::from_le_bytes)),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -204,22 +207,24 @@ impl CurrentTxFieldGetter for u32 {
 impl CurrentTxFieldGetter for AccountID {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE) };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
-            unsafe { buffer.assume_init() }.into()
-        })
+        match get_fixed_size_field_with_expected_bytes::<ACCOUNT_ID_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE) };
-        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(unsafe { buffer.assume_init() }.into())
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<ACCOUNT_ID_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -238,22 +243,24 @@ impl CurrentTxFieldGetter for AccountID {
 impl CurrentTxFieldGetter for Amount {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; AMOUNT_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), AMOUNT_SIZE) };
-        match_result_code(result_code, || {
-            Amount::from(unsafe { buffer.assume_init() })
-        })
+        match get_variable_size_field::<AMOUNT_SIZE, _>(field_code, |fc, buf, size| unsafe {
+            get_tx_field(fc, buf, size)
+        }) {
+            Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; AMOUNT_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), AMOUNT_SIZE) };
-        match_result_code_optional(result_code, || {
-            Some(Amount::from(unsafe { buffer.assume_init() }))
-        })
+        match get_variable_size_field_optional::<AMOUNT_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(Some((buffer, _len))) => Result::Ok(Some(Amount::from(buffer))),
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -270,22 +277,24 @@ impl CurrentTxFieldGetter for Amount {
 impl CurrentTxFieldGetter for Hash256 {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE) };
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Hash256::from(unsafe { buffer.assume_init() })
-        })
+        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE) };
-        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
-            Some(Hash256::from(unsafe { buffer.assume_init() }))
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -303,20 +312,24 @@ impl CurrentTxFieldGetter for Hash256 {
 impl CurrentTxFieldGetter for PublicKey {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 33]>::uninit();
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 33) };
-        match_result_code_with_expected_bytes(result_code, 33, || {
-            unsafe { buffer.assume_init() }.into()
-        })
+        match get_fixed_size_field_with_expected_bytes::<33, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 33]>::uninit();
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 33) };
-        match_result_code_with_expected_bytes_optional(result_code, 33, || {
-            Some(unsafe { buffer.assume_init() }.into())
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<33, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -335,24 +348,23 @@ impl CurrentTxFieldGetter for PublicKey {
 impl CurrentTxFieldGetter for Blob {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 1024]>::uninit();
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 1024) };
-        match_result_code(result_code, || Blob {
-            data: unsafe { buffer.assume_init() },
-            len: result_code as usize,
-        })
+        match get_variable_size_field::<1024, _>(field_code, |fc, buf, size| unsafe {
+            get_tx_field(fc, buf, size)
+        }) {
+            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 1024]>::uninit();
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 1024) };
-        match_result_code(result_code, || {
-            Some(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            })
-        })
+        match get_variable_size_field_optional::<1024, _>(field_code, |fc, buf, size| unsafe {
+            get_tx_field(fc, buf, size)
+        }) {
+            Result::Ok(Some((data, len))) => Result::Ok(Some(Blob { data, len })),
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -366,16 +378,23 @@ impl CurrentTxFieldGetter for Blob {
 impl CurrentTxFieldGetter for TransactionType {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = [0u8; 2]; // Allocate memory to read into (this is an i32)
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes(result_code, 2, || i16::from_le_bytes(buffer).into())
+        match get_fixed_size_field_with_expected_bytes::<2, _>(field_code, |fc, buf, size| unsafe {
+            get_tx_field(fc, buf, size)
+        }) {
+            Result::Ok(buffer) => Result::Ok(i16::from_le_bytes(buffer).into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = [0u8; 2]; // Allocate memory to read into (this is an i32)
-        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
-        match_result_code_with_expected_bytes_optional(result_code, 2, || Some(buffer.into()))
+        match get_fixed_size_field_with_expected_bytes_optional::<2, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| i16::from_le_bytes(b).into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 

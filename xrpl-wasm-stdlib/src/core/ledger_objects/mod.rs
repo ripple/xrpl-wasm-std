@@ -11,8 +11,11 @@ use crate::core::types::issue::{IouIssue, Issue, MptIssue, XrpIssue};
 use crate::core::types::mpt_id::MptId;
 use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
 use crate::host::error_codes::{
-    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
-    match_result_code_with_expected_bytes_optional,
+    match_result_code_with_expected_bytes, match_result_code_with_expected_bytes_optional,
+};
+use crate::host::field_helpers::{
+    get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
+    get_variable_size_field, get_variable_size_field_optional,
 };
 use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 
@@ -223,56 +226,46 @@ impl<T: FixedSizeFieldType> FieldGetter for T {
 impl FieldGetter for AccountID {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE)
-        };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
-            unsafe { buffer.assume_init() }.into()
-        })
+        match get_fixed_size_field_with_expected_bytes::<ACCOUNT_ID_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE)
-        };
-        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(unsafe { buffer.assume_init() }.into())
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<ACCOUNT_ID_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                ACCOUNT_ID_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
-            unsafe { buffer.assume_init() }.into()
-        })
+        match get_fixed_size_field_with_expected_bytes::<ACCOUNT_ID_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                ACCOUNT_ID_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(unsafe { buffer.assume_init() }.into())
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<ACCOUNT_ID_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -291,59 +284,49 @@ impl FieldGetter for Amount {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BUFFER_SIZE)
-        };
-        match_result_code(result_code, || {
-            Amount::from(unsafe { buffer.assume_init() })
-        })
+        match get_variable_size_field::<BUFFER_SIZE, _>(field_code, |fc, buf, size| unsafe {
+            get_current_ledger_obj_field(fc, buf, size)
+        }) {
+            Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BUFFER_SIZE)
-        };
-        match_result_code_optional(result_code, || {
-            Some(Amount::from(unsafe { buffer.assume_init() }))
-        })
+        match get_variable_size_field_optional::<BUFFER_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(Some((buffer, _len))) => Result::Ok(Some(Amount::from(buffer))),
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                BUFFER_SIZE,
-            )
-        };
-        match_result_code(result_code, || {
-            Amount::from(unsafe { buffer.assume_init() })
-        })
+        match get_variable_size_field::<BUFFER_SIZE, _>(field_code, |fc, buf, size| unsafe {
+            get_ledger_obj_field(register_num, fc, buf, size)
+        }) {
+            Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
         const BUFFER_SIZE: usize = 48;
-        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                BUFFER_SIZE,
-            )
-        };
-        match_result_code_optional(result_code, || {
-            Some(Amount::from(unsafe { buffer.assume_init() }))
-        })
+        match get_variable_size_field_optional::<BUFFER_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(Some((buffer, _len))) => Result::Ok(Some(Amount::from(buffer))),
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -360,56 +343,46 @@ impl FieldGetter for Amount {
 impl FieldGetter for Hash128 {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH128_SIZE)
-        };
-        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
-            Hash128::from(unsafe { buffer.assume_init() })
-        })
+        match get_fixed_size_field_with_expected_bytes::<HASH128_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH128_SIZE)
-        };
-        match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
-            Some(Hash128::from(unsafe { buffer.assume_init() }))
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH128_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                HASH128_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
-            Hash128::from(unsafe { buffer.assume_init() })
-        })
+        match get_fixed_size_field_with_expected_bytes::<HASH128_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                HASH128_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
-            Some(Hash128::from(unsafe { buffer.assume_init() }))
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH128_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -426,56 +399,46 @@ impl FieldGetter for Hash128 {
 impl FieldGetter for Hash256 {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE)
-        };
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Hash256::from(unsafe { buffer.assume_init() })
-        })
+        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE)
-        };
-        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
-            Some(Hash256::from(unsafe { buffer.assume_init() }))
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                HASH256_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Hash256::from(unsafe { buffer.assume_init() })
-        })
+        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                HASH256_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
-            Some(Hash256::from(unsafe { buffer.assume_init() }))
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -496,64 +459,46 @@ const BLOB_BUFFER_SIZE: usize = 1024;
 impl FieldGetter for Blob {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BLOB_BUFFER_SIZE)
-        };
-        match_result_code(result_code, || Blob {
-            data: unsafe { buffer.assume_init() },
-            len: result_code as usize,
-        })
+        match get_variable_size_field::<BLOB_BUFFER_SIZE, _>(field_code, |fc, buf, size| unsafe {
+            get_current_ledger_obj_field(fc, buf, size)
+        }) {
+            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BLOB_BUFFER_SIZE)
-        };
-        match_result_code_optional(result_code, || {
-            Some(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            })
-        })
+        match get_variable_size_field_optional::<BLOB_BUFFER_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(Some((data, len))) => Result::Ok(Some(Blob { data, len })),
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                BLOB_BUFFER_SIZE,
-            )
-        };
-        match_result_code(result_code, || Blob {
-            data: unsafe { buffer.assume_init() },
-            len: result_code as usize,
-        })
+        match get_variable_size_field::<BLOB_BUFFER_SIZE, _>(field_code, |fc, buf, size| unsafe {
+            get_ledger_obj_field(register_num, fc, buf, size)
+        }) {
+            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                BLOB_BUFFER_SIZE,
-            )
-        };
-        match_result_code_optional(result_code, || {
-            Some(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            })
-        })
+        match get_variable_size_field_optional::<BLOB_BUFFER_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(Some((data, len))) => Result::Ok(Some(Blob { data, len })),
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -569,44 +514,46 @@ impl FieldGetter for Blob {
 impl FieldGetter for Currency {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 20) };
-        match_result_code_with_expected_bytes(result_code, 20, || {
-            Currency::from(unsafe { buffer.assume_init() })
-        })
+        match get_fixed_size_field_with_expected_bytes::<20, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 20) };
-        match_result_code_with_expected_bytes_optional(result_code, 20, || {
-            Some(Currency::from(unsafe { buffer.assume_init() }))
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<20, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 20)
-        };
-        match_result_code_with_expected_bytes(result_code, 20, || {
-            Currency::from(unsafe { buffer.assume_init() })
-        })
+        match get_fixed_size_field_with_expected_bytes::<20, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 20)
-        };
-        match_result_code_with_expected_bytes_optional(result_code, 20, || {
-            Some(Currency::from(unsafe { buffer.assume_init() }))
-        })
+        match get_fixed_size_field_with_expected_bytes_optional::<20, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 
@@ -627,151 +574,115 @@ impl FieldGetter for Currency {
 impl FieldGetter for Issue {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 40]>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 40) };
-
-        // Detect Issue type based on returned byte count
-        match result_code {
-            20 => {
-                // XRP Issue (20 bytes)
-                Result::Ok(Issue::XRP(XrpIssue {}))
+        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
+            get_current_ledger_obj_field(fc, buf, size)
+        }) {
+            Result::Ok((buffer, len)) => {
+                // Detect Issue type based on returned byte count
+                match len {
+                    20 => Result::Ok(Issue::XRP(XrpIssue {})),
+                    24 => {
+                        let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
+                        let mpt_id = MptId::from(mpt_bytes);
+                        Result::Ok(Issue::MPT(MptIssue::new(mpt_id)))
+                    }
+                    40 => {
+                        let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
+                        let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
+                        let currency = Currency::from(currency_bytes);
+                        let issuer = AccountID::from(issuer_bytes);
+                        Result::Ok(Issue::IOU(IouIssue::new(issuer, currency)))
+                    }
+                    _ => Result::Err(crate::host::Error::from_code(len as i32)),
+                }
             }
-            24 => {
-                // MPT Issue (24 bytes: 4-byte sequence + 20-byte issuer)
-                let buffer = unsafe { buffer.assume_init() };
-                let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
-                let mpt_id = MptId::from(mpt_bytes);
-                Result::Ok(Issue::MPT(MptIssue::new(mpt_id)))
-            }
-            40 => {
-                // IOU Issue (40 bytes: 20-byte currency + 20-byte issuer)
-                let buffer = unsafe { buffer.assume_init() };
-                let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
-                let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
-                let currency = Currency::from(currency_bytes);
-                let issuer = AccountID::from(issuer_bytes);
-                Result::Ok(Issue::IOU(IouIssue::new(issuer, currency)))
-            }
-            _ => {
-                // Unexpected size, treat as error
-                Result::Err(crate::host::Error::from_code(result_code))
-            }
+            Result::Err(e) => Result::Err(e),
         }
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 40]>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 40) };
-
-        // Detect Issue type based on returned byte count
-        match result_code {
-            20 => {
-                // XRP Issue (20 bytes)
-                Result::Ok(Some(Issue::XRP(XrpIssue {})))
+        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
+            get_current_ledger_obj_field(fc, buf, size)
+        }) {
+            Result::Ok(Some((buffer, len))) => {
+                // Detect Issue type based on returned byte count
+                match len {
+                    20 => Result::Ok(Some(Issue::XRP(XrpIssue {}))),
+                    24 => {
+                        let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
+                        let mpt_id = MptId::from(mpt_bytes);
+                        Result::Ok(Some(Issue::MPT(MptIssue::new(mpt_id))))
+                    }
+                    40 => {
+                        let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
+                        let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
+                        let currency = Currency::from(currency_bytes);
+                        let issuer = AccountID::from(issuer_bytes);
+                        Result::Ok(Some(Issue::IOU(IouIssue::new(issuer, currency))))
+                    }
+                    _ => Result::Err(crate::host::Error::from_code(len as i32)),
+                }
             }
-            24 => {
-                // MPT Issue (24 bytes: 4-byte sequence + 20-byte issuer)
-                let buffer = unsafe { buffer.assume_init() };
-                let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
-                let mpt_id = MptId::from(mpt_bytes);
-                Result::Ok(Some(Issue::MPT(MptIssue::new(mpt_id))))
-            }
-            40 => {
-                // IOU Issue (40 bytes: 20-byte currency + 20-byte issuer)
-                let buffer = unsafe { buffer.assume_init() };
-                let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
-                let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
-                let currency = Currency::from(currency_bytes);
-                let issuer = AccountID::from(issuer_bytes);
-                Result::Ok(Some(Issue::IOU(IouIssue::new(issuer, currency))))
-            }
-            code if code < 0 => {
-                // Negative code indicates field not found or error
-                Result::Ok(None)
-            }
-            _ => {
-                // Unexpected size, treat as error
-                Result::Err(crate::host::Error::from_code(result_code))
-            }
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
         }
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 40]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 40)
-        };
-
-        // Detect Issue type based on returned byte count
-        match result_code {
-            20 => {
-                // XRP Issue (20 bytes)
-                Result::Ok(Issue::XRP(XrpIssue {}))
+        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
+            get_ledger_obj_field(register_num, fc, buf, size)
+        }) {
+            Result::Ok((buffer, len)) => {
+                // Detect Issue type based on returned byte count
+                match len {
+                    20 => Result::Ok(Issue::XRP(XrpIssue {})),
+                    24 => {
+                        let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
+                        let mpt_id = MptId::from(mpt_bytes);
+                        Result::Ok(Issue::MPT(MptIssue::new(mpt_id)))
+                    }
+                    40 => {
+                        let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
+                        let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
+                        let currency = Currency::from(currency_bytes);
+                        let issuer = AccountID::from(issuer_bytes);
+                        Result::Ok(Issue::IOU(IouIssue::new(issuer, currency)))
+                    }
+                    _ => Result::Err(crate::host::Error::from_code(len as i32)),
+                }
             }
-            24 => {
-                // MPT Issue (24 bytes: 4-byte sequence + 20-byte issuer)
-                let buffer = unsafe { buffer.assume_init() };
-                let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
-                let mpt_id = MptId::from(mpt_bytes);
-                Result::Ok(Issue::MPT(MptIssue::new(mpt_id)))
-            }
-            40 => {
-                // IOU Issue (40 bytes: 20-byte currency + 20-byte issuer)
-                let buffer = unsafe { buffer.assume_init() };
-                let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
-                let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
-                let currency = Currency::from(currency_bytes);
-                let issuer = AccountID::from(issuer_bytes);
-                Result::Ok(Issue::IOU(IouIssue::new(issuer, currency)))
-            }
-            _ => {
-                // Unexpected size, treat as error
-                Result::Err(crate::host::Error::from_code(result_code))
-            }
+            Result::Err(e) => Result::Err(e),
         }
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; 40]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 40)
-        };
-
-        // Detect Issue type based on returned byte count
-        match result_code {
-            20 => {
-                // XRP Issue (20 bytes)
-                Result::Ok(Some(Issue::XRP(XrpIssue {})))
+        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
+            get_ledger_obj_field(register_num, fc, buf, size)
+        }) {
+            Result::Ok(Some((buffer, len))) => {
+                // Detect Issue type based on returned byte count
+                match len {
+                    20 => Result::Ok(Some(Issue::XRP(XrpIssue {}))),
+                    24 => {
+                        let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
+                        let mpt_id = MptId::from(mpt_bytes);
+                        Result::Ok(Some(Issue::MPT(MptIssue::new(mpt_id))))
+                    }
+                    40 => {
+                        let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
+                        let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
+                        let currency = Currency::from(currency_bytes);
+                        let issuer = AccountID::from(issuer_bytes);
+                        Result::Ok(Some(Issue::IOU(IouIssue::new(issuer, currency))))
+                    }
+                    _ => Result::Err(crate::host::Error::from_code(len as i32)),
+                }
             }
-            24 => {
-                // MPT Issue (24 bytes: 4-byte sequence + 20-byte issuer)
-                let buffer = unsafe { buffer.assume_init() };
-                let mpt_bytes: [u8; 24] = buffer[..24].try_into().unwrap_or([0u8; 24]);
-                let mpt_id = MptId::from(mpt_bytes);
-                Result::Ok(Some(Issue::MPT(MptIssue::new(mpt_id))))
-            }
-            40 => {
-                // IOU Issue (40 bytes: 20-byte currency + 20-byte issuer)
-                let buffer = unsafe { buffer.assume_init() };
-                let currency_bytes: [u8; 20] = buffer[..20].try_into().unwrap_or([0u8; 20]);
-                let issuer_bytes: [u8; 20] = buffer[20..40].try_into().unwrap_or([0u8; 20]);
-                let currency = Currency::from(currency_bytes);
-                let issuer = AccountID::from(issuer_bytes);
-                Result::Ok(Some(Issue::IOU(IouIssue::new(issuer, currency))))
-            }
-            code if code < 0 => {
-                // Negative code indicates field not found or error
-                Result::Ok(None)
-            }
-            _ => {
-                // Unexpected size, treat as error
-                Result::Err(crate::host::Error::from_code(result_code))
-            }
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
         }
     }
 }
