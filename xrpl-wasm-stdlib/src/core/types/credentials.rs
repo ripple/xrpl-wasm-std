@@ -1,63 +1,47 @@
+//! Credential types for XRPL credentials
+//!
+//! This module provides types for working with XRPL credentials.
+//! A CredentialID is a 32-byte (256-bit) hash that uniquely identifies a credential.
+
+use crate::core::types::uint::Hash256;
+
+/// A credential identifier (32-byte hash)
+///
+/// CredentialIDs are 256-bit hashes that uniquely identify credentials on the XRPL.
+/// They are computed from the credential's issuer, subject, and credential type.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
-pub struct CredentialID(pub [u8; 256]);
+pub struct CredentialID(pub [u8; 32]);
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-#[repr(C)]
-pub struct CredentialIDs {
-    pub credential_ids: [CredentialID; 10],
-    pub num_credential_ids: u8, // Max of 10!
-}
+impl CredentialID {
+    /// Creates a new CredentialID from a 32-byte array
+    pub const fn new(bytes: [u8; 32]) -> Self {
+        Self(bytes)
+    }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct TooManyIdsError; // Simple error type
-
-impl CredentialIDs {
-    // Using a slice allows accepting various inputs like arrays or Vecs
-    pub fn new(ids: &[CredentialID]) -> Self {
-        // Runtime check for the maximum number of IDs.
-        // Consider using TryFrom (see option 3) for fallible creation.
-        assert!(
-            ids.len() <= 10,
-            "Cannot create CredentialIDs with more than 10 IDs."
-        );
-
-        let mut credential_ids_array = [EMPTY_CREDENTIAL_ID; 10];
-
-        // Copy the provided IDs into the start of the array.
-        // Using `enumerate` gives us the index `i`.
-        // Since CredentialID is Copy, `*id` performs a cheap copy.
-        for (i, &id) in ids.iter().enumerate() {
-            credential_ids_array[i] = id;
-        }
-
-        CredentialIDs {
-            credential_ids: credential_ids_array,
-            // Convert usize from len() to u8 safely.
-            // The assert above ensures this won't overflow.
-            num_credential_ids: ids.len() as u8,
-        }
+    /// Returns the inner 32 bytes as a reference
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
     }
 }
 
-impl TryFrom<&[CredentialID]> for CredentialIDs {
-    type Error = TooManyIdsError;
-
-    fn try_from(ids: &[CredentialID]) -> Result<Self, Self::Error> {
-        if ids.len() > 10 {
-            return Err(TooManyIdsError);
-        }
-
-        let mut credential_ids_array = [EMPTY_CREDENTIAL_ID; 10];
-        for (i, &id) in ids.iter().enumerate() {
-            credential_ids_array[i] = id;
-        }
-
-        Ok(CredentialIDs {
-            credential_ids: credential_ids_array,
-            num_credential_ids: ids.len() as u8,
-        })
+impl From<[u8; 32]> for CredentialID {
+    fn from(bytes: [u8; 32]) -> Self {
+        Self(bytes)
     }
 }
 
-pub const EMPTY_CREDENTIAL_ID: CredentialID = CredentialID([0x00; 256]);
+impl From<Hash256> for CredentialID {
+    fn from(hash: Hash256) -> Self {
+        Self(*hash.as_bytes())
+    }
+}
+
+impl From<CredentialID> for Hash256 {
+    fn from(cred_id: CredentialID) -> Self {
+        Hash256::from(cred_id.0)
+    }
+}
+
+/// Empty credential ID constant (all zeros)
+pub const EMPTY_CREDENTIAL_ID: CredentialID = CredentialID([0x00; 32]);

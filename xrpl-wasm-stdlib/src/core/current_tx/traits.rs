@@ -42,14 +42,15 @@ use crate::core::current_tx::{get_field, get_field_optional};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
 use crate::core::types::blob::Blob;
-use crate::core::types::crypto_condition::{Condition, Fulfillment};
+use crate::core::types::crypto_condition::{
+    Condition, Fulfillment, MAX_CONDITION_SIZE, MAX_FULFILLMENT_SIZE,
+};
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::Hash256;
-use crate::host::error_codes::{
-    match_result_code_optional, match_result_code_with_expected_bytes_optional,
-};
-use crate::host::{Result, get_tx_field};
+use crate::core::types::vector_256::Vector256;
+use crate::host::error_codes::match_result_code_optional;
+use crate::host::{Error, Result, get_tx_field};
 use crate::sfield;
 
 /// Trait providing access to common fields present in all XRPL transactions.
@@ -334,24 +335,35 @@ pub trait EscrowFinishFields: TransactionCommonFields {
 
     /// Retrieves the cryptographic condition from the current EscrowFinish transaction.
     ///
-    /// This optional field contains the cryptographic condition specified in the
-    /// original EscrowCreate transaction. If present, a valid `Fulfillment` must be provided
-    /// in the `Fulfillment` field for the escrow to be successfully finished. Conditions
-    /// enable complex release criteria beyond simple time-based locks.
+    /// This optional field contains the cryptographic condition in full crypto-condition format.
+    /// For PREIMAGE-SHA-256 conditions, this is 39 bytes:
+    /// - 2 bytes: type tag (A025)
+    /// - 2 bytes: fingerprint length tag (8020)
+    /// - 32 bytes: SHA-256 hash (fingerprint)
+    /// - 2 bytes: cost length tag (8101)
+    /// - 1 byte: cost value (00)
     ///
     /// # Returns
     ///
     /// Returns a `Result<Option<Condition>>` where:
-    /// * `Ok(Some(Condition))` - The 32-byte condition hash if the escrow is conditional
+    /// * `Ok(Some(Condition))` - The full crypto-condition if the escrow is conditional
     /// * `Ok(None)` - If the escrow has no cryptographic condition (time-based only)
     /// * `Err(Error)` - If an error occurred during field retrieval
     fn get_condition(&self) -> Result<Option<Condition>> {
-        let mut buffer = [0u8; 32];
+        let mut buffer = [0u8; MAX_CONDITION_SIZE];
 
         let result_code =
             unsafe { get_tx_field(sfield::Condition, buffer.as_mut_ptr(), buffer.len()) };
 
-        match_result_code_with_expected_bytes_optional(result_code, 32, || Some(buffer.into()))
+        if result_code < 0 {
+            Result::Err(Error::from_code(result_code))
+        } else if result_code == 0 {
+            Result::Ok(None)
+        } else {
+            let len = result_code as usize;
+
+            Result::Ok(Some(Condition { data: buffer, len }))
+        }
     }
 
     /// Retrieves the cryptographic fulfillment from the current EscrowFinish transaction.
@@ -384,7 +396,7 @@ pub trait EscrowFinishFields: TransactionCommonFields {
         // Fulfillment fields are limited in rippled to 256 bytes, so we don't use `get_blob_field`
         // but instead just use a smaller buffer directly.
 
-        let mut buffer = [0u8; 256]; // <-- 256 is the current rippled cap.
+        let mut buffer = [0u8; MAX_FULFILLMENT_SIZE]; // <-- 256 is the current rippled cap.
 
         let result_code = unsafe { get_tx_field(sfield::Fulfillment, buffer.as_mut_ptr(), 256) };
         match_result_code_optional(result_code, || {
@@ -395,6 +407,43 @@ pub trait EscrowFinishFields: TransactionCommonFields {
         })
     }
 
-    // TODO: credential IDS
+    /// Retrieves the credential IDs from the current EscrowFinish transaction.
+    ///
+    /// This optional field contains an array of credential IDs that authorize the transaction.
+    /// Credentials are a mechanism for accounts to grant specific permissions or capabilities
+    /// to other accounts. When present, the credential IDs must reference valid, accepted
+    /// credentials on the ledger.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result<Option<Vector256>>` where:
+    /// * `Ok(Some(Vector256))` - An array of credential IDs (32-byte hashes) if provided
+    /// * `Ok(None)` - If no credential IDs are specified
+    /// * `Err(Error)` - If an error occurred during field retrieval
+    ///
+    /// # Credential ID Format
+    ///
+    /// Each credential ID is a 32-byte (256-bit) hash that uniquely identifies a credential
+    /// on the ledger. The credential ID is computed from the credential's issuer, subject,
+    /// and credential type.
+    ///
+    /// # Usage Example
+    ///
+    /// ```no_run
+    /// use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
+    /// use xrpl_wasm_stdlib::core::current_tx::traits::EscrowFinishFields;
+    ///
+    /// let tx = EscrowFinish;
+    /// if let Some(creds) = tx.get_credential_ids().unwrap() {
+    ///     for i in 0..creds.len() {
+    ///         let cred_id = creds.get(i).unwrap();
+    ///         // Process credential ID...
+    ///     }
+    /// }
+    /// ```
+    fn get_credential_ids(&self) -> Result<Option<Vector256>> {
+        get_field_optional(sfield::CredentialIDs)
+    }
+
     // TODO: Signers
 }
