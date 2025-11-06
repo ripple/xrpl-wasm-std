@@ -102,7 +102,7 @@ impl Vector256 {
         let _ = trace_num("  data_len (first byte):", data_len as i64);
 
         // Validate data length is a multiple of 32 (each hash is 32 bytes)
-        if data_len % 32 != 0 {
+        if !data_len.is_multiple_of(32) {
             let _ = trace("  ERROR: data_len is not a multiple of 32");
             let _ = trace_num("  data_len % 32 =", (data_len % 32) as i64);
             return crate::host::Result::Err(Error::InvalidParams);
