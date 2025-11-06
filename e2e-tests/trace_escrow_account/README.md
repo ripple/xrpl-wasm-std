@@ -3,9 +3,10 @@
 This WebAssembly module traces every field of an AccountRoot ledger object to validate functionality between this library and xrpld.
 
 The test exercises:
-- All 24 AccountRoot fields from the `AccountFields` trait
-- Common ledger object fields from the `LedgerObjectCommonFields` trait
+- All 21 AccountRoot fields from the `AccountFields` trait
+- Common ledger object fields (Flags, LedgerEntryType) from the `LedgerObjectCommonFields` trait
 - Loading arbitrary ledger objects using keylets and `cache_ledger_obj()`
+- Asserting specific static values configured in the test (Domain, EmailHash, MessageKey, etc.)
 
 ### 1. Install dependencies
 
