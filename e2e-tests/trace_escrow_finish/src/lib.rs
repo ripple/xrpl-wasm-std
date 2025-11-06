@@ -27,9 +27,7 @@ const EXPECTED_CONDITION: [u8; 39] = [
 
 /// Fulfillment: A0058003736868
 /// This is a PREIMAGE-SHA-256 fulfillment (7 bytes) for preimage "shh"
-const EXPECTED_FULFILLMENT: [u8; 7] = [
-    0xA0, 0x05, 0x80, 0x03, 0x73, 0x68, 0x68,
-];
+const EXPECTED_FULFILLMENT: [u8; 7] = [0xA0, 0x05, 0x80, 0x03, 0x73, 0x68, 0x68];
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -328,7 +326,11 @@ pub extern "C" fn finish() -> i32 {
                     );
 
                     // Assert the condition matches the expected value
-                    assert_eq!(condition.len, EXPECTED_CONDITION.len(), "Condition length mismatch");
+                    assert_eq!(
+                        condition.len,
+                        EXPECTED_CONDITION.len(),
+                        "Condition length mismatch"
+                    );
                     assert_eq!(
                         &condition.data[..condition.len],
                         &EXPECTED_CONDITION[..],
@@ -359,7 +361,11 @@ pub extern "C" fn finish() -> i32 {
             );
 
             // Assert the fulfillment matches the expected value
-            assert_eq!(fulfillment.len, EXPECTED_FULFILLMENT.len(), "Fulfillment length mismatch");
+            assert_eq!(
+                fulfillment.len,
+                EXPECTED_FULFILLMENT.len(),
+                "Fulfillment length mismatch"
+            );
             assert_eq!(
                 &fulfillment.data[..fulfillment.len],
                 &EXPECTED_FULFILLMENT[..],

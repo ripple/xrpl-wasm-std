@@ -79,7 +79,11 @@ pub extern "C" fn finish() -> i32 {
                     );
 
                     // Assert the condition matches the expected value
-                    assert_eq!(condition.len, EXPECTED_CONDITION.len(), "Condition length mismatch");
+                    assert_eq!(
+                        condition.len,
+                        EXPECTED_CONDITION.len(),
+                        "Condition length mismatch"
+                    );
                     assert_eq!(
                         &condition.data[..condition.len],
                         &EXPECTED_CONDITION[..],
@@ -180,15 +184,15 @@ pub extern "C" fn finish() -> i32 {
         // Note: Data field is optional and only present if set during EscrowCreate
         // We don't set it in runTest.js, so this will likely return empty or error
         let data_result = current_escrow.get_data();
-        if let Ok(contract_data) = data_result {
-            if contract_data.len > 0 {
-                let _ = trace_num("  Data length:", contract_data.len as i64);
-                let _ = trace_data(
-                    "  Data:",
-                    &contract_data.data[..contract_data.len],
-                    DataRepr::AsHex,
-                );
-            }
+        if let Ok(contract_data) = data_result
+            && contract_data.len > 0
+        {
+            let _ = trace_num("  Data length:", contract_data.len as i64);
+            let _ = trace_data(
+                "  Data:",
+                &contract_data.data[..contract_data.len],
+                DataRepr::AsHex,
+            );
         }
 
         let _ = trace("}");

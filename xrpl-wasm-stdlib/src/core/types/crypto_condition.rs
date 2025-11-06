@@ -1,11 +1,11 @@
+/// The maximum number of bytes in a Condition. Xrpld currently caps this value at 256 bytes
+/// (see `maxSerializedFulfillment` in xrpld source code), so we do the same here.
+pub const MAX_CONDITION_SIZE: usize = 128;
+
 /// A crypto-condition Condition. The maximum size is based on the crypto-condition format.
 ///
 /// Byte-encoding For PREIMAGE-SHA-256:
 /// 2 bytes (type) + 2 bytes (length tag) + 32 bytes (hash) + 2 bytes (cost tag) + 1 byte (cost) = 39 bytes (generally)
-
-/// The maximum number of bytes in a Condition. Xrpld currently caps this value at 256 bytes
-/// (see `maxSerializedFulfillment` in xrpld source code), so we do the same here.
-pub const MAX_CONDITION_SIZE: usize = 128;
 pub struct Condition {
     /// The full raw condition data in crypto-condition format
     pub data: [u8; MAX_CONDITION_SIZE],
@@ -22,6 +22,11 @@ impl From<[u8; MAX_CONDITION_SIZE]> for Condition {
         }
     }
 }
+
+/// The maximum number of bytes in a Fulfillment. Theoretically, the crypto-condition format allows for much larger
+/// fulfillments, but xrpld currently caps this value at 256 bytes (see `maxSerializedFulfillment` in xrpld source
+/// code), so we do the same here.
+pub const MAX_FULFILLMENT_SIZE: usize = 256;
 
 /// A crypto-condition Fulfillment.
 ///
@@ -54,12 +59,6 @@ impl From<[u8; MAX_CONDITION_SIZE]> for Condition {
 /// - (no preimage data)
 ///
 /// Total: 4 bytes
-
-/// The maximum number of bytes in a Fulfillment. Theoretically, the crypto-condition format allows for much larger
-/// fulfillments, but xrpld currently caps this value at 256 bytes (see `maxSerializedFulfillment` in xrpld source
-/// code), so we do the same here.
-pub const MAX_FULFILLMENT_SIZE: usize = 256;
-///
 pub struct Fulfillment {
     /// The full raw fulfillment data in crypto-condition format
     pub data: [u8; 256],

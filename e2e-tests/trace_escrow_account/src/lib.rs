@@ -63,7 +63,10 @@ pub extern "C" fn finish() -> i32 {
         let flags = account.get_flags().unwrap();
         // Expected flags: lsfPasswordSpent (0x00010000 = 65536)
         // This flag is automatically set when the account uses its free SetRegularKey transaction
-        assert_eq!(flags, 65536, "Expected flags to be 0x00010000 (lsfPasswordSpent)");
+        assert_eq!(
+            flags, 65536,
+            "Expected flags to be 0x00010000 (lsfPasswordSpent)"
+        );
         let _ = trace_num("  Flags:", flags as i64);
 
         // Trace the `LedgerEntryType`
@@ -128,7 +131,11 @@ pub extern "C" fn finish() -> i32 {
         // Domain should be "example.com" in hex: 6578616D706C652E636F6D
         let expected_domain = b"example.com";
         assert_eq!(domain.len, expected_domain.len(), "Domain length mismatch");
-        assert_eq!(&domain.data[..domain.len], expected_domain, "Domain should be 'example.com'");
+        assert_eq!(
+            &domain.data[..domain.len],
+            expected_domain,
+            "Domain should be 'example.com'"
+        );
         let _ = trace_data("  Domain:", &domain.data[..domain.len], DataRepr::AsHex);
 
         // Trace the `EmailHash` (optional - required for testing)
@@ -137,10 +144,13 @@ pub extern "C" fn finish() -> i32 {
         // EmailHash should be MD5 of "hello": 5D41402ABC4B2A76B9719D911017C592
         assert_eq!(email_hash.0.len(), 16);
         let expected_email_hash: [u8; 16] = [
-            0x5D, 0x41, 0x40, 0x2A, 0xBC, 0x4B, 0x2A, 0x76,
-            0xB9, 0x71, 0x9D, 0x91, 0x10, 0x17, 0xC5, 0x92
+            0x5D, 0x41, 0x40, 0x2A, 0xBC, 0x4B, 0x2A, 0x76, 0xB9, 0x71, 0x9D, 0x91, 0x10, 0x17,
+            0xC5, 0x92,
         ];
-        assert_eq!(email_hash.0, expected_email_hash, "EmailHash should be MD5 of 'hello'");
+        assert_eq!(
+            email_hash.0, expected_email_hash,
+            "EmailHash should be MD5 of 'hello'"
+        );
         let _ = trace_data("  EmailHash:", &email_hash.0, DataRepr::AsHex);
 
         // Trace the `FirstNFTokenSequence` (optional - required for testing)
@@ -156,10 +166,15 @@ pub extern "C" fn finish() -> i32 {
         // MessageKey should be: 03AB40A0490F9B7ED8DF29D246BF2D6269820A0EE7742ACDD457BEA7C7D0931EDB
         assert_eq!(message_key.len, 33, "MessageKey should be 33 bytes");
         let expected_message_key: [u8; 33] = [
-            0x03, 0xAB, 0x40, 0xA0, 0x49, 0x0F, 0x9B, 0x7E, 0xD8, 0xDF, 0x29, 0xD2, 0x46, 0xBF, 0x2D, 0x62,
-            0x69, 0x82, 0x0A, 0x0E, 0xE7, 0x74, 0x2A, 0xCD, 0xD4, 0x57, 0xBE, 0xA7, 0xC7, 0xD0, 0x93, 0x1E, 0xDB
+            0x03, 0xAB, 0x40, 0xA0, 0x49, 0x0F, 0x9B, 0x7E, 0xD8, 0xDF, 0x29, 0xD2, 0x46, 0xBF,
+            0x2D, 0x62, 0x69, 0x82, 0x0A, 0x0E, 0xE7, 0x74, 0x2A, 0xCD, 0xD4, 0x57, 0xBE, 0xA7,
+            0xC7, 0xD0, 0x93, 0x1E, 0xDB,
         ];
-        assert_eq!(&message_key.data[..message_key.len], &expected_message_key, "MessageKey mismatch");
+        assert_eq!(
+            &message_key.data[..message_key.len],
+            &expected_message_key,
+            "MessageKey mismatch"
+        );
         let _ = trace_data(
             "  MessageKey:",
             &message_key.data[..message_key.len],
@@ -238,7 +253,10 @@ pub extern "C" fn finish() -> i32 {
             .unwrap()
             .expect("TransferRate should be set for testing");
         // TransferRate was set to 1002000000 (0.2% fee) in the test
-        assert_eq!(transfer_rate, 1002000000, "Expected TransferRate to be 1002000000");
+        assert_eq!(
+            transfer_rate, 1002000000,
+            "Expected TransferRate to be 1002000000"
+        );
         let _ = trace_num("  TransferRate:", transfer_rate as i64);
 
         // Trace the `WalletLocator` (optional - required for testing)
@@ -249,7 +267,10 @@ pub extern "C" fn finish() -> i32 {
         // WalletLocator should be all 0xAA bytes (32 bytes)
         assert_eq!(wallet_locator.0.len(), 32);
         let expected_wallet_locator = [0xAA; 32];
-        assert_eq!(wallet_locator.0, expected_wallet_locator, "WalletLocator should be all 0xAA bytes");
+        assert_eq!(
+            wallet_locator.0, expected_wallet_locator,
+            "WalletLocator should be all 0xAA bytes"
+        );
         let _ = trace_data("  WalletLocator:", &wallet_locator.0, DataRepr::AsHex);
 
         let _ = trace("}");

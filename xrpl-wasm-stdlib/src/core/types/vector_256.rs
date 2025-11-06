@@ -289,4 +289,3 @@ mod tests {
         assert_eq!(slice[1].as_bytes()[0], 0xBB);
     }
 }
-

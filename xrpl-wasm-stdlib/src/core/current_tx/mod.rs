@@ -421,9 +421,7 @@ impl CurrentTxFieldGetter for Vector256 {
         use crate::core::types::vector_256::MAX_VECTOR_256_SIZE;
         use crate::host::Result::Err;
         let mut buffer = [0u8; 1 + (MAX_VECTOR_256_SIZE * 32)];
-        let result_code = unsafe {
-            get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len())
-        };
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
         match result_code {
             code if code >= 0 => Vector256::from_bytes(&buffer[..code as usize]),
             code => Err(Error::from_code(code)),
@@ -436,17 +434,13 @@ impl CurrentTxFieldGetter for Vector256 {
         use crate::host::Result::{Err, Ok};
 
         let mut buffer = [0u8; 1 + (MAX_VECTOR_256_SIZE * 32)];
-        let result_code = unsafe {
-            get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len())
-        };
+        let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr(), buffer.len()) };
 
         match result_code {
-            code if code >= 0 => {
-                match Vector256::from_bytes(&buffer[..code as usize]) {
-                    Ok(vec) => Ok(Some(vec)),
-                    Err(e) => Err(e),
-                }
-            }
+            code if code >= 0 => match Vector256::from_bytes(&buffer[..code as usize]) {
+                Ok(vec) => Ok(Some(vec)),
+                Err(e) => Err(e),
+            },
             code if code == error_codes::FIELD_NOT_FOUND => Ok(None),
             code => Err(Error::from_code(code)),
         }
@@ -580,7 +574,7 @@ mod tests {
         let result = Vector256::from_bytes(&bytes);
         assert!(result.is_err());
         match result {
-            crate::host::Result::Err(crate::host::Error::BufferTooSmall) => {},
+            crate::host::Result::Err(crate::host::Error::BufferTooSmall) => {}
             _ => panic!("Expected BufferTooSmall error"),
         }
     }
@@ -591,7 +585,7 @@ mod tests {
         let result = Vector256::from_bytes(&bytes);
         assert!(result.is_err());
         match result {
-            crate::host::Result::Err(crate::host::Error::BufferTooSmall) => {},
+            crate::host::Result::Err(crate::host::Error::BufferTooSmall) => {}
             _ => panic!("Expected BufferTooSmall error"),
         }
     }
@@ -604,7 +598,7 @@ mod tests {
         let result = Vector256::from_bytes(&bytes);
         assert!(result.is_err());
         match result {
-            crate::host::Result::Err(crate::host::Error::InvalidParams) => {},
+            crate::host::Result::Err(crate::host::Error::InvalidParams) => {}
             _ => panic!("Expected InvalidParams error"),
         }
     }
