@@ -4,7 +4,7 @@ pub mod escrow;
 pub mod traits;
 
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-use crate::core::types::amount::Amount;
+use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
 use crate::core::types::currency::{CURRENCY_SIZE, Currency};
 use crate::core::types::issue::Issue;
@@ -282,8 +282,7 @@ impl FieldGetter for AccountID {
 impl FieldGetter for Amount {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        const BUFFER_SIZE: usize = 48;
-        match get_variable_size_field::<BUFFER_SIZE, _>(field_code, |fc, buf, size| unsafe {
+        match get_variable_size_field::<AMOUNT_SIZE, _>(field_code, |fc, buf, size| unsafe {
             get_current_ledger_obj_field(fc, buf, size)
         }) {
             Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
@@ -293,8 +292,7 @@ impl FieldGetter for Amount {
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        const BUFFER_SIZE: usize = 48;
-        match get_variable_size_field_optional::<BUFFER_SIZE, _>(
+        match get_variable_size_field_optional::<AMOUNT_SIZE, _>(
             field_code,
             |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
         ) {
@@ -305,8 +303,7 @@ impl FieldGetter for Amount {
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        const BUFFER_SIZE: usize = 48;
-        match get_variable_size_field::<BUFFER_SIZE, _>(field_code, |fc, buf, size| unsafe {
+        match get_variable_size_field::<AMOUNT_SIZE, _>(field_code, |fc, buf, size| unsafe {
             get_ledger_obj_field(register_num, fc, buf, size)
         }) {
             Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
@@ -316,8 +313,7 @@ impl FieldGetter for Amount {
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        const BUFFER_SIZE: usize = 48;
-        match get_variable_size_field_optional::<BUFFER_SIZE, _>(
+        match get_variable_size_field_optional::<AMOUNT_SIZE, _>(
             field_code,
             |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
         ) {
