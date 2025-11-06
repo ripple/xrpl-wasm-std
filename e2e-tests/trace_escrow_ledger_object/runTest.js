@@ -1,5 +1,5 @@
 async function test(testContext) {
-  const {client, finish, submit, sourceWallet, destWallet} = testContext
+  const { client, finish, submit, sourceWallet, destWallet } = testContext
 
   // Create a custom escrow with more fields for comprehensive testing
   await client.connect()
@@ -8,7 +8,8 @@ async function test(testContext) {
   // Create escrow with both Condition and FinishFunction
   // IMPORTANT: Condition must be in full crypto-condition format (39 bytes), not just the hash (32 bytes)
   // Format: A0258020<32-byte-hash>810100
-  const condition = "A0258020121B69A8D20269CFA850F78931EFF3B1FCF3CCA1982A22D7FDB111734C65E5E3810103"
+  const condition =
+    "A0258020121B69A8D20269CFA850F78931EFF3B1FCF3CCA1982A22D7FDB111734C65E5E3810103"
   const fulfillment = "A0058003736868"
 
   // close_time is in seconds since Ripple Epoch (Jan 1, 2000 00:00 UTC)
@@ -73,4 +74,4 @@ async function test(testContext) {
   console.log("✅  Successfully finished escrow with FinishFunction")
 }
 
-module.exports = {test}
+module.exports = { test }

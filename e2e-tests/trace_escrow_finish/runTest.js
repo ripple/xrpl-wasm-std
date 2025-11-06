@@ -1,7 +1,7 @@
 const xrpl = require("xrpl")
 
 async function test(testContext) {
-  const {client, finish, submit, sourceWallet, destWallet, allWallets} =
+  const { client, finish, submit, sourceWallet, destWallet, allWallets } =
     testContext
 
   // Create a custom escrow with comprehensive fields for testing
@@ -19,7 +19,8 @@ async function test(testContext) {
   // Create escrow with both Condition and FinishFunction
   // IMPORTANT: Condition must be in full crypto-condition format (39 bytes), not just the hash (32 bytes)
   // Format: A0258020<32-byte-hash>810100
-  const condition = "A0258020121B69A8D20269CFA850F78931EFF3B1FCF3CCA1982A22D7FDB111734C65E5E3810103"
+  const condition =
+    "A0258020121B69A8D20269CFA850F78931EFF3B1FCF3CCA1982A22D7FDB111734C65E5E3810103"
   const fulfillment = "A0058003736868"
 
   console.log("\n=== Condition/Fulfillment Verification ===")
@@ -51,7 +52,9 @@ async function test(testContext) {
     process.exit(1)
   }
   const offerSequence = createResponse.result.tx_json.Sequence
-  console.log(`Created escrow with both Condition and FinishFunction at sequence ${offerSequence}`)
+  console.log(
+    `Created escrow with both Condition and FinishFunction at sequence ${offerSequence}`,
+  )
 
   // Setup multi-signing for the EscrowFinish transaction
   // We need at least 2 signers for the test
@@ -98,7 +101,10 @@ async function test(testContext) {
   }
   const cred1Response = await submit(credentialCreate1, signer1)
   if (cred1Response.result.meta.TransactionResult !== "tesSUCCESS") {
-    console.error("\nFailed to create credential 1:", cred1Response.result.meta.TransactionResult)
+    console.error(
+      "\nFailed to create credential 1:",
+      cred1Response.result.meta.TransactionResult,
+    )
     process.exit(1)
   }
 
@@ -111,18 +117,21 @@ async function test(testContext) {
   }
   const cred2Response = await submit(credentialCreate2, signer2)
   if (cred2Response.result.meta.TransactionResult !== "tesSUCCESS") {
-    console.error("\nFailed to create credential 2:", cred2Response.result.meta.TransactionResult)
+    console.error(
+      "\nFailed to create credential 2:",
+      cred2Response.result.meta.TransactionResult,
+    )
     process.exit(1)
   }
 
   // Extract credential IDs from the metadata
   // Look for CreatedNode with LedgerEntryType: "Credential"
   const credentialID1 = cred1Response.result.meta.AffectedNodes.find(
-    node => node.CreatedNode?.LedgerEntryType === "Credential"
+    (node) => node.CreatedNode?.LedgerEntryType === "Credential",
   )?.CreatedNode?.LedgerIndex
 
   const credentialID2 = cred2Response.result.meta.AffectedNodes.find(
-    node => node.CreatedNode?.LedgerEntryType === "Credential"
+    (node) => node.CreatedNode?.LedgerEntryType === "Credential",
   )?.CreatedNode?.LedgerIndex
 
   if (!credentialID1 || !credentialID2) {
@@ -142,7 +151,10 @@ async function test(testContext) {
   }
   const accept1Response = await submit(credentialAccept1, sourceWallet)
   if (accept1Response.result.meta.TransactionResult !== "tesSUCCESS") {
-    console.error("\nFailed to accept credential 1:", accept1Response.result.meta.TransactionResult)
+    console.error(
+      "\nFailed to accept credential 1:",
+      accept1Response.result.meta.TransactionResult,
+    )
     process.exit(1)
   }
   console.log("Accepted credential 1")
@@ -155,7 +167,10 @@ async function test(testContext) {
   }
   const accept2Response = await submit(credentialAccept2, sourceWallet)
   if (accept2Response.result.meta.TransactionResult !== "tesSUCCESS") {
-    console.error("\nFailed to accept credential 2:", accept2Response.result.meta.TransactionResult)
+    console.error(
+      "\nFailed to accept credential 2:",
+      accept2Response.result.meta.TransactionResult,
+    )
     process.exit(1)
   }
   console.log("Accepted credential 2")
@@ -217,5 +232,4 @@ async function test(testContext) {
   await client.disconnect()
 }
 
-module.exports = {test}
-
+module.exports = { test }

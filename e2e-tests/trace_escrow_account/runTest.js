@@ -1,12 +1,7 @@
 const xrpl = require("xrpl")
 
 async function test(testContext) {
-  const {
-    client, finish, submit,
-    sourceWallet,
-    destWallet,
-    fundWallet
-  } =
+  const { client, finish, submit, sourceWallet, destWallet, fundWallet } =
     testContext
 
   await client.connect()
@@ -29,7 +24,10 @@ async function test(testContext) {
       "\nFailed to set DefaultRipple on issuer:",
       issuerAccountSetResponse.result.meta.TransactionResult,
     )
-    console.error("Full response:", JSON.stringify(issuerAccountSetResponse, null, 2))
+    console.error(
+      "Full response:",
+      JSON.stringify(issuerAccountSetResponse, null, 2),
+    )
     process.exit(1)
   }
   console.log("Issuer DefaultRipple enabled")
@@ -97,7 +95,7 @@ async function test(testContext) {
       value: "100",
     },
     TradingFee: 500, // 0.5% trading fee (in basis points, max 1000)
-    LastLedgerSequence: currentLedger + 5
+    LastLedgerSequence: currentLedger + 5,
   }
   const ammCreateResponse = await submit(ammCreateTx, testAccount)
   if (ammCreateResponse.result.meta.TransactionResult !== "tesSUCCESS") {
@@ -152,7 +150,10 @@ async function test(testContext) {
       "\nFailed to set regular key:",
       setRegularKeyResponse.result.meta.TransactionResult,
     )
-    console.error("Full response:", JSON.stringify(setRegularKeyResponse, null, 2))
+    console.error(
+      "Full response:",
+      JSON.stringify(setRegularKeyResponse, null, 2),
+    )
     process.exit(1)
   }
   console.log("RegularKey set")
@@ -173,7 +174,9 @@ async function test(testContext) {
     console.error("Full response:", JSON.stringify(nftMintResponse, null, 2))
     process.exit(1)
   }
-  console.log("NFToken minted - FirstNFTokenSequence and MintedNFTokens should now be set")
+  console.log(
+    "NFToken minted - FirstNFTokenSequence and MintedNFTokens should now be set",
+  )
 
   // Set NFTokenMinter by enabling the asfAuthorizedNFTokenMinter flag
   // First, create a minter account
@@ -192,7 +195,10 @@ async function test(testContext) {
       "\nFailed to set NFTokenMinter:",
       setNFTokenMinterResponse.result.meta.TransactionResult,
     )
-    console.error("Full response:", JSON.stringify(setNFTokenMinterResponse, null, 2))
+    console.error(
+      "Full response:",
+      JSON.stringify(setNFTokenMinterResponse, null, 2),
+    )
     process.exit(1)
   }
   console.log("NFTokenMinter set")
@@ -273,4 +279,4 @@ async function test(testContext) {
   console.log("✅  Successfully finished escrow with FinishFunction")
 }
 
-module.exports = {test}
+module.exports = { test }

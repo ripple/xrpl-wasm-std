@@ -3,6 +3,7 @@
 This WebAssembly module traces every field of an EscrowFinish transaction to validate functionality between this library and xrpld.
 
 The test exercises:
+
 - All 13 common transaction fields from the `TransactionCommonFields` trait
 - All 4 EscrowFinish-specific fields from the `EscrowFinishFields` trait
 - Transaction arrays: Memos, Signers, CredentialIDs
@@ -44,4 +45,3 @@ This will:
 - Execute the WASM which traces all EscrowFinish transaction fields
 
 Expected result: `tesSUCCESS` with comprehensive tracing of all EscrowFinish transaction fields, including multi-signature data.
-
