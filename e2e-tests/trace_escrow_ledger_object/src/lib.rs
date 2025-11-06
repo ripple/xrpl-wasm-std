@@ -21,6 +21,17 @@ use xrpl_wasm_stdlib::core::ledger_objects::traits::{
 use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_amount, trace_data, trace_num};
 use xrpl_wasm_stdlib::host::{Result::Err, Result::Ok};
 
+/// The following are private constants used for testing purposes to enforce value checks in this
+/// contract (to ensure that code changes don't break this contract).
+///
+/// Condition: A0258020121B69A8D20269CFA850F78931EFF3B1FCF3CCA1982A22D7FDB111734C65E5E3810103
+/// This is a PREIMAGE-SHA-256 condition in full crypto-condition format (39 bytes)
+const EXPECTED_CONDITION: [u8; 39] = [
+    0xA0, 0x25, 0x80, 0x20, 0x12, 0x1B, 0x69, 0xA8, 0xD2, 0x02, 0x69, 0xCF, 0xA8, 0x50, 0xF7, 0x89,
+    0x31, 0xEF, 0xF3, 0xB1, 0xFC, 0xF3, 0xCC, 0xA1, 0x98, 0x2A, 0x22, 0xD7, 0xFD, 0xB1, 0x11, 0x73,
+    0x4C, 0x65, 0xE5, 0xE3, 0x81, 0x01, 0x03,
+];
+
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
     let _ = trace("$$$$$ STARTING WASM EXECUTION $$$$$");
@@ -66,6 +77,15 @@ pub extern "C" fn finish() -> i32 {
                         &condition.data[..condition.len],
                         DataRepr::AsHex,
                     );
+
+                    // Assert the condition matches the expected value
+                    assert_eq!(condition.len, EXPECTED_CONDITION.len(), "Condition length mismatch");
+                    assert_eq!(
+                        &condition.data[..condition.len],
+                        &EXPECTED_CONDITION[..],
+                        "Condition bytes mismatch"
+                    );
+                    let _ = trace("  ✓ Condition matches expected value");
                 } else {
                     let _ = trace("  Condition: not present");
                 }
