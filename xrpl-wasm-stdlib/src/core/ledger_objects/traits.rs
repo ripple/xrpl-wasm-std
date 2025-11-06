@@ -306,7 +306,7 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 
     /// A hint indicating which page of the destination's owner directory links to this object, in
     /// case the directory consists of multiple pages. Omitted on escrows created before enabling the fix1523 amendment.
-    fn get_destination_node(&self) -> Result<Option<Hash256>> {
+    fn get_destination_node(&self) -> Result<Option<u64>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::DestinationNode)
     }
 
@@ -331,7 +331,7 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 
     /// A hint indicating which page of the sender's owner directory links to this entry, in case
     /// the directory consists of multiple pages.
-    fn get_owner_node(&self) -> Result<Hash256> {
+    fn get_owner_node(&self) -> Result<u64> {
         ledger_object::get_field(self.get_slot_num(), sfield::OwnerNode)
     }
 
@@ -504,7 +504,7 @@ pub trait AccountFields: LedgerObjectCommonFields {
 
     /// How many significant digits to use for exchange rates of Offers involving currencies issued by this address.
     /// Valid values are 3 to 15, inclusive. (Added by the TickSize amendment.)
-    fn tick_size(&self) -> Result<Option<u32>> {
+    fn tick_size(&self) -> Result<Option<u8>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::TickSize)
     }
 
