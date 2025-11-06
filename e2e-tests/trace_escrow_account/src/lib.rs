@@ -61,7 +61,9 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace the `Flags`
         let flags = account.get_flags().unwrap();
-        // Flags can vary based on account settings, just trace the value
+        // Expected flags: lsfPasswordSpent (0x00010000 = 65536)
+        // This flag is automatically set when the account uses its free SetRegularKey transaction
+        assert_eq!(flags, 65536, "Expected flags to be 0x00010000 (lsfPasswordSpent)");
         let _ = trace_num("  Flags:", flags as i64);
 
         // Trace the `LedgerEntryType`
@@ -123,14 +125,22 @@ pub extern "C" fn finish() -> i32 {
         // Trace the `Domain` (optional - required for testing)
         let domain_opt = account.domain().unwrap();
         let domain = domain_opt.expect("Domain should be set for testing");
-        // Domain is user-set, just verify it exists and has reasonable length
+        // Domain should be "example.com" in hex: 6578616D706C652E636F6D
+        let expected_domain = b"example.com";
+        assert_eq!(domain.len, expected_domain.len(), "Domain length mismatch");
+        assert_eq!(&domain.data[..domain.len], expected_domain, "Domain should be 'example.com'");
         let _ = trace_data("  Domain:", &domain.data[..domain.len], DataRepr::AsHex);
 
         // Trace the `EmailHash` (optional - required for testing)
         let email_hash_opt = account.email_hash().unwrap();
         let email_hash = email_hash_opt.expect("EmailHash should be set for testing");
-        // EmailHash is 16 bytes (MD5 hash)
+        // EmailHash should be MD5 of "hello": 5D41402ABC4B2A76B9719D911017C592
         assert_eq!(email_hash.0.len(), 16);
+        let expected_email_hash: [u8; 16] = [
+            0x5D, 0x41, 0x40, 0x2A, 0xBC, 0x4B, 0x2A, 0x76,
+            0xB9, 0x71, 0x9D, 0x91, 0x10, 0x17, 0xC5, 0x92
+        ];
+        assert_eq!(email_hash.0, expected_email_hash, "EmailHash should be MD5 of 'hello'");
         let _ = trace_data("  EmailHash:", &email_hash.0, DataRepr::AsHex);
 
         // Trace the `FirstNFTokenSequence` (optional - required for testing)
@@ -143,7 +153,13 @@ pub extern "C" fn finish() -> i32 {
         // Trace the `MessageKey` (optional - required for testing)
         let message_key_opt = account.message_key().unwrap();
         let message_key = message_key_opt.expect("MessageKey should be set for testing");
-        // MessageKey should be 33 bytes (public key)
+        // MessageKey should be: 03AB40A0490F9B7ED8DF29D246BF2D6269820A0EE7742ACDD457BEA7C7D0931EDB
+        assert_eq!(message_key.len, 33, "MessageKey should be 33 bytes");
+        let expected_message_key: [u8; 33] = [
+            0x03, 0xAB, 0x40, 0xA0, 0x49, 0x0F, 0x9B, 0x7E, 0xD8, 0xDF, 0x29, 0xD2, 0x46, 0xBF, 0x2D, 0x62,
+            0x69, 0x82, 0x0A, 0x0E, 0xE7, 0x74, 0x2A, 0xCD, 0xD4, 0x57, 0xBE, 0xA7, 0xC7, 0xD0, 0x93, 0x1E, 0xDB
+        ];
+        assert_eq!(&message_key.data[..message_key.len], &expected_message_key, "MessageKey mismatch");
         let _ = trace_data(
             "  MessageKey:",
             &message_key.data[..message_key.len],
@@ -155,6 +171,8 @@ pub extern "C" fn finish() -> i32 {
             .minted_nf_tokens()
             .unwrap()
             .expect("MintedNFTokens should be set for testing");
+        // We minted exactly 1 NFToken in the test
+        assert_eq!(minted_nf_tokens, 1, "Expected 1 minted NFToken");
         let _ = trace_num("  MintedNFTokens:", minted_nf_tokens as i64);
 
         // Trace the `NFTokenMinter` (optional - required for testing)
@@ -201,6 +219,8 @@ pub extern "C" fn finish() -> i32 {
             .ticket_count()
             .unwrap()
             .expect("TicketCount should be set for testing");
+        // We created 5 tickets in the test
+        assert_eq!(ticket_count, 5, "Expected 5 tickets");
         let _ = trace_num("  TicketCount:", ticket_count as i64);
 
         // Trace the `TickSize` (optional - required for testing)
@@ -208,8 +228,8 @@ pub extern "C" fn finish() -> i32 {
             .tick_size()
             .unwrap()
             .expect("TickSize should be set for testing");
-        // TickSize must be 3-15 if present
-        assert!(tick_size >= 3 && tick_size <= 15, "TickSize must be 3-15");
+        // TickSize was set to 5 in the test
+        assert_eq!(tick_size, 5, "Expected TickSize to be 5");
         let _ = trace_num("  TickSize:", tick_size as i64);
 
         // Trace the `TransferRate` (optional - required for testing)
@@ -217,6 +237,8 @@ pub extern "C" fn finish() -> i32 {
             .transfer_rate()
             .unwrap()
             .expect("TransferRate should be set for testing");
+        // TransferRate was set to 1002000000 (0.2% fee) in the test
+        assert_eq!(transfer_rate, 1002000000, "Expected TransferRate to be 1002000000");
         let _ = trace_num("  TransferRate:", transfer_rate as i64);
 
         // Trace the `WalletLocator` (optional - required for testing)
@@ -224,8 +246,10 @@ pub extern "C" fn finish() -> i32 {
             .wallet_locator()
             .unwrap()
             .expect("WalletLocator should be set for testing");
-        // WalletLocator is a 256-bit value (32 bytes)
+        // WalletLocator should be all 0xAA bytes (32 bytes)
         assert_eq!(wallet_locator.0.len(), 32);
+        let expected_wallet_locator = [0xAA; 32];
+        assert_eq!(wallet_locator.0, expected_wallet_locator, "WalletLocator should be all 0xAA bytes");
         let _ = trace_data("  WalletLocator:", &wallet_locator.0, DataRepr::AsHex);
 
         let _ = trace("}");
