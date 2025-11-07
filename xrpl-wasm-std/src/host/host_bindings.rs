@@ -1335,6 +1335,6 @@ unsafe extern "C" {
     // emitEvent
     pub fn emit_event(name_ptr: *const u8, name_len: usize, data_ptr: *const u8, data_len: usize) -> i32;
 
-    // exit
-    pub fn exit(code: i32, msg_read_ptr: *const u8, msg_read_len: usize);
+    // exitWith
+    pub fn exit_with(code: i32, msg_read_ptr: *const u8, msg_read_len: usize) -> i32;
 }

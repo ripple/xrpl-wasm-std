@@ -318,6 +318,63 @@ impl Amount {
         }
     }
 
+    /// Authorize an IOU for a recipient by setting a TrustSet transaction
+    pub fn authorize_iou(&self, limit_amount: Option<u64>) -> i32 {
+        // Only IOUs can be authorized via TrustSet
+        match self {
+            Amount::IOU { amount, issuer, currency } => {
+                unsafe {
+                    // Build TrustSet transaction
+                    let txn_index = build_txn(TransactionType::TrustSet as i32);
+                    if txn_index < 0 {
+                        return -100; // Build error
+                    }
+                    
+                    // Create the limit amount - either use provided value or current amount
+                    let limit_value = match limit_amount {
+                        Some(val) => {
+                            // Create new OpaqueFloat with the specified limit
+                            // You'll need to implement this conversion
+                            create_opaque_float(val)
+                        },
+                        None => *amount, // Use current amount as limit
+                    };
+                    
+                    // Create the IOU with the limit value
+                    let limit_iou = Amount::IOU {
+                        amount: limit_value,
+                        issuer: *issuer,
+                        currency: *currency,
+                    };
+                    
+                    // Get the encoded amount
+                    let (amount_bytes, _) = limit_iou.to_stamount_bytes();
+                    
+                    // Add LimitAmount field
+                    if add_txn_field(
+                        txn_index,
+                        sfield::LimitAmount,
+                        amount_bytes.as_ptr(),
+                        amount_bytes.len()
+                    ) < 0 {
+                        return -101; // Field error
+                    }
+                    
+                    // Note: The issuer is already encoded in the amount_bytes
+                    // XRPL knows to create a trust line to that issuer
+                    
+                    // Emit the transaction
+                    let emission_result = emit_built_txn(txn_index);
+                    return emission_result;
+                }
+            },
+            _ => {
+                // TrustSet only works with IOUs
+                return -103; // Invalid amount type error
+            }
+        }
+    }
+
     // pub fn safe_transfer(&self, recipient: &AccountID) -> i32 {
     //     let result: i32 = self.transfer(recipient);
     //     if result < 0 {
