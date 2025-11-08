@@ -6,7 +6,7 @@ use crate::host;
 use crate::host::Error::InternalError;
 use crate::core::types::transaction_type::TransactionType;
 use crate::sfield;
-use crate::host::{add_txn_field, build_txn, emit_built_txn};
+use crate::host::{add_txn_field, build_txn, emit_built_txn, float_from_int};
 use crate::host::trace::{trace_num};
 
 
@@ -319,10 +319,15 @@ impl Amount {
     }
 
     /// Authorize an IOU for a recipient by setting a TrustSet transaction
-    pub fn authorize_iou(&self, limit_amount: Option<u64>) -> i32 {
-        // Only IOUs can be authorized via TrustSet
+    /// Set a trust line for an IOU with a specific limit
+    /// 
+    /// # Arguments
+    /// * `limit_value` - The trust limit as an i64 and decimal places
+    ///                   e.g., (1000000, 2) for 10,000.00
+    ///                   Pass None to remove the trust line (sets to 0)
+    pub fn approve(&self, limit_value: Option<(i64, i32)>) -> i32 {
         match self {
-            Amount::IOU { amount, issuer, currency } => {
+            Amount::IOU { issuer, currency, .. } => {
                 unsafe {
                     // Build TrustSet transaction
                     let txn_index = build_txn(TransactionType::TrustSet as i32);
@@ -330,19 +335,46 @@ impl Amount {
                         return -100; // Build error
                     }
                     
-                    // Create the limit amount - either use provided value or current amount
-                    let limit_value = match limit_amount {
-                        Some(val) => {
-                            // Create new OpaqueFloat with the specified limit
-                            // You'll need to implement this conversion
-                            create_opaque_float(val)
+                    // Create the limit amount using host function
+                    let mut float_bytes = [0u8; 8];
+                    
+                    let limit_opaque = match limit_value {
+                        Some((value, decimals)) => {
+                            // Use host function to create OpaqueFloat
+                            let result = float_from_int(
+                                value,
+                                float_bytes.as_mut_ptr(),
+                                8,
+                                decimals
+                            );
+                            
+                            if result < 0 {
+                                return -104; // Float conversion error
+                            }
+                            
+                            OpaqueFloat(float_bytes)
                         },
-                        None => *amount, // Use current amount as limit
+                        None => {
+                            // Set to zero to remove trust line
+                            // Use host function with 0 value
+                            let result = float_from_int(
+                                0,
+                                float_bytes.as_mut_ptr(),
+                                8,
+                                0
+                            );
+                            
+                            if result < 0 {
+                                return -104; // Float conversion error
+                            }
+                            
+                            OpaqueFloat(float_bytes)
+                        }
                     };
                     
-                    // Create the IOU with the limit value
+                    // Create the IOU amount with the limit
                     let limit_iou = Amount::IOU {
-                        amount: limit_value,
+                        amount: limit_opaque,
                         issuer: *issuer,
                         currency: *currency,
                     };
@@ -359,9 +391,6 @@ impl Amount {
                     ) < 0 {
                         return -101; // Field error
                     }
-                    
-                    // Note: The issuer is already encoded in the amount_bytes
-                    // XRPL knows to create a trust line to that issuer
                     
                     // Emit the transaction
                     let emission_result = emit_built_txn(txn_index);
