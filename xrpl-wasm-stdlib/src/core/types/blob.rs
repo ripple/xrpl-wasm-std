@@ -16,13 +16,19 @@ pub const MEMO_BLOB_SIZE: usize = DEFAULT_BLOB_SIZE;
 ///
 /// * `N` - The maximum capacity of the blob in bytes
 ///
-/// ## Derived Traits
+/// # Examples
 ///
-/// - `PartialEq, Eq`: Enable comparisons and use in collections
-/// - `Debug, Clone`: Standard traits for development and consistency
+/// ```
+/// use xrpl_wasm_stdlib::core::types::blob::{Blob, DEFAULT_BLOB_SIZE};
+/// use xrpl_wasm_stdlib::core::types::nft::NFT_URI_MAX_SIZE;
 ///
-/// Note: `Copy` is intentionally not derived because `N` can be arbitrarily large.
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// // Create a standard 1024-byte blob
+/// let large_blob: Blob<DEFAULT_BLOB_SIZE> = Blob::new();
+///
+/// // Create a smaller 256-byte blob for URIs
+/// let uri_blob: Blob<NFT_URI_MAX_SIZE> = Blob::new();
+/// ```
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
 pub struct Blob<const N: usize> {
     pub data: [u8; N],
@@ -204,12 +210,12 @@ mod tests {
     #[test]
     fn test_clone_creates_independent_copy() {
         let blob1: Blob<5> = Blob::from_slice(&[1, 2, 3]);
-        let mut blob2 = blob1.clone();
+        let mut blob2 = blob1;
 
         // Modify blob2
         blob2.data[0] = 99;
 
-        // blob1 should be unchanged (Clone trait means independent copy)
+        // blob1 should be unchanged (Copy trait means independent copy)
         assert_eq!(blob1.data[0], 1);
         assert_eq!(blob2.data[0], 99);
     }

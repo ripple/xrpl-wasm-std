@@ -56,36 +56,49 @@ The contract expects:
 
 ## Building
 
-### Prerequisites
+## Prerequisites
 
-- Rust with `wasm32v1-none` target
-  - This is necessary for blockchain deployments because WebAssembly does not require a specific vendor (e.g.,
-    `apple`) or operating system (e.g., `darwin`), so both are `unknown`
-- XRPL standard library (dependency)
+- Rust toolchain with `wasm32v1-none` target
+- Node.js 18+
 
-### Build Commands
+## Step-by-step: Use on WASM Devnet
 
-```bash
-cargo build --target wasm32v1-none
+This guide uses the public Devnet WASM endpoint at `wss://wasm.devnet.rippletest.net:51233`.
+
+### 1. Install dependencies
+
+```shell
+npm install
+```
+
+### 2. Build the WASM
+
+```shell
 cargo build --target wasm32v1-none --release
 ```
 
-The resulting WASM file will be located at:
+Artifact:
 
 ```
 ./target/wasm32v1-none/release/nft_owner.wasm
 ```
 
-## Running with wasm-host-simulator
+### 3. Deploy and test on Devnet
 
-Run the contract using the wasm-host-simulator application:
-
-[//]: # "TODO: Replace `shell` with `bash` once https://github.com/ripple/craft/issues/180 merges"
+Use the test script to deploy an escrow and test the FinishFunction.
 
 ```shell
-cd ../../../../
-cargo run --package wasm-host-simulator --bin wasm-host-simulator -- --dir examples/smart-escrows/nft_owner --project nft_owner
+cd ../../..
+CI=1 ./scripts/run-tests.sh examples/smart-escrows/nft_owner
 ```
+
+This will:
+
+- Connect to WASM Devnet
+- Create and fund two wallets (Origin and Destination)
+- Create an EscrowCreate transaction with your compiled `FinishFunction`
+- Submit an `EscrowFinish` transaction with the NFT ID in the memo field
+- Verify that the escrow unlocks only if the destination account owns the specified NFT
 
 ## Use Cases
 
