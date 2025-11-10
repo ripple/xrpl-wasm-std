@@ -41,11 +41,11 @@
 use crate::core::current_tx::{get_field, get_field_optional};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
-use crate::core::types::blob::Blob;
 use crate::core::types::crypto_condition::{
     Condition, Fulfillment, MAX_CONDITION_SIZE, MAX_FULFILLMENT_SIZE,
 };
 use crate::core::types::public_key::PublicKey;
+use crate::core::types::signature::Signature;
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::Hash256;
 use crate::core::types::vector_256::Vector256;
@@ -272,10 +272,14 @@ pub trait TransactionCommonFields {
     /// This mandatory field contains the signature that verifies this transaction as originating
     /// from the account it says it is from.
     ///
+    /// Signatures can be either:
+    /// - 64 bytes for EdDSA (Ed25519) signatures
+    /// - 70-72 bytes for ECDSA (secp256k1) signatures
+    ///
     /// # Returns
     ///
-    /// Returns a `Result<Blob>` where:
-    /// * `Ok(Blob)` - The transaction signature as variable-length binary data
+    /// Returns a `Result<Signature>` where:
+    /// * `Ok(Signature)` - The transaction signature (up to 72 bytes)
     /// * `Err(Error)` - If the field cannot be retrieved
     ///
     /// # Security Note
@@ -283,7 +287,7 @@ pub trait TransactionCommonFields {
     /// The signature is validated by the XRPL network before transaction execution.
     /// In the programmability context, you can access the signature for logging or
     /// analysis purposes, but signature validation has already been performed.
-    fn get_txn_signature(&self) -> Result<Blob> {
+    fn get_txn_signature(&self) -> Result<Signature> {
         get_field(sfield::TxnSignature)
     }
 }
@@ -444,6 +448,4 @@ pub trait EscrowFinishFields: TransactionCommonFields {
     fn get_credential_ids(&self) -> Result<Option<Vector256>> {
         get_field_optional(sfield::CredentialIDs)
     }
-
-    // TODO: Signers
 }

@@ -289,10 +289,10 @@ pub extern "C" fn finish() -> i32 {
         match escrow_finish.get_txn_signature() {
             host::Result::Ok(txn_signature) => {
                 let _ = trace("  TxnSignature (single-signed):");
-                let _ = trace_num("    Length:", txn_signature.len as i64);
+                let _ = trace_num("    Length:", txn_signature.len() as i64);
                 let _ = trace_data(
                     "    Data:",
-                    &txn_signature.data[..txn_signature.len],
+                    &txn_signature.as_blob().data[..txn_signature.len()],
                     DataRepr::AsHex,
                 );
             }
