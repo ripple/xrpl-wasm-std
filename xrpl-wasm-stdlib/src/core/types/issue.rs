@@ -4,12 +4,25 @@ use crate::core::types::mpt_id::MptId;
 
 /// Struct to represent an Issue of type XRP. Exists so that other structs can restrict type
 /// information to XRP in their declarations (this is not possible with just the `Issue` enum below).
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this zero-sized type
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct XrpIssue {}
 
-/// Defines an issue for IOUs.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// Defines an issue for IOUs (40 bytes: 20-byte currency + 20-byte issuer).
+///
+/// ## Derived Traits
+///
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (40 bytes).
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct IouIssue {
     issuer: AccountID,
@@ -35,8 +48,14 @@ impl IouIssue {
 }
 
 /// Struct to represent an Issue of type MPT. Exists so that other structs can restrict type
-/// information to XRP in their declarations (this is not possible with just the `Issue` enum below).
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// information to MPT in their declarations (this is not possible with just the `Issue` enum below).
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this 24-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct MptIssue {
     mpt_id: MptId,
@@ -44,7 +63,14 @@ pub struct MptIssue {
 
 /// Represents an issue without a value, such as reading `Asset1` and `Asset2` in AMM ledger
 /// objects.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+///
+/// ## Derived Traits
+///
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+///
+/// Note: `Copy` is intentionally not derived because the `IOU` variant is 40 bytes.
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub enum Issue {
     XRP(XrpIssue),

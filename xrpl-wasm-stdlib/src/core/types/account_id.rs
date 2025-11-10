@@ -5,7 +5,18 @@
 
 pub const ACCOUNT_ID_SIZE: usize = 20;
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// A 20-byte account identifier on the XRP Ledger.
+///
+/// AccountIDs are derived from a public key and uniquely identify accounts on the ledger.
+/// They are used throughout XRPL for specifying senders, receivers, issuers, and other
+/// account-related fields.
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this 20-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons and use in hash-based collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct AccountID(pub [u8; ACCOUNT_ID_SIZE]);
 

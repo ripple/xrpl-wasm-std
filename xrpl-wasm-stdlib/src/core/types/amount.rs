@@ -72,7 +72,13 @@ pub const AMOUNT_SIZE: usize = 48;
 ///      └──────────────────┘└──────────────────┘
 /// ```
 ///
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// ## Derived Traits
+///
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+///
+/// Note: `Copy` is intentionally not derived due to the enum's size (48 bytes).
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub enum Amount {
     XRP {

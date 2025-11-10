@@ -1,8 +1,25 @@
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// A 256-byte credential identifier on the XRP Ledger.
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Derived despite 256-byte size to enable array initialization patterns
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+///
+/// Note: `Copy` is an exception to usual size guidelines, required for array initialization.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct CredentialID(pub [u8; 256]);
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// A collection of up to 10 credential IDs (2560+ bytes total).
+///
+/// ## Derived Traits
+///
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (2560+ bytes).
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct CredentialIDs {
     pub credential_ids: [CredentialID; 10],
@@ -25,10 +42,9 @@ impl CredentialIDs {
         let mut credential_ids_array = [EMPTY_CREDENTIAL_ID; 10];
 
         // Copy the provided IDs into the start of the array.
-        // Using `enumerate` gives us the index `i`.
-        // Since CredentialID is Copy, `*id` performs a cheap copy.
+        // Since CredentialID is Copy, this is a simple assignment.
         for (i, &id) in ids.iter().enumerate() {
-            credential_ids_array[i] = id;
+            credential_ids_array[i] = id; // <-- Copy
         }
 
         CredentialIDs {
@@ -49,8 +65,11 @@ impl TryFrom<&[CredentialID]> for CredentialIDs {
         }
 
         let mut credential_ids_array = [EMPTY_CREDENTIAL_ID; 10];
+
+        // Copy the provided IDs into the start of the array.
+        // Since CredentialID is Copy, this is a simple assignment.
         for (i, &id) in ids.iter().enumerate() {
-            credential_ids_array[i] = id;
+            credential_ids_array[i] = id; // <-- Copy
         }
 
         Ok(CredentialIDs {
