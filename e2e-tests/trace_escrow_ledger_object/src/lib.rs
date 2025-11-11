@@ -133,11 +133,6 @@ pub extern "C" fn finish() -> i32 {
             let _ = trace_num("  SourceTag:", 11747);
         }
 
-        // Trace Field: `index` or `LedgerIndex`
-        // The current decision is that this field should not be accessible from the ledger object.
-        // let ledger_index = current_escrow.get_ledger_index().unwrap();
-        // let _ = trace_data("  index:", &ledger_index.0, DataRepr::AsHex);
-
         let _ = trace("}");
         let _ = trace("");
     }
