@@ -1,3 +1,5 @@
+use crate::core::types::blob::Blob;
+
 /// The maximum number of bytes in a Condition. Xrpld currently caps this value at 256 bytes
 /// (see `maxSerializedFulfillment` in xrpld source code), so we do the same here.
 pub const MAX_CONDITION_SIZE: usize = 128;
@@ -6,20 +8,67 @@ pub const MAX_CONDITION_SIZE: usize = 128;
 ///
 /// Byte-encoding For PREIMAGE-SHA-256:
 /// 2 bytes (type) + 2 bytes (length tag) + 32 bytes (hash) + 2 bytes (cost tag) + 1 byte (cost) = 39 bytes (generally)
-pub struct Condition {
-    /// The full raw condition data in crypto-condition format
-    pub data: [u8; MAX_CONDITION_SIZE],
+/// A crypto-condition Condition. The maximum size is based on the crypto-condition format.
+///
+/// Byte-encoding For PREIMAGE-SHA-256:
+/// 2 bytes (type) + 2 bytes (length tag) + 32 bytes (hash) + 2 bytes (cost tag) + 1 byte (cost) = 39 bytes (generally)
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[repr(transparent)]
+pub struct Condition(pub Blob<MAX_CONDITION_SIZE>);
 
-    /// The actual length of this Condition, if less than data.len()
-    pub len: usize,
+impl Condition {
+    /// Creates a new empty condition.
+    #[inline]
+    pub const fn new() -> Self {
+        Self(Blob::new())
+    }
+
+    /// Creates a condition from a byte slice, copying up to MAX_CONDITION_SIZE bytes.
+    #[inline]
+    pub fn from_slice(slice: &[u8]) -> Self {
+        Self(Blob::from_slice(slice))
+    }
+
+    /// Returns the actual length of the condition data.
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns true if the condition contains no data.
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns a slice of the actual condition data.
+    #[inline]
+    pub fn as_slice(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+
+    /// Returns a reference to the underlying blob.
+    #[inline]
+    pub const fn as_blob(&self) -> &Blob<MAX_CONDITION_SIZE> {
+        &self.0
+    }
 }
 
 impl From<[u8; MAX_CONDITION_SIZE]> for Condition {
     fn from(bytes: [u8; MAX_CONDITION_SIZE]) -> Self {
-        Self {
-            data: bytes,
-            len: MAX_CONDITION_SIZE,
-        }
+        Self(Blob::from(bytes))
+    }
+}
+
+impl From<Blob<MAX_CONDITION_SIZE>> for Condition {
+    fn from(blob: Blob<MAX_CONDITION_SIZE>) -> Self {
+        Self(blob)
+    }
+}
+
+impl Default for Condition {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -59,20 +108,63 @@ pub const MAX_FULFILLMENT_SIZE: usize = 256;
 /// - (no preimage data)
 ///
 /// Total: 4 bytes
-pub struct Fulfillment {
-    /// The full raw fulfillment data in crypto-condition format
-    pub data: [u8; 256],
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[repr(transparent)]
+pub struct Fulfillment(pub Blob<MAX_FULFILLMENT_SIZE>);
 
-    /// The actual length of this Fulfillment, if less than data.len()
-    pub len: usize,
+impl Fulfillment {
+    /// Creates a new empty fulfillment.
+    #[inline]
+    pub const fn new() -> Self {
+        Self(Blob::new())
+    }
+
+    /// Creates a fulfillment from a byte slice, copying up to MAX_FULFILLMENT_SIZE bytes.
+    #[inline]
+    pub fn from_slice(slice: &[u8]) -> Self {
+        Self(Blob::from_slice(slice))
+    }
+
+    /// Returns the actual length of the fulfillment data.
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns true if the fulfillment contains no data.
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns a slice of the actual fulfillment data.
+    #[inline]
+    pub fn as_slice(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+
+    /// Returns a reference to the underlying blob.
+    #[inline]
+    pub const fn as_blob(&self) -> &Blob<MAX_FULFILLMENT_SIZE> {
+        &self.0
+    }
 }
 
 impl From<[u8; MAX_FULFILLMENT_SIZE]> for Fulfillment {
     fn from(bytes: [u8; MAX_FULFILLMENT_SIZE]) -> Self {
-        Self {
-            data: bytes,
-            len: MAX_FULFILLMENT_SIZE,
-        }
+        Self(Blob::from(bytes))
+    }
+}
+
+impl From<Blob<MAX_FULFILLMENT_SIZE>> for Fulfillment {
+    fn from(blob: Blob<MAX_FULFILLMENT_SIZE>) -> Self {
+        Self(blob)
+    }
+}
+
+impl Default for Fulfillment {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -92,14 +184,10 @@ mod test_condition {
 
     #[test]
     fn test_condition() {
-        let mut condition = Condition {
-            data: [0u8; MAX_CONDITION_SIZE],
-            len: TEST_CONDITION_DATA.len(),
-        };
-        condition.data[..TEST_CONDITION_DATA.len()].copy_from_slice(&TEST_CONDITION_DATA);
+        let condition = Condition::from_slice(&TEST_CONDITION_DATA);
 
-        assert_eq!(condition.len, 39);
-        assert_eq!(&condition.data[..condition.len], &TEST_CONDITION_DATA);
+        assert_eq!(condition.len(), 39);
+        assert_eq!(condition.as_slice(), &TEST_CONDITION_DATA);
     }
 }
 
@@ -117,23 +205,17 @@ mod test_fulfillment {
         // 00 = Length of preimage (0 bytes)
         const TEST_FULFILLMENT_EMPTY: [u8; 4] = [0xA0, 0x02, 0x80, 0x00];
 
-        let mut fulfillment = Fulfillment {
-            data: [0u8; 256],
-            len: TEST_FULFILLMENT_EMPTY.len(),
-        };
-        fulfillment.data[..TEST_FULFILLMENT_EMPTY.len()].copy_from_slice(&TEST_FULFILLMENT_EMPTY);
+        let fulfillment = Fulfillment::from_slice(&TEST_FULFILLMENT_EMPTY);
 
-        assert_eq!(fulfillment.len, 4);
-        assert_eq!(
-            &fulfillment.data[..fulfillment.len],
-            &TEST_FULFILLMENT_EMPTY
-        );
+        assert_eq!(fulfillment.len(), 4);
+        assert_eq!(fulfillment.as_slice(), &TEST_FULFILLMENT_EMPTY);
 
         // Verify structure
-        assert_eq!(fulfillment.data[0], 0xA0); // Type tag
-        assert_eq!(fulfillment.data[1], 0x02); // Length of remaining data
-        assert_eq!(fulfillment.data[2], 0x80); // Preimage data tag
-        assert_eq!(fulfillment.data[3], 0x00); // Preimage length (0)
+        let data = fulfillment.as_slice();
+        assert_eq!(data[0], 0xA0); // Type tag
+        assert_eq!(data[1], 0x02); // Length of remaining data
+        assert_eq!(data[2], 0x80); // Preimage data tag
+        assert_eq!(data[3], 0x00); // Preimage length (0)
     }
 
     #[test]
@@ -147,20 +229,17 @@ mod test_fulfillment {
         // 736868 = "shh" in ASCII
         const TEST_FULFILLMENT_SHH: [u8; 7] = [0xA0, 0x05, 0x80, 0x03, 0x73, 0x68, 0x68];
 
-        let mut fulfillment = Fulfillment {
-            data: [0u8; 256],
-            len: TEST_FULFILLMENT_SHH.len(),
-        };
-        fulfillment.data[..TEST_FULFILLMENT_SHH.len()].copy_from_slice(&TEST_FULFILLMENT_SHH);
+        let fulfillment = Fulfillment::from_slice(&TEST_FULFILLMENT_SHH);
 
-        assert_eq!(fulfillment.len, 7);
-        assert_eq!(&fulfillment.data[..fulfillment.len], &TEST_FULFILLMENT_SHH);
+        assert_eq!(fulfillment.len(), 7);
+        assert_eq!(fulfillment.as_slice(), &TEST_FULFILLMENT_SHH);
 
         // Verify structure
-        assert_eq!(fulfillment.data[0], 0xA0); // Type tag
-        assert_eq!(fulfillment.data[1], 0x05); // Length of remaining data
-        assert_eq!(fulfillment.data[2], 0x80); // Preimage data tag
-        assert_eq!(fulfillment.data[3], 0x03); // Preimage length (3)
-        assert_eq!(&fulfillment.data[4..7], b"shh"); // Preimage data
+        let data = fulfillment.as_slice();
+        assert_eq!(data[0], 0xA0); // Type tag
+        assert_eq!(data[1], 0x05); // Length of remaining data
+        assert_eq!(data[2], 0x80); // Preimage data tag
+        assert_eq!(data[3], 0x03); // Preimage length (3)
+        assert_eq!(&data[4..7], b"shh"); // Preimage data
     }
 }

@@ -143,10 +143,11 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
 
         match_result_code_optional(result_code, || {
             if result_code > 0 {
-                Some(Condition {
+                let blob = Blob {
                     data: buffer,
                     len: result_code as usize,
-                })
+                };
+                Some(Condition(blob))
             } else {
                 None
             }
@@ -309,10 +310,11 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 
         match_result_code_optional(result_code, || {
             if result_code > 0 {
-                Some(Condition {
+                let blob = Blob {
                     data: buffer,
                     len: result_code as usize,
-                })
+                };
+                Some(Condition(blob))
             } else {
                 None
             }

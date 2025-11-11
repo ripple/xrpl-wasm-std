@@ -71,21 +71,21 @@ pub extern "C" fn finish() -> i32 {
         match current_escrow.get_condition() {
             Ok(opt_condition) => {
                 if let Some(condition) = opt_condition {
-                    let _ = trace_num("  Condition length:", condition.len as i64);
+                    let _ = trace_num("  Condition length:", condition.len() as i64);
                     let _ = trace_data(
                         "  Condition (full hex):",
-                        &condition.data[..condition.len],
+                        &condition.as_slice(),
                         DataRepr::AsHex,
                     );
 
                     // Assert the condition matches the expected value
                     assert_eq!(
-                        condition.len,
+                        condition.len(),
                         EXPECTED_CONDITION.len(),
                         "Condition length mismatch"
                     );
                     assert_eq!(
-                        &condition.data[..condition.len],
+                        condition.as_slice(),
                         &EXPECTED_CONDITION[..],
                         "Condition bytes mismatch"
                     );

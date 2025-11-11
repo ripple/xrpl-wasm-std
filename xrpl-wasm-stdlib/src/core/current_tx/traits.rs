@@ -364,9 +364,11 @@ pub trait EscrowFinishFields: TransactionCommonFields {
         } else if result_code == 0 {
             Result::Ok(None)
         } else {
-            let len = result_code as usize;
-
-            Result::Ok(Some(Condition { data: buffer, len }))
+            let blob = crate::core::types::blob::Blob {
+                data: buffer,
+                len: result_code as usize,
+            };
+            Result::Ok(Some(Condition(blob)))
         }
     }
 
@@ -404,10 +406,11 @@ pub trait EscrowFinishFields: TransactionCommonFields {
 
         let result_code = unsafe { get_tx_field(sfield::Fulfillment, buffer.as_mut_ptr(), 256) };
         match_result_code_optional(result_code, || {
-            Some(Fulfillment {
+            let blob = crate::core::types::blob::Blob {
                 data: buffer,
                 len: result_code as usize,
-            })
+            };
+            Some(Fulfillment(blob))
         })
     }
 

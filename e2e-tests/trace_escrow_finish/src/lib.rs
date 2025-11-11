@@ -318,21 +318,21 @@ pub extern "C" fn finish() -> i32 {
         match escrow_finish.get_condition() {
             host::Result::Ok(opt_condition) => {
                 if let Some(condition) = opt_condition {
-                    let _ = trace_num("  Condition length:", condition.len as i64);
+                    let _ = trace_num("  Condition length:", condition.len() as i64);
                     let _ = trace_data(
                         "  Condition (full hex):",
-                        &condition.data[..condition.len],
+                        condition.as_slice(),
                         DataRepr::AsHex,
                     );
 
                     // Assert the condition matches the expected value
                     assert_eq!(
-                        condition.len,
+                        condition.len(),
                         EXPECTED_CONDITION.len(),
                         "Condition length mismatch"
                     );
                     assert_eq!(
-                        &condition.data[..condition.len],
+                        condition.as_slice(),
                         &EXPECTED_CONDITION[..],
                         "Condition bytes mismatch"
                     );
@@ -353,21 +353,21 @@ pub extern "C" fn finish() -> i32 {
         // in the EscrowFinish transaction (causes temMALFORMED). The FinishFunction validates the condition.
         let opt_fulfillment = escrow_finish.get_fulfillment().unwrap();
         if let Some(fulfillment) = opt_fulfillment {
-            let _ = trace_num("  Fulfillment length:", fulfillment.len as i64);
+            let _ = trace_num("  Fulfillment length:", fulfillment.len() as i64);
             let _ = trace_data(
                 "  Fulfillment (hex):",
-                &fulfillment.data[..fulfillment.len],
+                fulfillment.as_slice(),
                 DataRepr::AsHex,
             );
 
             // Assert the fulfillment matches the expected value
             assert_eq!(
-                fulfillment.len,
+                fulfillment.len(),
                 EXPECTED_FULFILLMENT.len(),
                 "Fulfillment length mismatch"
             );
             assert_eq!(
-                &fulfillment.data[..fulfillment.len],
+                fulfillment.as_slice(),
                 &EXPECTED_FULFILLMENT[..],
                 "Fulfillment bytes mismatch"
             );
@@ -382,21 +382,22 @@ pub extern "C" fn finish() -> i32 {
             // A002 = PREIMAGE-SHA-256 fulfillment type
             // 80XX = preimage length (variable length encoding)
             // For empty preimage: A002 8000
-            if fulfillment.len >= 4 {
+            let fulfillment_data = fulfillment.as_slice();
+            if fulfillment.len() >= 4 {
                 let _ = trace_data(
                     "    Fulfillment type tag:",
-                    &fulfillment.data[0..2],
+                    &fulfillment_data[0..2],
                     DataRepr::AsHex,
                 );
                 let _ = trace_data(
                     "    Preimage length encoding:",
-                    &fulfillment.data[2..4],
+                    &fulfillment_data[2..4],
                     DataRepr::AsHex,
                 );
 
                 // Parse the preimage length
-                if fulfillment.data[2] == 0x80 {
-                    let preimage_len = fulfillment.data[3] as usize;
+                if fulfillment_data[2] == 0x80 {
+                    let preimage_len = fulfillment_data[3] as usize;
                     let _ = trace_num("    Preimage length:", preimage_len as i64);
 
                     if preimage_len == 0 {
@@ -404,10 +405,10 @@ pub extern "C" fn finish() -> i32 {
                         let _ = trace(
                             "    Expected SHA-256 of empty string: E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
                         );
-                    } else if fulfillment.len >= 4 + preimage_len {
+                    } else if fulfillment.len() >= 4 + preimage_len {
                         let _ = trace_data(
                             "    Preimage (hex):",
-                            &fulfillment.data[4..4 + preimage_len],
+                            &fulfillment_data[4..4 + preimage_len],
                             DataRepr::AsHex,
                         );
                     }
