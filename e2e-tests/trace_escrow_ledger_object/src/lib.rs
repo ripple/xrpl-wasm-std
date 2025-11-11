@@ -173,13 +173,6 @@ pub extern "C" fn finish() -> i32 {
         assert_eq!(source_tag, 11747);
         let _ = trace_num("  SourceTag:", source_tag as i64);
 
-        // TODO: Uncomment this once https://github.com/ripple/xrpl-wasm-stdlib/issues/85 is decided.
-        // Trace Field: LedgerIndex (unique identifier for this ledger object)
-        // let ledger_index = current_escrow.get_ledger_index().unwrap();
-        // LedgerIndex is system-generated Hash256 - just verify it's 32 bytes
-        // assert_eq!(ledger_index.0.len(), 32);
-        // let _ = trace_data("  LedgerIndex:", &ledger_index.0, DataRepr::AsHex);
-
         // Trace Field: Data (contract data)
         // Note: Data field is optional and only present if set during EscrowCreate
         // We don't set it in runTest.js, so this will likely return empty or error
