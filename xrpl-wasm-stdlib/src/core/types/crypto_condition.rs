@@ -4,11 +4,7 @@ use crate::core::types::blob::Blob;
 /// (see `maxSerializedFulfillment` in xrpld source code), so we do the same here.
 pub const MAX_CONDITION_SIZE: usize = 128;
 
-/// A crypto-condition Condition. The maximum size is based on the crypto-condition format.
-///
-/// Byte-encoding For PREIMAGE-SHA-256:
-/// 2 bytes (type) + 2 bytes (length tag) + 32 bytes (hash) + 2 bytes (cost tag) + 1 byte (cost) = 39 bytes (generally)
-/// A crypto-condition Condition. The maximum size is based on the crypto-condition format.
+/// A crypto-condition Condition.
 ///
 /// Byte-encoding For PREIMAGE-SHA-256:
 /// 2 bytes (type) + 2 bytes (length tag) + 32 bytes (hash) + 2 bytes (cost tag) + 1 byte (cost) = 39 bytes (generally)
@@ -113,13 +109,13 @@ pub const MAX_FULFILLMENT_SIZE: usize = 256;
 pub struct Fulfillment(pub Blob<MAX_FULFILLMENT_SIZE>);
 
 impl Fulfillment {
-    /// Creates a new empty fulfillment.
+    /// Creates new empty fulfillment.
     #[inline]
     pub const fn new() -> Self {
         Self(Blob::new())
     }
 
-    /// Creates a fulfillment from a byte slice, copying up to MAX_FULFILLMENT_SIZE bytes.
+    /// Creates fulfillment from a byte slice, copying up to MAX_FULFILLMENT_SIZE bytes.
     #[inline]
     pub fn from_slice(slice: &[u8]) -> Self {
         Self(Blob::from_slice(slice))
