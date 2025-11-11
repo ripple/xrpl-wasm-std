@@ -53,6 +53,40 @@ This comprehensive guide covers everything you need to develop smart escrows usi
 
 ## Getting Started
 
+### Quick Start (No Clone Required)
+
+Get started with a single command that creates a new smart escrow project:
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/ripple/xrpl-wasm-stdlib/main/scripts/create-example.sh | bash -s -- my_project
+```
+
+This will:
+- Download the project creation script
+- Create a new directory `my_project/` with a complete smart escrow template
+- Set up all necessary files (Cargo.toml, src/lib.rs, runTest.js, README.md)
+- Configure dependencies to use the published `xrpl-wasm-stdlib` crate
+
+**Customize your project:**
+
+```shell
+# With a custom description
+curl -fsSL https://raw.githubusercontent.com/ripple/xrpl-wasm-stdlib/main/scripts/create-example.sh | bash -s -- my_project -d "My custom smart escrow"
+
+# Create in a specific directory
+curl -fsSL https://raw.githubusercontent.com/ripple/xrpl-wasm-stdlib/main/scripts/create-example.sh | bash -s -- examples/smart-escrows/my_project
+```
+
+**Next steps after project creation:**
+
+```shell
+cd my_project
+# Edit src/lib.rs to implement your logic
+cargo build --target wasm32v1-none --release
+# Test your contract (requires Node.js and npm install)
+node runTest.js
+```
+
 ### Prerequisites
 
 Before building smart escrows, ensure you have:
@@ -65,21 +99,24 @@ Before building smart escrows, ensure you have:
 **Quick setup:**
 
 ```shell
-# Run the automated setup script
-./scripts/setup.sh
-
-# Or install manually:
+# Install Rust (if not already installed)
 # Follow the instructions at https://rust-lang.org/tools/install/
+
+# Add WASM target
 rustup target add wasm32v1-none
+
+# Install Node.js dependencies (in your project directory)
 npm install
 ```
 
-### Installation
+### Full Repository Installation (For Contributors)
+
+If you want to contribute to the library or explore all examples:
 
 1. **Clone the repository:**
 
    ```shell
-   git clone https://github.com/XRPLF/xrpl-wasm-stdlib.git
+   git clone https://github.com/ripple/xrpl-wasm-stdlib.git
    cd xrpl-wasm-stdlib
    ```
 
