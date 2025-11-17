@@ -8,7 +8,7 @@
 //! use xrpl_wasm_stdlib::core::locator::Locator;
 //! use xrpl_wasm_stdlib::sfield;
 //! let mut l = Locator::new();
-//! l.pack(sfield::Memos);
+//! l.pack(sfield::Memos.into());
 //! l.pack(0);
 //! l.pack(sfield::MemoType.into());
 //! # let _ = (l.len() >= 3);

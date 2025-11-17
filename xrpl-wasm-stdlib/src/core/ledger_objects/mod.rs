@@ -46,11 +46,11 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// fn example() {
 ///   let slot = 0;
 ///   // Get a required field from a specific ledger object
-///   let balance: u64 = ledger_object::get_field(slot, sfield::Balance).unwrap();
-///   let account: AccountID = ledger_object::get_field(slot, sfield::Account).unwrap();
+///   let balance = ledger_object::get_field(slot, sfield::Balance).unwrap();
+///   let account = ledger_object::get_field(slot, sfield::Account).unwrap();
 ///
 ///   // Get an optional field from the current ledger object
-///   let flags: Option<u32> = current_ledger_object::get_field_optional(sfield::Flags).unwrap();
+///   let flags = current_ledger_object::get_field_optional(sfield::Flags).unwrap();
 /// }
 /// ```
 ///
