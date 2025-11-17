@@ -6,7 +6,7 @@ extern crate std;
 use xrpl_wasm_stdlib::core::ledger_objects::current_escrow;
 use xrpl_wasm_stdlib::core::ledger_objects::traits::CurrentEscrowFields;
 use xrpl_wasm_stdlib::core::locator::Locator;
-use xrpl_wasm_stdlib::core::types::nft::{NFTID_SIZE, NFToken};
+use xrpl_wasm_stdlib::core::types::nft::{NFT_ID_SIZE, NFToken};
 use xrpl_wasm_stdlib::host::Error::InternalError;
 use xrpl_wasm_stdlib::host::get_tx_nested_field;
 use xrpl_wasm_stdlib::host::trace::{DataRepr, trace_data, trace_num};
@@ -55,7 +55,7 @@ pub extern "C" fn finish() -> i32 {
     };
 
     // Extract NFT ID from memo (first 32 bytes) and create NFToken
-    let nft_id_bytes: [u8; NFTID_SIZE] = memo[0..32].try_into().unwrap();
+    let nft_id_bytes: [u8; NFT_ID_SIZE] = memo[0..32].try_into().unwrap();
     let nft_token = NFToken::new(nft_id_bytes);
     let _ = trace_data("NFT ID from memo:", nft_token.as_bytes(), DataRepr::AsHex);
 
