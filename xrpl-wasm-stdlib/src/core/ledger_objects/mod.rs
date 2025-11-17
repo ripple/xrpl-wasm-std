@@ -33,7 +33,7 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// - `Amount` - XRP amounts and token amounts (variable size, up to 48 bytes)
 /// - `Hash128` - 128-bit cryptographic hashes (16 bytes)
 /// - `Hash256` - 256-bit cryptographic hashes (32 bytes)
-/// - `Blob` - Variable-length binary data (up to 1024 bytes)
+/// - `Blob<N>` - Variable-length binary data (generic over buffer size `N`)
 ///
 /// ## Usage Patterns
 ///
@@ -42,15 +42,16 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// use xrpl_wasm_stdlib::core::types::account_id::AccountID;
 /// use xrpl_wasm_stdlib::core::types::amount::Amount;
 /// use xrpl_wasm_stdlib::sfield;
-/// # fn example() {
-/// # let slot = 0;
-/// // Get a required field from a specific ledger object
-/// let balance: Amount = ledger_object::get_field(slot, sfield::Balance).unwrap();
-/// let account: AccountID = ledger_object::get_field(slot, sfield::Account).unwrap();
 ///
-/// // Get an optional field from the current ledger object
-/// let flags: Option<u32> = current_ledger_object::get_field_optional(sfield::Flags).unwrap();
-/// # }
+/// fn example() {
+///   let slot = 0;
+///   // Get a required field from a specific ledger object
+///   let balance: u64 = ledger_object::get_field(slot, sfield::Balance).unwrap();
+///   let account: AccountID = ledger_object::get_field(slot, sfield::Account).unwrap();
+///
+///   // Get an optional field from the current ledger object
+///   let flags: Option<u32> = current_ledger_object::get_field_optional(sfield::Flags).unwrap();
+/// }
 /// ```
 ///
 /// ## Error Handling
@@ -821,8 +822,6 @@ impl FieldGetter for Issue {
     }
 }
 
-const BLOB_BUFFER_SIZE: usize = 1024;
-
 /// Implementation of `FieldGetter` for variable-length binary data.
 ///
 /// This implementation handles blob fields in XRPL ledger objects, which can contain
@@ -831,17 +830,20 @@ const BLOB_BUFFER_SIZE: usize = 1024;
 ///
 /// # Buffer Management
 ///
-/// Uses a 1024-byte buffer to accommodate most blob field sizes. The actual
+/// Uses a buffer of size `N` to accommodate blob field data. The actual
 /// length of the data is determined by the return value from the host function
 /// and stored in the Blob's `len` field. No strict byte count validation is
 /// performed since blobs can vary significantly in size.
-impl FieldGetter for Blob {
+///
+/// # Type Parameters
+///
+/// * `N` - The maximum capacity of the blob buffer in bytes
+impl<const N: usize> FieldGetter for Blob<N> {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BLOB_BUFFER_SIZE)
-        };
+        let mut buffer = core::mem::MaybeUninit::<[u8; N]>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), N) };
         match_result_code(result_code, || Blob {
             data: unsafe { buffer.assume_init() },
             len: result_code as usize,
@@ -850,10 +852,9 @@ impl FieldGetter for Blob {
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BLOB_BUFFER_SIZE)
-        };
+        let mut buffer = core::mem::MaybeUninit::<[u8; N]>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), N) };
         match_result_code_optional(result_code, || {
             Some(Blob {
                 data: unsafe { buffer.assume_init() },
@@ -864,14 +865,9 @@ impl FieldGetter for Blob {
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
+        let mut buffer = core::mem::MaybeUninit::<[u8; N]>::uninit();
         let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                BLOB_BUFFER_SIZE,
-            )
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), N)
         };
         match_result_code(result_code, || Blob {
             data: unsafe { buffer.assume_init() },
@@ -881,14 +877,9 @@ impl FieldGetter for Blob {
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; BLOB_BUFFER_SIZE]>::uninit();
+        let mut buffer = core::mem::MaybeUninit::<[u8; N]>::uninit();
         let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                BLOB_BUFFER_SIZE,
-            )
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), N)
         };
         match_result_code_optional(result_code, || {
             Some(Blob {
@@ -1011,10 +1002,11 @@ pub mod ledger_object {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use crate::core::ledger_objects::{BLOB_BUFFER_SIZE, current_ledger_object, ledger_object};
+        use crate::core::ledger_objects::{current_ledger_object, ledger_object};
         use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
         use crate::core::types::amount::Amount;
-        use crate::core::types::blob::Blob;
+        use crate::core::types::blob::{Blob, DEFAULT_BLOB_SIZE};
+        use crate::core::types::public_key::PUBLIC_KEY_BUFFER_SIZE;
         use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
         use crate::sfield;
 
@@ -1040,9 +1032,10 @@ pub mod ledger_object {
             assert!(Hash128::get_from_current_ledger_obj(262145i32).is_ok());
             assert!(Hash256::get_from_current_ledger_obj(262146i32).is_ok());
 
-            let blob = Blob::get_from_current_ledger_obj(458752i32).unwrap();
+            let blob: Blob<DEFAULT_BLOB_SIZE> =
+                Blob::get_from_current_ledger_obj(sfield::PublicKey.into()).unwrap();
             // The test host returns buffer length as the result
-            assert_eq!(blob.len, BLOB_BUFFER_SIZE);
+            assert_eq!(blob.len, DEFAULT_BLOB_SIZE);
         }
 
         #[test]
@@ -1115,13 +1108,13 @@ pub mod ledger_object {
         #[test]
         fn test_type_inference() {
             let slot = 0;
-            // Verify type inference works - type is inferred from SField constant
-            let _balance = ledger_object::get_field(slot, sfield::Balance);
-            let _account = ledger_object::get_field(slot, sfield::Account);
+            // Verify type inference works with turbofish syntax
+            let _balance = get_field(slot, sfield::Balance);
+            let _account = get_field(slot, sfield::Account);
 
             // Verify type inference works with type annotations
-            let _sequence: Result<u32> = ledger_object::get_field(slot, sfield::Sequence);
-            let _flags: Result<u32> = ledger_object::get_field(slot, sfield::Flags);
+            let _sequence: Result<u32> = get_field(slot, sfield::Sequence);
+            let _flags: Result<u32> = get_field(slot, sfield::Flags);
         }
 
         // ========================================
@@ -1140,10 +1133,11 @@ pub mod ledger_object {
             let account = AccountID::get_from_current_ledger_obj(524289i32).unwrap();
             assert_eq!(account.0.len(), ACCOUNT_ID_SIZE);
 
-            let blob = Blob::get_from_current_ledger_obj(458752i32).unwrap();
+            let blob: Blob<{ PUBLIC_KEY_BUFFER_SIZE }> =
+                Blob::get_from_current_ledger_obj(sfield::PublicKey.into()).unwrap();
             // In test environment, host returns buffer size as result code
-            assert_eq!(blob.len, BLOB_BUFFER_SIZE);
-            assert_eq!(blob.data.len(), BLOB_BUFFER_SIZE);
+            assert_eq!(blob.len, PUBLIC_KEY_BUFFER_SIZE);
+            assert_eq!(blob.data.len(), PUBLIC_KEY_BUFFER_SIZE);
         }
     }
 }
