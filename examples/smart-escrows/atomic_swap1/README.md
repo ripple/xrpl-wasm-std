@@ -219,78 +219,54 @@ CI=1 ./scripts/run-tests.sh examples/smart-escrows/atomic_swap1
 - **Account Reversal Check**: Ensures escrows are properly paired (A→B with B→A)
 - **Keylet-Based References**: Uses immutable ledger object identifiers for precise targeting
 
+## System State Diagram
+
+This diagram shows the complete atomic swap flow with all 4 transactions:
+
+```mermaid
+stateDiagram-v2
+    [*] --> EscrowACreated: 1. EscrowCreate A (Alice→Bob)
+    EscrowACreated --> EscrowBCreated: 2. EscrowCreate B (Bob→Alice) with A's keylet
+    EscrowBCreated --> EscrowAFinished: 3. EscrowFinish A (validates B exists)
+    EscrowAFinished --> EscrowBFinished: 4. EscrowFinish B (validates A exists)
+    EscrowBFinished --> [*]: Swap complete!
+
+    EscrowAFinished --> Failed: Validation failed
+    EscrowBFinished --> Failed: Validation failed
+    Failed --> [*]: Swap failed
+```
+
 ## Execution Flow Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ EscrowFinish Transaction Submitted                              │
-│ (with memo containing counterpart keylet)                       │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Extract Memo Data      │
-            │ (32-byte keylet)       │
-            └────────────┬───────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Load Counterpart       │
-            │ Escrow from Ledger     │
-            └────────────┬───────────┘
-                         │
-                    ┌────┴────┐
-                    │ Exists?  │
-                    └────┬────┘
-                    Yes  │  No
-                         │
-        ┌────────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│ Validate WASM            │
-│ (magic, version, size)   │
-└────────────┬─────────────┘
-             │
-        ┌────┴────┐
-        │ Valid?   │
-        └────┬────┘
-        Yes  │  No
-             │
-    ┌────────┘
-    │
-    ▼
-┌──────────────────────────┐
-│ Validate Data Field      │
-│ (32 or 36 bytes)         │
-└────────────┬─────────────┘
-             │
-        ┌────┴────┐
-        │ Valid?   │
-        └────┬────┘
-        Yes  │  No
-             │
-    ┌────────┘
-    │
-    ▼
-┌──────────────────────────┐
-│ Validate Account         │
-│ Reversal                 │
-└────────────┬─────────────┘
-             │
-        ┌────┴────┐
-        │ Valid?   │
-        └────┬────┘
-        Yes  │  No
-             │
-    ┌────────┘
-    │
-    ▼
-┌──────────────────────────┐
-│ Return 1 (Success)       │
-│ Escrow Completes         │
-│ Funds Transferred        │
-└──────────────────────────┘
+```mermaid
+flowchart TD
+    A["EscrowFinish Transaction Submitted<br/>(with memo containing counterpart keylet)"]
+    B["Extract Memo Data<br/>(32-byte keylet)"]
+    C["Load Counterpart<br/>Escrow from Ledger"]
+    D{"Counterpart<br/>Exists?"}
+    E["Validate WASM<br/>(magic, version, size)"]
+    F{"WASM<br/>Valid?"}
+    G["Validate Data Field<br/>(32 or 36 bytes)"]
+    H{"Data Field<br/>Valid?"}
+    I["Validate Account<br/>Reversal"]
+    J{"Accounts<br/>Reversed?"}
+    K["Return 1 - Success<br/>Escrow Completes<br/>Funds Transferred"]
+    L["Return 0 - Failure<br/>Escrow Rejected"]
+
+    A --> B
+    B --> C
+    C --> D
+    D -->|Yes| E
+    D -->|No| L
+    E --> F
+    F -->|Yes| G
+    F -->|No| L
+    G --> H
+    H -->|Yes| I
+    H -->|No| L
+    I --> J
+    J -->|Yes| K
+    J -->|No| L
 ```
 
 ## Important Notes

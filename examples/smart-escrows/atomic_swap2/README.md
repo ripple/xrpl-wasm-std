@@ -220,141 +220,63 @@ CI=1 ./scripts/run-tests.sh examples/smart-escrows/atomic_swap2
 
 ## Two-Phase State Machine Diagram
 
-```
-PHASE 1: Initialization
-═════════════════════════════════════════════════════════════════
+```mermaid
+flowchart TD
+    subgraph Phase1["PHASE 1: Initialization"]
+        A["EscrowFinish Transaction Submitted<br/>(Phase 1)<br/>Data: 32 bytes"]
+        B["Validate Data Length<br/>(must be 32 bytes)"]
+        C{"Data Length<br/>Valid?"}
+        D["Load First Escrow<br/>from Ledger"]
+        E{"First Escrow<br/>Exists?"}
+        F["Validate WASM<br/>(atomic_swap1)"]
+        G{"WASM<br/>Valid?"}
+        H["Validate Account<br/>Reversal"]
+        I{"Accounts<br/>Reversed?"}
+        J["Get CancelAfter<br/>Timestamp"]
+        K["Append CancelAfter<br/>to Data Field<br/>(32 → 36 bytes)"]
+        L["Persist Updated Data<br/>to Escrow"]
+        M["Return 0 - Wait<br/>tecWASM_REJECTED<br/>Data Persisted ✓"]
+        N["Return 0 - Failure<br/>Escrow Rejected"]
 
-┌─────────────────────────────────────────────────────────────────┐
-│ EscrowFinish Transaction Submitted (Phase 1)                    │
-│ Data Field: 32 bytes (first escrow keylet)                      │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Validate Data Length   │
-            │ (must be 32 bytes)     │
-            └────────────┬───────────┘
-                         │
-                    ┌────┴────┐
-                    │ Valid?   │
-                    └────┬────┘
-                    Yes  │  No → FAIL
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Load First Escrow      │
-            │ from Ledger            │
-            └────────────┬───────────┘
-                         │
-                    ┌────┴────┐
-                    │ Exists?  │
-                    └────┬────┘
-                    Yes  │  No → FAIL
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Validate WASM          │
-            │ (atomic_swap1)         │
-            └────────────┬───────────┘
-                         │
-                    ┌────┴────┐
-                    │ Valid?   │
-                    └────┬────┘
-                    Yes  │  No → FAIL
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Validate Account       │
-            │ Reversal               │
-            └────────────┬───────────┘
-                         │
-                    ┌────┴────┐
-                    │ Valid?   │
-                    └────┬────┘
-                    Yes  │  No → FAIL
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Get CancelAfter        │
-            │ Timestamp              │
-            └────────────┬───────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Append CancelAfter     │
-            │ to Data Field          │
-            │ (32 → 36 bytes)        │
-            └────────────┬───────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Persist Updated Data   │
-            │ to Escrow              │
-            └────────────┬───────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Return 0 (Wait)        │
-            │ tecWASM_REJECTED       │
-            │ Data Persisted ✓       │
-            └────────────────────────┘
-                         │
-                         │ Escrow remains active
-                         │ Ready for Phase 2
-                         │
-                         ▼
-PHASE 2: Timing Validation
-═════════════════════════════════════════════════════════════════
+        A --> B
+        B --> C
+        C -->|Yes| D
+        C -->|No| N
+        D --> E
+        E -->|Yes| F
+        E -->|No| N
+        F --> G
+        G -->|Yes| H
+        G -->|No| N
+        H --> I
+        I -->|Yes| J
+        I -->|No| N
+        J --> K
+        K --> L
+        L --> M
+    end
 
-┌─────────────────────────────────────────────────────────────────┐
-│ EscrowFinish Transaction Submitted (Phase 2)                    │
-│ Data Field: 36 bytes (keylet + CancelAfter)                     │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Validate Data Length   │
-            │ (must be ≥ 36 bytes)   │
-            └────────────┬───────────┘
-                         │
-                    ┌────┴────┐
-                    │ Valid?   │
-                    └────┬────┘
-                    Yes  │  No → FAIL
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Extract CancelAfter    │
-            │ from Last 4 Bytes      │
-            └────────────┬───────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Get Current            │
-            │ Ledger Time            │
-            └────────────┬───────────┘
-                         │
-                         ▼
-            ┌────────────────────────┐
-            │ Compare Times          │
-            │ current < CancelAfter? │
-            └────────────┬───────────┘
-                         │
-                    ┌────┴────┐
-                    │ Within   │
-                    │ Deadline?│
-                    └────┬────┘
-                    Yes  │  No
-                         │
-        ┌────────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│ Return 1 (Success)       │
-│ tesSUCCESS               │
-│ Escrow Completes         │
-│ Funds Transferred        │
-└──────────────────────────┘
+    subgraph Phase2["PHASE 2: Timing Validation"]
+        O["EscrowFinish Transaction Submitted<br/>(Phase 2)<br/>Data: 36 bytes"]
+        P["Validate Data Length<br/>(must be ≥ 36 bytes)"]
+        Q{"Data Length<br/>Valid?"}
+        R["Extract CancelAfter<br/>from Last 4 Bytes"]
+        S["Get Current<br/>Ledger Time"]
+        T{"Current Time<br/>< CancelAfter?"}
+        U["Return 1 - Success<br/>tesSUCCESS<br/>Escrow Completes<br/>Funds Transferred"]
+        V["Return 0 - Failure<br/>Deadline Exceeded"]
+
+        O --> P
+        P --> Q
+        Q -->|Yes| R
+        Q -->|No| V
+        R --> S
+        S --> T
+        T -->|Yes| U
+        T -->|No| V
+    end
+
+    M -->|Escrow remains active| O
 ```
 
 ## Important Notes
