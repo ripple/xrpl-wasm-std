@@ -1,4 +1,20 @@
-/// The type of any given XRPL transaction
+/// The type of any given XRPL transaction.
+///
+/// This enum maps to the transaction type codes used in the XRPL protocol.
+/// Each variant corresponds to a specific transaction type with its associated
+/// numeric code.
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Automatically derived with Copy for consistency
+/// - `Copy`: Efficient for this enum (2 bytes due to `#[repr(i16)]`)
+/// - `PartialEq, Eq`: Enable transaction type comparisons
+///
+/// The `Copy` trait is appropriate here because:
+/// - The enum is only 2 bytes, making copies extremely cheap
+/// - Transaction types are frequently checked and compared
+/// - Implicit copying improves ergonomics
 #[repr(i16)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TransactionType {
