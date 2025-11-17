@@ -23,7 +23,7 @@ use crate::host;
 use crate::host::{Error, Result};
 
 /// Size of an NFTokenID in bytes (256 bits)
-pub const NFTID_SIZE: usize = 32;
+pub const NFT_ID_SIZE: usize = 32;
 
 /// Maximum size for NFT URI data (256 bytes)
 pub const NFT_URI_MAX_SIZE: usize = 256;
@@ -130,7 +130,7 @@ impl From<NftFlags> for u16 {
 /// - **Bytes 28-31**: Sequence number (32 bits, big-endian)
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
-pub struct NFToken(pub [u8; NFTID_SIZE]);
+pub struct NFToken(pub [u8; NFT_ID_SIZE]);
 
 impl NFToken {
     /// Creates a new NFToken from a 32-byte identifier.
@@ -140,14 +140,14 @@ impl NFToken {
     /// * `id` - The 32-byte NFTokenID
     ///
     #[inline]
-    pub const fn new(id: [u8; NFTID_SIZE]) -> Self {
+    pub const fn new(id: [u8; NFT_ID_SIZE]) -> Self {
         NFToken(id)
     }
 
     /// Returns the raw NFTokenID as a byte array.
     ///
     #[inline]
-    pub const fn as_bytes(&self) -> &[u8; NFTID_SIZE] {
+    pub const fn as_bytes(&self) -> &[u8; NFT_ID_SIZE] {
         &self.0
     }
 
@@ -163,7 +163,7 @@ impl NFToken {
     #[inline]
     #[allow(clippy::len_without_is_empty)]
     pub const fn len(&self) -> usize {
-        NFTID_SIZE
+        NFT_ID_SIZE
     }
 
     /// Retrieves the flags associated with this NFToken.
@@ -305,7 +305,7 @@ impl NFToken {
     /// * `Err(Error)` - If the NFT is not found or the host function fails
     ///
     ///
-    pub fn uri(&self, owner: &AccountID) -> Result<Blob> {
+    pub fn uri(&self, owner: &AccountID) -> Result<Blob<256>> {
         let mut uri_buf = [0u8; NFT_URI_MAX_SIZE];
         let result = unsafe {
             host::get_nft(
@@ -319,21 +319,14 @@ impl NFToken {
         };
 
         match result {
-            code if code > 0 => {
-                let actual_len = code as usize;
-                // Create a Blob with a properly sized buffer (102400 bytes)
-                let mut blob_data = [0u8; 102400];
-                let copy_len = actual_len.min(uri_buf.len()).min(blob_data.len());
-                blob_data[..copy_len].copy_from_slice(&uri_buf[..copy_len]);
-                Result::Ok(Blob::new(blob_data, copy_len))
-            }
+            code if code > 0 => Result::Ok(Blob::from(uri_buf)),
             code => Result::Err(Error::from_code(code)),
         }
     }
 }
 
-impl From<[u8; NFTID_SIZE]> for NFToken {
-    fn from(value: [u8; NFTID_SIZE]) -> Self {
+impl From<[u8; NFT_ID_SIZE]> for NFToken {
+    fn from(value: [u8; NFT_ID_SIZE]) -> Self {
         NFToken(value)
     }
 }
@@ -528,7 +521,7 @@ mod tests {
         // Positive case: should return Ok with flags value
         let result = nft.flags();
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().as_u16(), NFTID_SIZE as u16);
+        assert_eq!(result.unwrap().as_u16(), NFT_ID_SIZE as u16);
     }
 
     #[test]
@@ -539,7 +532,7 @@ mod tests {
         // Positive case: should return Ok with transfer fee value
         let result = nft.transfer_fee();
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), NFTID_SIZE as u16);
+        assert_eq!(result.unwrap(), NFT_ID_SIZE as u16);
     }
 
     #[test]

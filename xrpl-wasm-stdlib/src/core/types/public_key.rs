@@ -1,40 +1,45 @@
-/// Holds public key bytes for secp256k1 and ed25519 DSA types.
-pub struct PublicKey(pub [u8; 33]);
+pub const PUBLIC_KEY_BUFFER_SIZE: usize = 33;
 
-impl From<[u8; 33]> for PublicKey {
-    fn from(bytes: [u8; 33]) -> Self {
+/// Holds public key bytes for secp256k1 and ed25519 DSA types.
+pub struct PublicKey(pub [u8; PUBLIC_KEY_BUFFER_SIZE]);
+
+impl From<[u8; PUBLIC_KEY_BUFFER_SIZE]> for PublicKey {
+    fn from(bytes: [u8; PUBLIC_KEY_BUFFER_SIZE]) -> Self {
         Self(bytes) // Access private field legally here
     }
 }
 
 impl From<[u8; 64]> for PublicKey {
     fn from(bytes: [u8; 64]) -> Self {
-        // Take the first 33 bytes from the 64-byte array
-        let mut key_bytes = [0u8; 33];
-        key_bytes.copy_from_slice(&bytes[..33]);
+        // Take the first PUBLIC_KEY_BUFFER_SIZE bytes from the 64-byte array
+        let mut key_bytes = [0u8; PUBLIC_KEY_BUFFER_SIZE];
+        key_bytes.copy_from_slice(&bytes[..PUBLIC_KEY_BUFFER_SIZE]);
         PublicKey(key_bytes)
     }
 }
 
 impl From<&[u8]> for PublicKey {
     fn from(bytes: &[u8]) -> Self {
-        let mut key_bytes = [0u8; 33];
-        key_bytes[..bytes.len().min(33)].copy_from_slice(&bytes[..bytes.len().min(33)]);
+        let mut key_bytes = [0u8; PUBLIC_KEY_BUFFER_SIZE];
+        key_bytes[..bytes.len().min(PUBLIC_KEY_BUFFER_SIZE)]
+            .copy_from_slice(&bytes[..bytes.len().min(PUBLIC_KEY_BUFFER_SIZE)]);
         PublicKey(key_bytes)
     }
 }
 
 #[cfg(test)]
 mod test_public_key {
+    use crate::core::types::public_key::PUBLIC_KEY_BUFFER_SIZE;
+
     // secp256k1
-    const PUBKEY_SECP256K1: [u8; 33] = [
+    const PUBKEY_SECP256K1: [u8; PUBLIC_KEY_BUFFER_SIZE] = [
         0x02, 0xC7, 0x38, 0x7F, 0xFC, 0x25, 0xC1, 0x56, 0xCA, 0x7F, 0x8A, 0x6D, 0x76, 0x0C, 0x8D,
         0x01, 0xEF, 0x64, 0x2C, 0xEE, 0x9C, 0xE4, 0x68, 0x0C, 0x33, 0xFF, 0xB3, 0xFF, 0x39, 0xAF,
         0xEC, 0xFE, 0x70,
     ];
 
     // ed25519
-    const PUBKEY_ED25519: [u8; 33] = [
+    const PUBKEY_ED25519: [u8; PUBLIC_KEY_BUFFER_SIZE] = [
         0xED, 0xD9, 0xB3, 0x59, 0x98, 0x02, 0xB2, 0x14, 0xA9, 0x9D, 0x75, 0x77, 0x12, 0xD6, 0xAB,
         0xDF, 0x72, 0xF8, 0x3C, 0x63, 0xBB, 0xD5, 0x38, 0x61, 0x41, 0x17, 0x90, 0xB1, 0x3D, 0x04,
         0xB2, 0xC5, 0xC9,
@@ -55,7 +60,7 @@ mod test_public_key {
     fn test_get_ref() {
         let pubkey_secp256k1_ref: &[u8] = PUBKEY_SECP256K1.as_slice();
 
-        assert_eq!(pubkey_secp256k1_ref.len(), 33);
+        assert_eq!(pubkey_secp256k1_ref.len(), PUBLIC_KEY_BUFFER_SIZE);
         assert_eq!(pubkey_secp256k1_ref, PUBKEY_SECP256K1);
         assert_ne!(pubkey_secp256k1_ref, PUBKEY_ED25519);
     }
