@@ -62,8 +62,10 @@ use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
 use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
 use crate::core::types::public_key::PublicKey;
+use crate::core::types::signature::{SIGNATURE_MAX_SIZE, Signature};
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::{HASH256_SIZE, Hash256};
+use crate::host::error_codes::{match_result_code, match_result_code_optional};
 use crate::host::field_helpers::{
     get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
     get_variable_size_field, get_variable_size_field_optional,
@@ -84,7 +86,7 @@ use crate::host::{Result, get_tx_field};
 /// - `Amount` - XRP amounts and token amounts for transaction values
 /// - `Hash256` - 256-bit hashes for transaction IDs and references
 /// - `PublicKey` - 33-byte compressed public keys for cryptographic operations
-/// - `Blob` - Variable-length binary data for signatures, memos, and other content
+/// - `Blob<N>` - Variable-length binary data (generic over buffer size `N`)
 ///
 /// ## Usage Patterns
 ///
@@ -92,17 +94,17 @@ use crate::host::{Result, get_tx_field};
 /// use xrpl_wasm_stdlib::core::current_tx::{get_field, get_field_optional};
 /// use xrpl_wasm_stdlib::core::types::account_id::AccountID;
 /// use xrpl_wasm_stdlib::core::types::amount::Amount;
-/// use xrpl_wasm_stdlib::core::types::blob::Blob;
+/// use xrpl_wasm_stdlib::core::types::blob::{Blob, MEMO_BLOB_SIZE};
 /// use xrpl_wasm_stdlib::sfield;
 /// # fn example() {
-/// // Get required fields from the current transaction
-/// let account: AccountID = get_field(sfield::Account).unwrap();
-/// let sequence: u32 = get_field(sfield::Sequence).unwrap();
-/// let fee: Amount = get_field(sfield::Fee).unwrap();
+///   // Get required fields from the current transaction
+///   let account: AccountID = get_field(sfield::Account).unwrap();
+///   let sequence: u32 = get_field(sfield::Sequence).unwrap();
+///   let fee: Amount = get_field(sfield::Fee).unwrap();
 ///
-/// // Get optional fields from the current transaction
-/// let flags: Option<u32> = get_field_optional(sfield::Flags).unwrap();
-/// let memo: Option<Blob> = get_field_optional(sfield::Memo).unwrap();
+///   // Get optional fields from the current transaction
+///   let flags: Option<u32> = get_field_optional(sfield::Flags).unwrap();
+///   let memo: Option<Blob<{MEMO_BLOB_SIZE}>> = get_field_optional(sfield::Memo).unwrap();
 /// # }
 /// ```
 ///
@@ -332,6 +334,45 @@ impl CurrentTxFieldGetter for PublicKey {
     }
 }
 
+/// Implementation of `CurrentTxFieldGetter` for XRPL transaction signatures.
+///
+/// This implementation handles signature fields in XRPL transactions, which can contain
+/// either EdDSA (64 bytes) or ECDSA (70-72 bytes) signatures. The buffer is sized to
+/// accommodate the maximum possible signature size (72 bytes).
+///
+/// # Buffer Management
+///
+/// Uses a 72-byte buffer to accommodate both signature types. The actual length of the
+/// signature is determined by the return value from the host function and stored in the
+/// Signature's underlying Blob `len` field.
+impl CurrentTxFieldGetter for Signature {
+    #[inline]
+    fn get_from_current_tx(field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; SIGNATURE_MAX_SIZE]>::uninit();
+        let result_code =
+            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), SIGNATURE_MAX_SIZE) };
+        match_result_code(result_code, || {
+            Signature(Blob {
+                data: unsafe { buffer.assume_init() },
+                len: result_code as usize,
+            })
+        })
+    }
+
+    #[inline]
+    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; SIGNATURE_MAX_SIZE]>::uninit();
+        let result_code =
+            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), SIGNATURE_MAX_SIZE) };
+        match_result_code_optional(result_code, || {
+            Some(Signature(Blob {
+                data: unsafe { buffer.assume_init() },
+                len: result_code as usize,
+            }))
+        })
+    }
+}
+
 /// Implementation of `CurrentTxFieldGetter` for variable-length binary data.
 ///
 /// This implementation handles blob fields in XRPL transactions, which can contain
@@ -340,14 +381,18 @@ impl CurrentTxFieldGetter for PublicKey {
 ///
 /// # Buffer Management
 ///
-/// Uses a 1024-byte buffer to accommodate most blob field sizes. The actual
+/// Uses a buffer of size `N` to accommodate blob field data. The actual
 /// length of the data is determined by the return value from the host function
 /// and stored in the Blob's `len` field. No strict byte count validation is
 /// performed since blobs can vary significantly in size.
-impl CurrentTxFieldGetter for Blob {
+///
+/// # Type Parameters
+///
+/// * `N` - The maximum capacity of the blob buffer in bytes
+impl<const N: usize> CurrentTxFieldGetter for Blob<N> {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<1024, _>(field_code, |fc, buf, size| unsafe {
+        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
             get_tx_field(fc, buf, size)
         }) {
             Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
@@ -357,7 +402,7 @@ impl CurrentTxFieldGetter for Blob {
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<1024, _>(field_code, |fc, buf, size| unsafe {
+        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
             get_tx_field(fc, buf, size)
         }) {
             Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
