@@ -41,8 +41,8 @@
 use crate::core::current_tx::{get_field, get_field_optional};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
-use crate::core::types::crypto_condition::{
-    Condition, Fulfillment, MAX_CONDITION_SIZE, MAX_FULFILLMENT_SIZE,
+use crate::core::types::blob::{
+    CONDITION_BLOB_SIZE, ConditionBlob, FULFILLMENT_BLOB_SIZE, FulfillmentBlob,
 };
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::signature::Signature;
@@ -353,8 +353,8 @@ pub trait EscrowFinishFields: TransactionCommonFields {
     /// * `Ok(Some(Condition))` - The full crypto-condition if the escrow is conditional
     /// * `Ok(None)` - If the escrow has no cryptographic condition (time-based only)
     /// * `Err(Error)` - If an error occurred during field retrieval
-    fn get_condition(&self) -> Result<Option<Condition>> {
-        let mut buffer = [0u8; MAX_CONDITION_SIZE];
+    fn get_condition(&self) -> Result<Option<ConditionBlob>> {
+        let mut buffer = [0u8; CONDITION_BLOB_SIZE];
 
         let result_code =
             unsafe { get_tx_field(sfield::Condition, buffer.as_mut_ptr(), buffer.len()) };
@@ -364,11 +364,11 @@ pub trait EscrowFinishFields: TransactionCommonFields {
         } else if result_code == 0 {
             Result::Ok(None)
         } else {
-            let blob = crate::core::types::blob::Blob {
+            let blob = ConditionBlob {
                 data: buffer,
                 len: result_code as usize,
             };
-            Result::Ok(Some(Condition(blob)))
+            Result::Ok(Some(blob))
         }
     }
 
@@ -398,19 +398,19 @@ pub trait EscrowFinishFields: TransactionCommonFields {
     /// Fulfillments are limited to 256 bytes in the current XRPL implementation.
     /// This limit ensures network performance while supporting the most practical
     /// cryptographic proof scenarios.
-    fn get_fulfillment(&self) -> Result<Option<Fulfillment>> {
+    fn get_fulfillment(&self) -> Result<Option<FulfillmentBlob>> {
         // Fulfillment fields are limited in rippled to 256 bytes, so we don't use `get_blob_field`
         // but instead just use a smaller buffer directly.
 
-        let mut buffer = [0u8; MAX_FULFILLMENT_SIZE]; // <-- 256 is the current rippled cap.
+        let mut buffer = [0u8; FULFILLMENT_BLOB_SIZE]; // <-- 256 is the current rippled cap.
 
         let result_code = unsafe { get_tx_field(sfield::Fulfillment, buffer.as_mut_ptr(), 256) };
         match_result_code_optional(result_code, || {
-            let blob = crate::core::types::blob::Blob {
+            let blob = FulfillmentBlob {
                 data: buffer,
                 len: result_code as usize,
             };
-            Some(Fulfillment(blob))
+            Some(blob)
         })
     }
 

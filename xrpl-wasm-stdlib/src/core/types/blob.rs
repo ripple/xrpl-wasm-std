@@ -1,10 +1,20 @@
 use crate::core::types::nft::NFT_URI_MAX_SIZE;
+use crate::core::types::signature::SIGNATURE_MAX_SIZE;
 
 /// Default blob size for general use (memos, etc.)
 pub const DEFAULT_BLOB_SIZE: usize = 1024;
 
 // Declared here because there is no Memo struct.
 pub const MEMO_BLOB_SIZE: usize = DEFAULT_BLOB_SIZE;
+
+/// The maximum number of bytes in a Condition. Xrpld currently caps this value at 128 bytes
+/// (see `maxSerializedCondition` in xrpld source code), so we do the same here.
+pub const CONDITION_BLOB_SIZE: usize = 128;
+
+/// The maximum number of bytes in a Fulfillment. Theoretically, the crypto-condition format allows for much larger
+/// fulfillments, but xrpld currently caps this value at 256 bytes (see `maxSerializedFulfillment` in xrpld source
+/// code), so we do the same here.
+pub const FULFILLMENT_BLOB_SIZE: usize = 256;
 
 /// A variable-length binary data container with a fixed maximum size.
 ///
@@ -96,8 +106,19 @@ impl<const N: usize> Default for Blob<N> {
     }
 }
 
-/// Type alias for the standard 1024-byte blob (for memos and general use)
+/// Type alias for the standard 1024-byte blob.
 pub type StandardBlob = Blob<DEFAULT_BLOB_SIZE>;
+
+/// Type alias for 256-byte blob (for Condition fields)
+pub type ConditionBlob = Blob<{ CONDITION_BLOB_SIZE }>;
+
+/// Type alias for 256-byte blob (for Fulfillment fields)
+pub type FulfillmentBlob = Blob<{ FULFILLMENT_BLOB_SIZE }>;
+
+/// Type alias for 1024-byte blob (for Memo fields).
+pub type MemoBlob = Blob<{ MEMO_BLOB_SIZE }>;
+
+pub type SignatureBlob = Blob<{ SIGNATURE_MAX_SIZE }>;
 
 /// Type alias for 256-byte blob (for URIs and smaller fields)
 pub type UriBlob = Blob<{ NFT_URI_MAX_SIZE }>;

@@ -2,7 +2,6 @@ pub mod account_id;
 pub mod amount;
 pub mod blob;
 pub mod contract_data;
-pub mod crypto_condition;
 pub mod currency;
 pub mod issue;
 pub mod keylets;

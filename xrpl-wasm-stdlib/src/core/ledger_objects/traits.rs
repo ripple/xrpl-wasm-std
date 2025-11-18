@@ -1,9 +1,8 @@
 use crate::core::ledger_objects::{current_ledger_object, ledger_object};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
-use crate::core::types::blob::{Blob, DEFAULT_BLOB_SIZE};
+use crate::core::types::blob::{Blob, CONDITION_BLOB_SIZE, ConditionBlob, DEFAULT_BLOB_SIZE};
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
-use crate::core::types::crypto_condition::{Condition, MAX_CONDITION_SIZE};
 use crate::core::types::nft::NFT_URI_MAX_SIZE;
 use crate::core::types::public_key::PUBLIC_KEY_BUFFER_SIZE;
 use crate::core::types::uint::{Hash128, Hash256};
@@ -134,8 +133,8 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
 
     /// A PREIMAGE-SHA-256 crypto-condition in full crypto-condition format. If present, the EscrowFinish
     /// transaction must contain a fulfillment that satisfies this condition.
-    fn get_condition(&self) -> Result<Option<Condition>> {
-        let mut buffer = [0u8; MAX_CONDITION_SIZE];
+    fn get_condition(&self) -> Result<Option<ConditionBlob>> {
+        let mut buffer = [0u8; CONDITION_BLOB_SIZE];
 
         let result_code = unsafe {
             get_current_ledger_obj_field(sfield::Condition, buffer.as_mut_ptr(), buffer.len())
@@ -143,11 +142,11 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
 
         match_result_code_optional(result_code, || {
             if result_code > 0 {
-                let blob = Blob {
+                let blob = ConditionBlob {
                     data: buffer,
                     len: result_code as usize,
                 };
-                Some(Condition(blob))
+                Some(blob)
             } else {
                 None
             }
@@ -296,8 +295,8 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 
     /// A PREIMAGE-SHA-256 crypto-condition in full crypto-condition format. If present, the EscrowFinish
     /// transaction must contain a fulfillment that satisfies this condition.
-    fn get_condition(&self) -> Result<Option<Condition>> {
-        let mut buffer = [0u8; MAX_CONDITION_SIZE];
+    fn get_condition(&self) -> Result<Option<ConditionBlob>> {
+        let mut buffer = [0u8; CONDITION_BLOB_SIZE];
 
         let result_code = unsafe {
             get_ledger_obj_field(
@@ -310,11 +309,11 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 
         match_result_code_optional(result_code, || {
             if result_code > 0 {
-                let blob = Blob {
+                let blob = ConditionBlob {
                     data: buffer,
                     len: result_code as usize,
                 };
-                Some(Condition(blob))
+                Some(blob)
             } else {
                 None
             }

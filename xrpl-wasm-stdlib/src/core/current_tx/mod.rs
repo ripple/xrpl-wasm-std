@@ -67,10 +67,10 @@ use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::{HASH256_SIZE, Hash256};
 use crate::core::types::vector_256::Vector256;
 use crate::host::error_codes::{
-    self, match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
+    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
     match_result_code_with_expected_bytes_optional,
 };
-use crate::host::{Error, Result, get_tx_field};
+use crate::host::{Error, Result, error_codes, get_tx_field};
 
 /// Trait for types that can be retrieved from current transaction fields.
 ///
