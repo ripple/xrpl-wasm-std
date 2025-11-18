@@ -18,7 +18,7 @@
 //! ```
 
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-use crate::core::types::blob::Blob;
+use crate::core::types::blob::{Blob, NftBlob};
 use crate::host;
 use crate::host::{Error, Result};
 
@@ -301,11 +301,11 @@ impl NFToken {
     ///
     /// # Returns
     ///
-    /// * `Ok(Blob)` - The URI data (variable length, up to 256 bytes)
+    /// * `Ok(NftBlob)` - The URI data (variable length, up to 256 bytes)
     /// * `Err(Error)` - If the NFT is not found or the host function fails
     ///
     ///
-    pub fn uri(&self, owner: &AccountID) -> Result<Blob<256>> {
+    pub fn uri(&self, owner: &AccountID) -> Result<NftBlob> {
         let mut uri_buf = [0u8; NFT_URI_MAX_SIZE];
         let result = unsafe {
             host::get_nft(

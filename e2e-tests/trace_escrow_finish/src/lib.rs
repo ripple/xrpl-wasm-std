@@ -292,7 +292,7 @@ pub extern "C" fn finish() -> i32 {
                 let _ = trace_num("    Length:", txn_signature.len() as i64);
                 let _ = trace_data(
                     "    Data:",
-                    &txn_signature.as_blob().data[..txn_signature.len()],
+                    &txn_signature.data[..txn_signature.len()],
                     DataRepr::AsHex,
                 );
             }

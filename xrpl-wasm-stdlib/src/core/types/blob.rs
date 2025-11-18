@@ -1,5 +1,4 @@
 use crate::core::types::nft::NFT_URI_MAX_SIZE;
-use crate::core::types::signature::SIGNATURE_MAX_SIZE;
 
 /// Default blob size for general use (memos, etc.)
 pub const DEFAULT_BLOB_SIZE: usize = 1024;
@@ -16,6 +15,15 @@ pub const CONDITION_BLOB_SIZE: usize = 128;
 /// code), so we do the same here.
 pub const FULFILLMENT_BLOB_SIZE: usize = 256;
 
+/// Maximum size of a signature in bytes.
+///
+/// ECDSA signatures can be up to 72 bytes, which is the maximum signature size in XRPL.
+/// EdDSA signatures are always 64 bytes.
+pub const SIGNATURE_BLOB_SIZE: usize = 72;
+
+/// Maximum size of an NFT URI in bytes.
+pub const NFT_BLOB_SIZE: usize = NFT_URI_MAX_SIZE;
+
 /// A variable-length binary data container with a fixed maximum size.
 ///
 /// The `Blob` type is generic over its maximum capacity `N`, allowing you to
@@ -29,14 +37,16 @@ pub const FULFILLMENT_BLOB_SIZE: usize = 256;
 /// # Examples
 ///
 /// ```
-/// use xrpl_wasm_stdlib::core::types::blob::{Blob, DEFAULT_BLOB_SIZE};
-/// use xrpl_wasm_stdlib::core::types::nft::NFT_URI_MAX_SIZE;
+/// use xrpl_wasm_stdlib::core::types::blob::{Blob, StandardBlob, UriBlob, DEFAULT_BLOB_SIZE};
 ///
 /// // Create a standard 1024-byte blob
-/// let large_blob: Blob<DEFAULT_BLOB_SIZE> = Blob::new();
+/// let standard_blob: Blob<DEFAULT_BLOB_SIZE> = Blob::new();
+///
+/// // Create a standard 1024-byte blob
+/// let standard_blob_typed: StandardBlob = StandardBlob::new();
 ///
 /// // Create a smaller 256-byte blob for URIs
-/// let uri_blob: Blob<NFT_URI_MAX_SIZE> = Blob::new();
+/// let uri_blob: UriBlob = UriBlob::new();
 /// ```
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
@@ -118,7 +128,11 @@ pub type FulfillmentBlob = Blob<{ FULFILLMENT_BLOB_SIZE }>;
 /// Type alias for 1024-byte blob (for Memo fields).
 pub type MemoBlob = Blob<{ MEMO_BLOB_SIZE }>;
 
-pub type SignatureBlob = Blob<{ SIGNATURE_MAX_SIZE }>;
+/// Type alias for 256-byte blob (for NFT URIs)
+pub type NftBlob = Blob<{ NFT_URI_MAX_SIZE }>;
+
+/// Type alias for 72-byte blob (for Signature fields).
+pub type SignatureBlob = Blob<{ SIGNATURE_BLOB_SIZE }>;
 
 /// Type alias for 256-byte blob (for URIs and smaller fields)
 pub type UriBlob = Blob<{ NFT_URI_MAX_SIZE }>;

@@ -42,10 +42,9 @@ use crate::core::current_tx::{get_field, get_field_optional};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
 use crate::core::types::blob::{
-    CONDITION_BLOB_SIZE, ConditionBlob, FULFILLMENT_BLOB_SIZE, FulfillmentBlob,
+    CONDITION_BLOB_SIZE, ConditionBlob, FULFILLMENT_BLOB_SIZE, FulfillmentBlob, SignatureBlob,
 };
 use crate::core::types::public_key::PublicKey;
-use crate::core::types::signature::Signature;
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::Hash256;
 use crate::core::types::vector_256::Vector256;
@@ -287,7 +286,7 @@ pub trait TransactionCommonFields {
     /// The signature is validated by the XRPL network before transaction execution.
     /// In the programmability context, you can access the signature for logging or
     /// analysis purposes, but signature validation has already been performed.
-    fn get_txn_signature(&self) -> Result<Signature> {
+    fn get_txn_signature(&self) -> Result<SignatureBlob> {
         get_field(sfield::TxnSignature)
     }
 }
