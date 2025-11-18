@@ -129,7 +129,7 @@ pub type FulfillmentBlob = Blob<{ FULFILLMENT_BLOB_SIZE }>;
 pub type MemoBlob = Blob<{ MEMO_BLOB_SIZE }>;
 
 /// Type alias for 256-byte blob (for NFT URIs)
-pub type NftBlob = Blob<{ NFT_URI_MAX_SIZE }>;
+pub type NftBlob = Blob<{ NFT_BLOB_SIZE }>;
 
 /// Type alias for 72-byte blob (for Signature fields).
 pub type SignatureBlob = Blob<{ SIGNATURE_BLOB_SIZE }>;
