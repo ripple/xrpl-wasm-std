@@ -5,9 +5,9 @@ use crate::core::type_codes::{
 };
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
-use crate::core::types::hash_160::Hash160;
-use crate::core::types::hash_192::Hash192;
-use crate::core::types::hash_256::Hash256;
+use crate::core::types::uint::Hash160;
+use crate::core::types::uint::Hash192;
+use crate::core::types::uint::Hash256;
 use crate::core::types::number::Number;
 use crate::core::types::currency::Currency;
 use crate::host::function_param;

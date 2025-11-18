@@ -75,7 +75,7 @@ pub fn wasm_export(attr: TokenStream, item: TokenStream) -> TokenStream {
         
         if let Some(ref exit_fn) = args.exit {
             instance_extractions.push(quote! {
-                let #param_name = match xrpl_wasm_std::core::params::instance::get_instance_param::<#param_type>(#idx_i32) {
+                let #param_name = match xrpl_wasm_stdlib::core::params::instance::get_instance_param::<#param_type>(#idx_i32) {
                     core::result::Result::Ok(val) => val,
                     core::result::Result::Err(err) => {
                         return #exit_fn(
@@ -87,7 +87,7 @@ pub fn wasm_export(attr: TokenStream, item: TokenStream) -> TokenStream {
             });
         } else {
             instance_extractions.push(quote! {
-                let #param_name = xrpl_wasm_std::core::params::instance::get_instance_param::<#param_type>(#idx_i32)
+                let #param_name = xrpl_wasm_stdlib::core::params::instance::get_instance_param::<#param_type>(#idx_i32)
                     .expect("Failed to get instance parameter");
             });
         }
@@ -112,7 +112,7 @@ pub fn wasm_export(attr: TokenStream, item: TokenStream) -> TokenStream {
             
             if let Some(ref exit_fn) = args.exit {
                 function_extractions.push(quote! {
-                    let #param_name = match xrpl_wasm_std::core::params::function::get_function_param::<#param_type>(#idx_i32) {
+                    let #param_name = match xrpl_wasm_stdlib::core::params::function::get_function_param::<#param_type>(#idx_i32) {
                         core::result::Result::Ok(val) => val,
                         core::result::Result::Err(err) => {
                             return #exit_fn(
@@ -124,7 +124,7 @@ pub fn wasm_export(attr: TokenStream, item: TokenStream) -> TokenStream {
                 });
             } else {
                 function_extractions.push(quote! {
-                    let #param_name = xrpl_wasm_std::core::params::function::safe_get_function_param::<#param_type>(#idx_i32);
+                    let #param_name = xrpl_wasm_stdlib::core::params::function::safe_get_function_param::<#param_type>(#idx_i32);
                 });
             }
             

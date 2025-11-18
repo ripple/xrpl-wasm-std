@@ -4,16 +4,16 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::host::trace::{DataRepr, trace, trace_data, trace_num};
-use xrpl_wasm_std::host::{instance_param};
-use xrpl_wasm_std::core::params::instance::{get_instance_param};
-use xrpl_wasm_std::core::type_codes::{
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_data, trace_num};
+use xrpl_wasm_stdlib::host::{instance_param};
+use xrpl_wasm_stdlib::core::params::instance::{get_instance_param};
+use xrpl_wasm_stdlib::core::type_codes::{
     STI_UINT8, STI_UINT16, STI_UINT32, STI_UINT64, STI_UINT128, 
     STI_UINT160, STI_UINT192, STI_UINT256
 };
-use xrpl_wasm_std::core::types::hash_160::Hash160;
-use xrpl_wasm_std::core::types::hash_192::Hash192;
-use xrpl_wasm_std::core::types::hash_256::Hash256;
+use xrpl_wasm_stdlib::core::types::uint::Hash160;
+use xrpl_wasm_stdlib::core::types::uint::Hash192;
+use xrpl_wasm_stdlib::core::types::uint::Hash256;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn instance_params_uint() -> i32 {

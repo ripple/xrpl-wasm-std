@@ -4,23 +4,23 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::host::trace::{DataRepr, trace, trace_data, trace_num, trace_float};
-use xrpl_wasm_std::host::{function_param};
-use xrpl_wasm_std::core::params::function::{get_function_param};
-use xrpl_wasm_std::core::type_codes::{
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_data, trace_num, trace_float};
+use xrpl_wasm_stdlib::host::{function_param};
+use xrpl_wasm_stdlib::core::params::function::{get_function_param};
+use xrpl_wasm_stdlib::core::type_codes::{
     STI_UINT8, STI_UINT16, STI_UINT32, STI_UINT64, STI_UINT128, 
     STI_UINT160, STI_UINT192, STI_UINT256, STI_AMOUNT, STI_VL, STI_ACCOUNT, 
     STI_OBJECT, STI_ARRAY, STI_CURRENCY, STI_NUMBER
 };
-use xrpl_wasm_std::core::types::opaque_float::OpaqueFloat;
-use xrpl_wasm_std::core::types::number::Number;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::Amount;
-use xrpl_wasm_std::host::{FLOAT_ROUNDING_MODES_TO_NEAREST, float_add, float_set};
-use xrpl_wasm_std::core::types::opaque_float::{FLOAT_NEGATIVE_ONE, FLOAT_ONE};
-use xrpl_wasm_std::core::types::hash_160::Hash160;
-use xrpl_wasm_std::core::types::hash_192::Hash192;
-use xrpl_wasm_std::core::types::hash_256::Hash256;
+use xrpl_wasm_stdlib::core::types::opaque_float::OpaqueFloat;
+use xrpl_wasm_stdlib::core::types::number::Number;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::amount::Amount;
+use xrpl_wasm_stdlib::host::{FLOAT_ROUNDING_MODES_TO_NEAREST, float_add, float_set};
+use xrpl_wasm_stdlib::core::types::opaque_float::{FLOAT_NEGATIVE_ONE, FLOAT_ONE};
+use xrpl_wasm_stdlib::core::types::uint::Hash160;
+use xrpl_wasm_stdlib::core::types::uint::Hash192;
+use xrpl_wasm_stdlib::core::types::uint::Hash256;
 
 
 #[unsafe(no_mangle)]

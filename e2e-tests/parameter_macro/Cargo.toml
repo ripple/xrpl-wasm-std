@@ -1,5 +1,5 @@
 [package]
-name = "easymode"
+name = "parameter_macro"
 version = "0.1.0"
 edition = "2024"
 description = ""
@@ -26,5 +26,4 @@ overflow-checks = false # Disable overflow checks (use cautiously)
 panic = "unwind"
 
 [dependencies]
-xrpl-wasm-std = { path = "../../xrpl-wasm-std" }
-xrpl-parameter-macro = { path = "../../macros/xrpl-parameter-macro" }
+xrpl-wasm-stdlib = { path = "../../xrpl-wasm-stdlib" }

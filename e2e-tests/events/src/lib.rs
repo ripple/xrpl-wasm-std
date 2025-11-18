@@ -3,8 +3,8 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::event::codec_v3::{
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::event::codec_v3::{
     EventBuffer, event_add
 };
 

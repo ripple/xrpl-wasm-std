@@ -1,5 +1,7 @@
 #![allow(non_upper_case_globals)]
 
+pub const hash: i32 = 327937;
+pub const index: i32 = 327938;
 pub const Invalid: i32 = -1;
 pub const Generic: i32 = 0;
 pub const LedgerEntryType: i32 = 65537;

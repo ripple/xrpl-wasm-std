@@ -3,9 +3,9 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::host::trace::{trace, trace_num};
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::data::codec::{
+use xrpl_wasm_stdlib::host::trace::{trace, trace_num};
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::data::codec::{
     get_data, 
     set_data, 
     get_nested_data, 

@@ -59,7 +59,7 @@ dependencies = [
 name = "emit_txn"
 version = "0.1.0"
 dependencies = [
- "xrpl-wasm-std",
+ "xrpl-wasm-stdlib",
 ]
 
 [[package]]
@@ -153,7 +153,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "xrpl-address-macro"
-version = "0.1.0"
+version = "0.7.1"
 dependencies = [
  "bs58",
  "quote",
@@ -162,8 +162,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "xrpl-wasm-std"
-version = "0.5.1-devnet5"
+name = "xrpl-parameter-macro"
+version = "1.0.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "xrpl-wasm-stdlib"
+version = "0.7.1"
 dependencies = [
  "xrpl-address-macro",
+ "xrpl-parameter-macro",
 ]

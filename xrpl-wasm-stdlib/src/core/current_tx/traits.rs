@@ -405,10 +405,10 @@ pub trait EscrowFinishFields: TransactionCommonFields {
 
 pub trait ContractCallFields: TransactionCommonFields {
     fn get_contract_account(&self) -> Result<AccountID> {
-        get_account_id_field(sfield::ContractAccount)
+        get_field(sfield::ContractAccount)
     }
 
     fn get_id(&self) -> Result<Hash256> {
-        get_hash_256_field(sfield::hash)
+        get_field(sfield::hash)
     }
 }

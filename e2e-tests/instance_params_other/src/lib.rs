@@ -4,18 +4,18 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::host::trace::{DataRepr, trace, trace_data, trace_num, trace_float};
-use xrpl_wasm_std::host::{instance_param};
-use xrpl_wasm_std::core::params::instance::{get_instance_param};
-use xrpl_wasm_std::core::type_codes::{
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_data, trace_num, trace_float};
+use xrpl_wasm_stdlib::host::{instance_param};
+use xrpl_wasm_stdlib::core::params::instance::{get_instance_param};
+use xrpl_wasm_stdlib::core::type_codes::{
     STI_AMOUNT, STI_VL, STI_ACCOUNT, STI_OBJECT, STI_ARRAY, STI_CURRENCY, STI_NUMBER
 };
-use xrpl_wasm_std::core::types::opaque_float::OpaqueFloat;
-use xrpl_wasm_std::core::types::number::Number;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::amount::Amount;
-use xrpl_wasm_std::host::{FLOAT_ROUNDING_MODES_TO_NEAREST, float_add, float_set};
-use xrpl_wasm_std::core::types::opaque_float::{FLOAT_NEGATIVE_ONE, FLOAT_ONE};
+use xrpl_wasm_stdlib::core::types::opaque_float::OpaqueFloat;
+use xrpl_wasm_stdlib::core::types::number::Number;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::amount::Amount;
+use xrpl_wasm_stdlib::host::{FLOAT_ROUNDING_MODES_TO_NEAREST, float_add, float_set};
+use xrpl_wasm_stdlib::core::types::opaque_float::{FLOAT_NEGATIVE_ONE, FLOAT_ONE};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn instance_params_other() -> i32 {
