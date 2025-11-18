@@ -257,15 +257,29 @@ mod tests {
 
     #[test]
     fn test_standard_blob_type_alias() {
-        let blob: StandardBlob = Blob::new();
+        let blob: StandardBlob = StandardBlob::new();
         assert_eq!(blob.capacity(), DEFAULT_BLOB_SIZE);
         assert_eq!(blob.capacity(), 1024);
     }
 
     #[test]
-    fn test_uri_blob_type_alias() {
-        let blob: NftUriBlob = Blob::new();
+    fn test_nft_uri_blob_type_alias() {
+        let blob: NftUriBlob = NftUriBlob::new();
         assert_eq!(blob.capacity(), NFT_URI_BLOB_SIZE);
+        assert_eq!(blob.capacity(), 256);
+    }
+
+    #[test]
+    fn test_signature_blob_type_alias() {
+        let blob: SignatureBlob = SignatureBlob::new();
+        assert_eq!(blob.capacity(), SIGNATURE_BLOB_SIZE);
+        assert_eq!(blob.capacity(), 72);
+    }
+
+    #[test]
+    fn test_uri_blob_type_alias() {
+        let blob: UriBlob = UriBlob::new();
+        assert_eq!(blob.capacity(), URI_BLOB_SIZE);
         assert_eq!(blob.capacity(), 256);
     }
 
