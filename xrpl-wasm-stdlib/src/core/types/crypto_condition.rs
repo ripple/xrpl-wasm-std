@@ -1,3 +1,11 @@
+/// A 32-byte crypto-condition used in escrows and payment channels.
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this 32-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Condition(pub [u8; 32]);
 
 impl From<[u8; 32]> for Condition {
@@ -8,6 +16,14 @@ impl From<[u8; 32]> for Condition {
 
 /// A crypto-condition Fulfillment. Note that from rippled source, this value is currently capped
 /// at 256 bytes, which allows us to treat it as such.
+///
+/// ## Derived Traits
+///
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (256+ bytes).
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Fulfillment {
     pub data: [u8; 256],
 
