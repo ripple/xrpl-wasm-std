@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "xrpl-wasm-std",
     "xrpl-wasm-std/xrpl-address-macro",
+    "xrpl-wasm-std/xrpl-parameter-macro",
 ]
 exclude = [
     "examples",

@@ -1,15 +1,6 @@
 //! Parameter Types Module
 //! Core types for parameter handling
 
-// ============================================================================
-// Type Aliases
-// ============================================================================
-
-/// Currency - 20 byte currency code
-pub type Currency = [u8; 20];
-
-/// Blob - variable length byte array
-pub type Blob = &'static [u8];
 
 // ============================================================================
 // Error Type

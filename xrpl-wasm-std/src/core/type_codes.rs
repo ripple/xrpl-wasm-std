@@ -1,3 +1,5 @@
+// Find a way to auto generate these from the ripple(d) source code
+
 // pub const STI_UNKNOWN: u8 = -2;
 // pub const STI_NOTPRESENT: u8 = 0;
 pub const STI_UINT16: u8 = 1;

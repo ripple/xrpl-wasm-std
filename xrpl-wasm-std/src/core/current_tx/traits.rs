@@ -431,8 +431,4 @@ pub trait ContractCallFields: TransactionCommonFields {
     fn get_id(&self) -> Result<Hash256> {
         get_hash_256_field(sfield::hash)
     }
-
-    fn get_owner(&self) -> Result<AccountID> {
-        get_account_id_field(sfield::Owner)
-    }
 }

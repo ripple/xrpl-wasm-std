@@ -16,3 +16,4 @@ crate-type = ["lib"]
 
 [dependencies]
 xrpl-address-macro = { path = "xrpl-address-macro" }
+xrpl-parameter-macro = { path = "xrpl-parameter-macro" }

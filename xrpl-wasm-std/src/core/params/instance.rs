@@ -1,4 +1,4 @@
-use crate::core::params::types::{Currency, InstParamBytes, ParamError};
+use crate::core::params::types::{InstParamBytes, ParamError};
 use crate::core::type_codes::{
     STI_ACCOUNT, STI_AMOUNT, STI_NUMBER, STI_UINT8, STI_UINT16, STI_UINT32, STI_UINT64,
     STI_UINT128, STI_UINT160, STI_UINT192, STI_UINT256,
@@ -9,6 +9,7 @@ use crate::core::types::hash_160::Hash160;
 use crate::core::types::hash_192::Hash192;
 use crate::core::types::hash_256::Hash256;
 use crate::core::types::number::Number;
+use crate::core::types::currency::Currency;
 use crate::host::instance_param;
 use crate::host::trace::{DataRepr, trace_data, trace_num};
 
@@ -291,14 +292,14 @@ impl InstParamBytes for Currency {
         if bytes.len() >= 20 {
             let mut buf = [0u8; 20];
             buf.copy_from_slice(&bytes[0..20]);
-            Ok(buf)
+            Ok(Currency::from(buf))
         } else {
             Err(ParamError::InvalidData)
         }
     }
 
     fn default_value() -> Self {
-        [0u8; 20]
+        Currency::from([0u8; 20])
     }
     fn error_message() -> &'static [u8] {
         b"Required Currency parameter not found"

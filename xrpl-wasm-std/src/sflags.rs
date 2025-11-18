@@ -1,3 +1,5 @@
+// Find a way to auto generate these from the ripple(d) source code
+
 #![allow(non_upper_case_globals)]
 
 // Universal Transaction flags:

@@ -4,6 +4,9 @@
 // Re-export the r_address macro for convenient access
 pub use xrpl_address_macro::r_address;
 
+// Re-export the wasm_export macro for convenient access
+pub use xrpl_parameter_macro::wasm_export;
+
 pub mod core;
 pub mod host;
 pub mod sfield;

@@ -404,14 +404,6 @@ impl Amount {
         }
     }
 
-    // pub fn safe_transfer(&self, recipient: &AccountID) -> i32 {
-    //     let result: i32 = self.transfer(recipient);
-    //     if result < 0 {
-    //         result
-    //     } else {
-    //         0
-    //     }
-    // }
 }
 
 impl From<[u8; AMOUNT_SIZE]> for Amount {

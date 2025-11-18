@@ -155,8 +155,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "xrpl-parameter-macro"
+version = "1.0.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "xrpl-wasm-std"
 version = "0.5.1-devnet5"
 dependencies = [
  "xrpl-address-macro",
+ "xrpl-parameter-macro",
 ]
