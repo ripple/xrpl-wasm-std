@@ -59,7 +59,7 @@ impl FuncParamBytes for u8 {
     }
 
     fn from_param_bytes(bytes: &[u8]) -> Result<Self, ParamError> {
-        if bytes.len() >= 1 {
+        if !bytes.is_empty() {
             Ok(bytes[0])
         } else {
             Err(ParamError::InvalidData)

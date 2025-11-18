@@ -14,6 +14,13 @@ pub struct EventBuffer {
     vl_size: usize,     // Track current VL encoding size (1, 2, or 3 bytes)
 }
 
+impl Default for EventBuffer {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EventBuffer {
     #[inline]
     pub fn new() -> Self {
@@ -156,7 +163,7 @@ pub fn event_add_u8(buf: &mut EventBuffer, key: &str, value: u8) -> Result<(), i
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_UINT8.into());
+    buf.write_byte(buf.pos, STI_UINT8);
     buf.pos += 1;
     
     // Write value
@@ -195,7 +202,7 @@ pub fn event_add_u16(buf: &mut EventBuffer, key: &str, value: u16) -> Result<(),
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_UINT16.into());
+    buf.write_byte(buf.pos, STI_UINT16);
     buf.pos += 1;
     
     // Write value (big-endian)
@@ -235,7 +242,7 @@ pub fn event_add_u32(buf: &mut EventBuffer, key: &str, value: u32) -> Result<(),
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_UINT32.into());
+    buf.write_byte(buf.pos, STI_UINT32);
     buf.pos += 1;
     
     // Write value (big-endian)
@@ -277,7 +284,7 @@ pub fn event_add_u64(buf: &mut EventBuffer, key: &str, value: u64) -> Result<(),
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_UINT64.into());
+    buf.write_byte(buf.pos, STI_UINT64);
     buf.pos += 1;
     
     // Write value (big-endian)
@@ -323,7 +330,7 @@ pub fn event_add_u128(buf: &mut EventBuffer, key: &str, value: &[u8; 16]) -> Res
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_UINT128.into());
+    buf.write_byte(buf.pos, STI_UINT128);
     buf.pos += 1;
     
     // Write value
@@ -366,7 +373,7 @@ pub fn event_add_u160(buf: &mut EventBuffer, key: &str, value: &[u8; 20]) -> Res
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_UINT160.into());
+    buf.write_byte(buf.pos, STI_UINT160);
     buf.pos += 1;
     
     // Write value
@@ -409,7 +416,7 @@ pub fn event_add_u192(buf: &mut EventBuffer, key: &str, value: &[u8; 24]) -> Res
     buf.pos += 1;
 
     // Write type
-    buf.write_byte(buf.pos, STI_UINT192.into());
+    buf.write_byte(buf.pos, STI_UINT192);
     buf.pos += 1;
 
     // Write value
@@ -452,7 +459,7 @@ pub fn event_add_u256(buf: &mut EventBuffer, key: &str, value: &[u8; 32]) -> Res
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_UINT256.into());
+    buf.write_byte(buf.pos, STI_UINT256);
     buf.pos += 1;
     
     // Write value
@@ -495,7 +502,7 @@ pub fn event_add_amount(buf: &mut EventBuffer, key: &str, value: &[u8; 8]) -> Re
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_AMOUNT.into());
+    buf.write_byte(buf.pos, STI_AMOUNT);
     buf.pos += 1;
     
     // Write value
@@ -540,7 +547,7 @@ pub fn event_add_account(buf: &mut EventBuffer, key: &str, value: &[u8; 20]) -> 
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_ACCOUNT.into());
+    buf.write_byte(buf.pos, STI_ACCOUNT);
     buf.pos += 1;
     
     // Write account length prefix
@@ -587,7 +594,7 @@ pub fn event_add_currency(buf: &mut EventBuffer, key: &str, value: &[u8; 20]) ->
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_CURRENCY.into());
+    buf.write_byte(buf.pos, STI_CURRENCY);
     buf.pos += 1;
     
     // Write value
@@ -675,7 +682,7 @@ pub fn event_add_str(buf: &mut EventBuffer, key: &str, value: &str) -> Result<()
     buf.pos += 1;
     
     // Write type
-    buf.write_byte(buf.pos, STI_VL.into());
+    buf.write_byte(buf.pos, STI_VL);
     buf.pos += 1;
     
     // Write VL-encoded string length

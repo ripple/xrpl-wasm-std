@@ -40,7 +40,7 @@ impl AsKeyBytes for &str {
     }
 }
 
-impl<'a> AsKeyBytes for &'a [u8] {
+impl AsKeyBytes for &[u8] {
     #[inline]
     fn as_key_bytes(&self) -> &[u8] {
         self
@@ -266,7 +266,7 @@ impl FromDataBytes for u8 {
 impl ToDataBytes for u8 {
     #[inline]
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
-        let buffer = [STI_UINT8.into(), *self];
+        let buffer = [STI_UINT8, *self];
         unsafe {
             set_data_object_field(
                 account.0.as_ptr(),
@@ -282,7 +282,7 @@ impl ToDataBytes for u8 {
 
     #[inline]
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
-        let buffer = [STI_UINT8.into(), *self];
+        let buffer = [STI_UINT8, *self];
         unsafe {
             set_data_nested_object_field(
                 account.0.as_ptr(),
@@ -300,7 +300,7 @@ impl ToDataBytes for u8 {
 
     #[inline]
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
-        let buffer = [STI_UINT8.into(), *self];
+        let buffer = [STI_UINT8, *self];
         unsafe {
             set_data_array_element_field(
                 account.0.as_ptr(),
@@ -323,7 +323,7 @@ impl ToDataBytes for u8 {
         index: usize,
         field_key: &[u8],
     ) -> Result<(), i32> {
-        let buffer = [STI_UINT8.into(), *self];
+        let buffer = [STI_UINT8, *self];
         unsafe {
             set_data_nested_array_element_field(
                 account.0.as_ptr(),
@@ -446,7 +446,7 @@ impl ToDataBytes for u16 {
     #[inline]
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
         let be_bytes = self.to_be_bytes();
-        let buffer = [STI_UINT16.into(), be_bytes[0], be_bytes[1]];
+        let buffer = [STI_UINT16, be_bytes[0], be_bytes[1]];
         unsafe {
             set_data_object_field(
                 account.0.as_ptr(),
@@ -463,7 +463,7 @@ impl ToDataBytes for u16 {
     #[inline]
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
         let be_bytes = self.to_be_bytes();
-        let buffer = [STI_UINT16.into(), be_bytes[0], be_bytes[1]];
+        let buffer = [STI_UINT16, be_bytes[0], be_bytes[1]];
         unsafe {
             set_data_nested_object_field(
                 account.0.as_ptr(),
@@ -482,7 +482,7 @@ impl ToDataBytes for u16 {
     #[inline]
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
         let be_bytes = self.to_be_bytes();
-        let buffer = [STI_UINT16.into(), be_bytes[0], be_bytes[1]];
+        let buffer = [STI_UINT16, be_bytes[0], be_bytes[1]];
         unsafe {
             set_data_array_element_field(
                 account.0.as_ptr(),
@@ -506,7 +506,7 @@ impl ToDataBytes for u16 {
         field_key: &[u8],
     ) -> Result<(), i32> {
         let be_bytes = self.to_be_bytes();
-        let buffer = [STI_UINT16.into(), be_bytes[0], be_bytes[1]];
+        let buffer = [STI_UINT16, be_bytes[0], be_bytes[1]];
         unsafe {
             set_data_nested_array_element_field(
                 account.0.as_ptr(),
@@ -630,7 +630,7 @@ impl ToDataBytes for u32 {
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
         let be_bytes = self.to_be_bytes();
         let buffer = [
-            STI_UINT32.into(),
+            STI_UINT32,
             be_bytes[0],
             be_bytes[1],
             be_bytes[2],
@@ -653,7 +653,7 @@ impl ToDataBytes for u32 {
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
         let be_bytes = self.to_be_bytes();
         let buffer = [
-            STI_UINT32.into(),
+            STI_UINT32,
             be_bytes[0],
             be_bytes[1],
             be_bytes[2],
@@ -678,7 +678,7 @@ impl ToDataBytes for u32 {
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
         let be_bytes = self.to_be_bytes();
         let buffer = [
-            STI_UINT32.into(),
+            STI_UINT32,
             be_bytes[0],
             be_bytes[1],
             be_bytes[2],
@@ -708,7 +708,7 @@ impl ToDataBytes for u32 {
     ) -> Result<(), i32> {
         let be_bytes = self.to_be_bytes();
         let buffer = [
-            STI_UINT32.into(),
+            STI_UINT32,
             be_bytes[0],
             be_bytes[1],
             be_bytes[2],
@@ -836,7 +836,7 @@ impl ToDataBytes for u64 {
     #[inline]
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 9];
-        buffer[0] = STI_UINT64.into();
+        buffer[0] = STI_UINT64;
         let be_bytes = self.to_be_bytes();
         let mut i = 0;
         while i < 8 {
@@ -859,7 +859,7 @@ impl ToDataBytes for u64 {
     #[inline]
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 9];
-        buffer[0] = STI_UINT64.into();
+        buffer[0] = STI_UINT64;
         let be_bytes = self.to_be_bytes();
         let mut i = 0;
         while i < 8 {
@@ -884,7 +884,7 @@ impl ToDataBytes for u64 {
     #[inline]
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
         let mut buffer = [0u8; 9];
-        buffer[0] = STI_UINT64.into();
+        buffer[0] = STI_UINT64;
         let be_bytes = self.to_be_bytes();
         let mut i = 0;
         while i < 8 {
@@ -914,7 +914,7 @@ impl ToDataBytes for u64 {
         field_key: &[u8],
     ) -> Result<(), i32> {
         let mut buffer = [0u8; 9];
-        buffer[0] = STI_UINT64.into();
+        buffer[0] = STI_UINT64;
         let be_bytes = self.to_be_bytes();
         let mut i = 0;
         while i < 8 {
@@ -1043,7 +1043,7 @@ impl ToDataBytes for u128 {
     #[inline]
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 17];
-        buffer[0] = STI_UINT128.into();
+        buffer[0] = STI_UINT128;
         let be_bytes = self.to_be_bytes();
         let mut i = 0;
         while i < 16 {
@@ -1066,7 +1066,7 @@ impl ToDataBytes for u128 {
     #[inline]
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 17];
-        buffer[0] = STI_UINT128.into();
+        buffer[0] = STI_UINT128;
         let be_bytes = self.to_be_bytes();
         let mut i = 0;
         while i < 16 {
@@ -1091,7 +1091,7 @@ impl ToDataBytes for u128 {
     #[inline]
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
         let mut buffer = [0u8; 17];
-        buffer[0] = STI_UINT128.into();
+        buffer[0] = STI_UINT128;
         let be_bytes = self.to_be_bytes();
         let mut i = 0;
         while i < 16 {
@@ -1121,7 +1121,7 @@ impl ToDataBytes for u128 {
         field_key: &[u8],
     ) -> Result<(), i32> {
         let mut buffer = [0u8; 17];
-        buffer[0] = STI_UINT128.into();
+        buffer[0] = STI_UINT128;
         let be_bytes = self.to_be_bytes();
         let mut i = 0;
         while i < 16 {
@@ -1234,7 +1234,7 @@ impl ToDataBytes for [u8; 20] {
     #[inline]
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 21];
-        buffer[0] = STI_UINT160.into();
+        buffer[0] = STI_UINT160;
         let mut i = 0;
         while i < 20 {
             buffer[i + 1] = self[i];
@@ -1256,7 +1256,7 @@ impl ToDataBytes for [u8; 20] {
     #[inline]
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 21];
-        buffer[0] = STI_UINT160.into();
+        buffer[0] = STI_UINT160;
         let mut i = 0;
         while i < 20 {
             buffer[i + 1] = self[i];
@@ -1280,7 +1280,7 @@ impl ToDataBytes for [u8; 20] {
     #[inline]
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
         let mut buffer = [0u8; 21];
-        buffer[0] = STI_UINT160.into();
+        buffer[0] = STI_UINT160;
         let mut i = 0;
         while i < 20 {
             buffer[i + 1] = self[i];
@@ -1309,7 +1309,7 @@ impl ToDataBytes for [u8; 20] {
         field_key: &[u8],
     ) -> Result<(), i32> {
         let mut buffer = [0u8; 21];
-        buffer[0] = STI_UINT160.into();
+        buffer[0] = STI_UINT160;
         let mut i = 0;
         while i < 20 {
             buffer[i + 1] = self[i];
@@ -1421,7 +1421,7 @@ impl ToDataBytes for [u8; 32] {
     #[inline]
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 33];
-        buffer[0] = STI_UINT256.into();
+        buffer[0] = STI_UINT256;
         let mut i = 0;
         while i < 32 {
             buffer[i + 1] = self[i];
@@ -1443,7 +1443,7 @@ impl ToDataBytes for [u8; 32] {
     #[inline]
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 33];
-        buffer[0] = STI_UINT256.into();
+        buffer[0] = STI_UINT256;
         let mut i = 0;
         while i < 32 {
             buffer[i + 1] = self[i];
@@ -1467,7 +1467,7 @@ impl ToDataBytes for [u8; 32] {
     #[inline]
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
         let mut buffer = [0u8; 33];
-        buffer[0] = STI_UINT256.into();
+        buffer[0] = STI_UINT256;
         let mut i = 0;
         while i < 32 {
             buffer[i + 1] = self[i];
@@ -1496,7 +1496,7 @@ impl ToDataBytes for [u8; 32] {
         field_key: &[u8],
     ) -> Result<(), i32> {
         let mut buffer = [0u8; 33];
-        buffer[0] = STI_UINT256.into();
+        buffer[0] = STI_UINT256;
         let mut i = 0;
         while i < 32 {
             buffer[i + 1] = self[i];
@@ -1608,7 +1608,7 @@ impl ToDataBytes for [u8; 8] {
     #[inline]
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 9];
-        buffer[0] = STI_AMOUNT.into();
+        buffer[0] = STI_AMOUNT;
         let mut i = 0;
         while i < 8 {
             buffer[i + 1] = self[i];
@@ -1630,7 +1630,7 @@ impl ToDataBytes for [u8; 8] {
     #[inline]
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 9];
-        buffer[0] = STI_AMOUNT.into();
+        buffer[0] = STI_AMOUNT;
         let mut i = 0;
         while i < 8 {
             buffer[i + 1] = self[i];
@@ -1654,7 +1654,7 @@ impl ToDataBytes for [u8; 8] {
     #[inline]
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
         let mut buffer = [0u8; 9];
-        buffer[0] = STI_AMOUNT.into();
+        buffer[0] = STI_AMOUNT;
         let mut i = 0;
         while i < 8 {
             buffer[i + 1] = self[i];
@@ -1683,7 +1683,7 @@ impl ToDataBytes for [u8; 8] {
         field_key: &[u8],
     ) -> Result<(), i32> {
         let mut buffer = [0u8; 9];
-        buffer[0] = STI_AMOUNT.into();
+        buffer[0] = STI_AMOUNT;
         let mut i = 0;
         while i < 8 {
             buffer[i + 1] = self[i];
@@ -1837,7 +1837,7 @@ impl ToDataBytes for AccountID {
     #[inline]
     fn set_data(&self, account: &AccountID, key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 22];
-        buffer[0] = STI_ACCOUNT.into();
+        buffer[0] = STI_ACCOUNT;
         buffer[1] = 0x14; // Account length prefix
         let mut i = 0;
         while i < 20 {
@@ -1860,7 +1860,7 @@ impl ToDataBytes for AccountID {
     #[inline]
     fn set_nested_data(&self, account: &AccountID, nested: &[u8], key: &[u8]) -> Result<(), i32> {
         let mut buffer = [0u8; 22];
-        buffer[0] = STI_ACCOUNT.into();
+        buffer[0] = STI_ACCOUNT;
         buffer[1] = 0x14; // Account length prefix
         let mut i = 0;
         while i < 20 {
@@ -1885,7 +1885,7 @@ impl ToDataBytes for AccountID {
     #[inline]
     fn set_array_element(&self, account: &AccountID, key: &[u8], index: usize) -> Result<(), i32> {
         let mut buffer = [0u8; 22];
-        buffer[0] = STI_ACCOUNT.into();
+        buffer[0] = STI_ACCOUNT;
         buffer[1] = 0x14; // Account length prefix
         let mut i = 0;
         while i < 20 {
@@ -1915,7 +1915,7 @@ impl ToDataBytes for AccountID {
         field_key: &[u8],
     ) -> Result<(), i32> {
         let mut buffer = [0u8; 22];
-        buffer[0] = STI_ACCOUNT.into();
+        buffer[0] = STI_ACCOUNT;
         buffer[1] = 0x14; // Account length prefix
         let mut i = 0;
         while i < 20 {

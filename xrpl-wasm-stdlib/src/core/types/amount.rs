@@ -281,8 +281,6 @@ impl Amount {
         }
     }
 
-    /// Transfer any token type (XRP, IOU, MPT) to a recipient
-    /// Equivalent to Solidity's payable(recipient).transfer(amount) or token.transfer(recipient, amount)
     pub fn transfer(&self, recipient: &AccountID) -> i32 {
         unsafe {
             // Build Payment transaction
@@ -319,18 +317,10 @@ impl Amount {
             }
             
             // Emit the transaction
-            let emission_result = emit_built_txn(txn_index);
-            return emission_result;
+            emit_built_txn(txn_index)
         }
     }
 
-    /// Authorize an IOU for a recipient by setting a TrustSet transaction
-    /// Set a trust line for an IOU with a specific limit
-    /// 
-    /// # Arguments
-    /// * `limit_value` - The trust limit as an i64 and decimal places
-    ///                   e.g., (1000000, 2) for 10,000.00
-    ///                   Pass None to remove the trust line (sets to 0)
     pub fn approve(&self, limit_value: Option<(i64, i32)>) -> i32 {
         match self {
             Amount::IOU { issuer, currency, .. } => {
@@ -399,13 +389,12 @@ impl Amount {
                     }
                     
                     // Emit the transaction
-                    let emission_result = emit_built_txn(txn_index);
-                    return emission_result;
+                    emit_built_txn(txn_index)
                 }
             },
             _ => {
                 // TrustSet only works with IOUs
-                return -103; // Invalid amount type error
+                -103 // Invalid amount type error
             }
         }
     }

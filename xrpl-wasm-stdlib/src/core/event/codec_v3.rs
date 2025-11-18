@@ -19,6 +19,12 @@ pub struct EventBuffer {
     vl_size: usize,
 }
 
+impl Default for EventBuffer {
+ fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EventBuffer {
     #[inline]
     pub fn new() -> Self {
@@ -168,7 +174,7 @@ impl ToEventBytes for u8 {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_UINT8.into());
+        buf.write_byte(buf.pos, STI_UINT8);
         buf.pos += 1;
         
         // Write value
@@ -213,7 +219,7 @@ impl ToEventBytes for u16 {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_UINT16.into());
+        buf.write_byte(buf.pos, STI_UINT16);
         buf.pos += 1;
         
         // Write value (big-endian)
@@ -259,7 +265,7 @@ impl ToEventBytes for u32 {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_UINT32.into());
+        buf.write_byte(buf.pos, STI_UINT32);
         buf.pos += 1;
         
         // Write value (big-endian)
@@ -307,7 +313,7 @@ impl ToEventBytes for u64 {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_UINT64.into());
+        buf.write_byte(buf.pos, STI_UINT64);
         buf.pos += 1;
         
         // Write value (big-endian)
@@ -359,7 +365,7 @@ impl ToEventBytes for [u8; 16] {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_UINT128.into());
+        buf.write_byte(buf.pos, STI_UINT128);
         buf.pos += 1;
         
         // Write value
@@ -409,7 +415,7 @@ impl ToEventBytes for [u8; 20] {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_UINT160.into());
+        buf.write_byte(buf.pos, STI_UINT160);
         buf.pos += 1;
         
         // Write value
@@ -458,7 +464,7 @@ impl ToEventBytes for [u8; 24] {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_UINT192.into());
+        buf.write_byte(buf.pos, STI_UINT192);
         buf.pos += 1;
         
         // Write value
@@ -507,7 +513,7 @@ impl ToEventBytes for [u8; 32] {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_UINT256.into());
+        buf.write_byte(buf.pos, STI_UINT256);
         buf.pos += 1;
         
         // Write value
@@ -556,7 +562,7 @@ impl ToEventBytes for [u8; 8] {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_AMOUNT.into());
+        buf.write_byte(buf.pos, STI_AMOUNT);
         buf.pos += 1;
         
         // Write value
@@ -577,7 +583,6 @@ impl ToEventBytes for [u8; 8] {
 
 /// Wrapper type for Account IDs to distinguish from plain [u8; 20]
 /// Use this when you want STI_ACCOUNT encoding with 0x14 prefix
-
 impl ToEventBytes for AccountID {
     #[inline]
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
@@ -608,7 +613,7 @@ impl ToEventBytes for AccountID {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_ACCOUNT.into());
+        buf.write_byte(buf.pos, STI_ACCOUNT);
         buf.pos += 1;
         
         // Write account length prefix
@@ -665,7 +670,7 @@ impl ToEventBytes for Currency {
         buf.pos += 1;
         
         // Write type
-        buf.write_byte(buf.pos, STI_CURRENCY.into());
+        buf.write_byte(buf.pos, STI_CURRENCY);
         buf.pos += 1;
         
         // Write value
@@ -753,7 +758,7 @@ pub fn event_add_str(buf: &mut EventBuffer, key: &str, value: &str) -> Result<()
     buf.write_byte(buf.pos, (1 + vl_len_size + value_len) as u8);
     buf.pos += 1;
     
-    buf.write_byte(buf.pos, STI_VL.into());
+    buf.write_byte(buf.pos, STI_VL);
     buf.pos += 1;
     
     unsafe {
