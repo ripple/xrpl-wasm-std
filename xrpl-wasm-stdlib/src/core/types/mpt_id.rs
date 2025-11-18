@@ -3,8 +3,18 @@ use crate::core::types::account_id::AccountID;
 pub const MPT_ID_SIZE: usize = 24;
 pub const MPT_SEQUENCE_NUM_SIZE: usize = 4;
 
-/// Holds an MPT Identifier, which consists of a 4-byte sequence number and a 20-byte account id.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// A 24-byte Multi-Purpose Token (MPT) identifier on the XRP Ledger.
+///
+/// An MPT ID uniquely identifies a multi-purpose token and consists of:
+/// - **Bytes 0-3**: Sequence number (32 bits, big-endian)
+/// - **Bytes 4-23**: Issuer account ID (160 bits)
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this 24-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons and use in hash-based collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct MptId([u8; MPT_ID_SIZE]);
 

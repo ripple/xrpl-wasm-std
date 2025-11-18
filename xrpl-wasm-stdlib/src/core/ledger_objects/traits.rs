@@ -25,6 +25,10 @@ use crate::sfield;
 /// This trait defines methods to access standard fields that are common across
 /// different types of ledger objects in the XRP Ledger.
 pub trait LedgerObjectCommonFields {
+    // NOTE: `get_ledger_index()` is not in this trait because `sfLedgerIndex` is not actually a field on a ledger
+    // object (it's a synthetic field that maps to the `index` field, which is the unique ID of an object in the
+    // ledger's state tree). See https://github.com/XRPLF/rippled/issues/3649 for more context.
+
     /// Returns the slot number (register number) where the ledger object is stored.
     ///
     /// This number is used to identify and access the specific ledger object
@@ -34,19 +38,6 @@ pub trait LedgerObjectCommonFields {
     ///
     /// The slot number as an i32 value
     fn get_slot_num(&self) -> i32;
-
-    /// Retrieves the ledger index (unique identifier) of the ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `register_num` - The register number where the ledger object is stored
-    ///
-    /// # Returns
-    ///
-    /// The ledger index as a Hash256 value
-    fn get_ledger_index(&self) -> Result<Hash256> {
-        ledger_object::get_field(self.get_slot_num(), sfield::LedgerIndex)
-    }
 
     /// Retrieves the flags field of the ledger object.
     ///
@@ -79,14 +70,9 @@ pub trait LedgerObjectCommonFields {
 /// different types of ledger objects, specifically for the current ledger object
 /// being processed.
 pub trait CurrentLedgerObjectCommonFields {
-    /// Retrieves the ledger index (unique identifier) of the current ledger object.
-    ///
-    /// # Returns
-    ///
-    /// The ledger index as a Hash256 value
-    fn get_ledger_index(&self) -> Result<Hash256> {
-        current_ledger_object::get_field(sfield::LedgerIndex)
-    }
+    // NOTE: `get_ledger_index()` is not in this trait because `sfLedgerIndex` is not actually a field on a ledger
+    // object (it's a synthetic field that maps to the `index` field, which is the unique ID of an object in the
+    // ledger's state tree). See https://github.com/XRPLF/rippled/issues/3649 for more context.
 
     /// Retrieves the flags field of the current ledger object.
     ///
