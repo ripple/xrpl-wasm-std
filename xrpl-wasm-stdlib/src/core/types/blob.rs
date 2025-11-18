@@ -263,6 +263,20 @@ mod tests {
     }
 
     #[test]
+    fn test_condition_blob_type_alias() {
+        let blob: ConditionBlob = ConditionBlob::new();
+        assert_eq!(blob.capacity(), CONDITION_BLOB_SIZE);
+        assert_eq!(blob.capacity(), 128);
+    }
+
+    #[test]
+    fn test_fulfillment_blob_type_alias() {
+        let blob: FulfillmentBlob = FulfillmentBlob::new();
+        assert_eq!(blob.capacity(), FULFILLMENT_BLOB_SIZE);
+        assert_eq!(blob.capacity(), 256);
+    }
+
+    #[test]
     fn test_nft_uri_blob_type_alias() {
         let blob: NftUriBlob = NftUriBlob::new();
         assert_eq!(blob.capacity(), NFT_URI_BLOB_SIZE);
