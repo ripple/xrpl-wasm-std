@@ -100,9 +100,7 @@ impl EventBuffer {
     #[inline]
     pub fn get_buffer(&mut self) -> (*const u8, usize) {
         self.update_total_size();
-        unsafe {
-            (self.data.as_ptr() as *const u8, self.pos)
-        }
+        (self.data.as_ptr() as *const u8, self.pos)
     }
 }
 

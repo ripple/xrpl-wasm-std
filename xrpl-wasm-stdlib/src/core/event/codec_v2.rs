@@ -14,13 +14,6 @@ pub struct EventBuffer {
     vl_size: usize,     // Track current VL encoding size (1, 2, or 3 bytes)
 }
 
-impl Default for EventBuffer {
-    #[inline]
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl EventBuffer {
     #[inline]
     pub fn new() -> Self {
@@ -109,9 +102,7 @@ impl EventBuffer {
     #[inline]
     pub fn get_buffer(&mut self) -> (*const u8, usize) {
         self.update_total_size();
-        unsafe {
-            (self.data.as_ptr() as *const u8, self.pos)
-        }
+        (self.data.as_ptr() as *const u8, self.pos)
     }
 }
 
