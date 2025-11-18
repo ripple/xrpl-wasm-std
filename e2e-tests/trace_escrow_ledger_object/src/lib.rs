@@ -74,7 +74,7 @@ pub extern "C" fn finish() -> i32 {
                     let _ = trace_num("  Condition length:", condition.len() as i64);
                     let _ = trace_data(
                         "  Condition (full hex):",
-                        &condition.as_slice(),
+                        condition.as_slice(),
                         DataRepr::AsHex,
                     );
 

@@ -1,6 +1,3 @@
-use crate::core::types::nft::NFT_URI_MAX_SIZE;
-use crate::core::types::signature::SIGNATURE_MAX_SIZE;
-
 /// Default blob size for general use (memos, etc.)
 pub const DEFAULT_BLOB_SIZE: usize = 1024;
 
@@ -16,6 +13,18 @@ pub const CONDITION_BLOB_SIZE: usize = 128;
 /// code), so we do the same here.
 pub const FULFILLMENT_BLOB_SIZE: usize = 256;
 
+/// Maximum size of a signature in bytes.
+///
+/// ECDSA signatures can be up to 72 bytes, which is the maximum signature size in XRPL.
+/// EdDSA signatures are always 64 bytes.
+pub const SIGNATURE_BLOB_SIZE: usize = 72;
+
+/// Maximum size of an NFT URI in bytes.
+pub const NFT_URI_BLOB_SIZE: usize = 256;
+
+/// Maximum size of a URI in bytes.
+pub const URI_BLOB_SIZE: usize = 256;
+
 /// A variable-length binary data container with a fixed maximum size.
 ///
 /// The `Blob` type is generic over its maximum capacity `N`, allowing you to
@@ -29,14 +38,16 @@ pub const FULFILLMENT_BLOB_SIZE: usize = 256;
 /// # Examples
 ///
 /// ```
-/// use xrpl_wasm_stdlib::core::types::blob::{Blob, DEFAULT_BLOB_SIZE};
-/// use xrpl_wasm_stdlib::core::types::nft::NFT_URI_MAX_SIZE;
+/// use xrpl_wasm_stdlib::core::types::blob::{Blob, StandardBlob, NftUriBlob, DEFAULT_BLOB_SIZE};
 ///
 /// // Create a standard 1024-byte blob
-/// let large_blob: Blob<DEFAULT_BLOB_SIZE> = Blob::new();
+/// let standard_blob: Blob<DEFAULT_BLOB_SIZE> = Blob::new();
+///
+/// // Create a standard 1024-byte blob
+/// let standard_blob_typed: StandardBlob = StandardBlob::new();
 ///
 /// // Create a smaller 256-byte blob for URIs
-/// let uri_blob: Blob<NFT_URI_MAX_SIZE> = Blob::new();
+/// let uri_blob: NftUriBlob = NftUriBlob::new();
 /// ```
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
@@ -118,10 +129,13 @@ pub type FulfillmentBlob = Blob<{ FULFILLMENT_BLOB_SIZE }>;
 /// Type alias for 1024-byte blob (for Memo fields).
 pub type MemoBlob = Blob<{ MEMO_BLOB_SIZE }>;
 
-pub type SignatureBlob = Blob<{ SIGNATURE_MAX_SIZE }>;
+/// Type alias for 72-byte blob (for Signature fields).
+pub type SignatureBlob = Blob<{ SIGNATURE_BLOB_SIZE }>;
 
 /// Type alias for 256-byte blob (for URIs and smaller fields)
-pub type UriBlob = Blob<{ NFT_URI_MAX_SIZE }>;
+pub type NftUriBlob = Blob<{ NFT_URI_BLOB_SIZE }>;
+
+pub type UriBlob = Blob<{ URI_BLOB_SIZE }>;
 
 pub type EmptyBlob = Blob<0>;
 
@@ -243,15 +257,43 @@ mod tests {
 
     #[test]
     fn test_standard_blob_type_alias() {
-        let blob: StandardBlob = Blob::new();
+        let blob: StandardBlob = StandardBlob::new();
         assert_eq!(blob.capacity(), DEFAULT_BLOB_SIZE);
         assert_eq!(blob.capacity(), 1024);
     }
 
     #[test]
+    fn test_condition_blob_type_alias() {
+        let blob: ConditionBlob = ConditionBlob::new();
+        assert_eq!(blob.capacity(), CONDITION_BLOB_SIZE);
+        assert_eq!(blob.capacity(), 128);
+    }
+
+    #[test]
+    fn test_fulfillment_blob_type_alias() {
+        let blob: FulfillmentBlob = FulfillmentBlob::new();
+        assert_eq!(blob.capacity(), FULFILLMENT_BLOB_SIZE);
+        assert_eq!(blob.capacity(), 256);
+    }
+
+    #[test]
+    fn test_nft_uri_blob_type_alias() {
+        let blob: NftUriBlob = NftUriBlob::new();
+        assert_eq!(blob.capacity(), NFT_URI_BLOB_SIZE);
+        assert_eq!(blob.capacity(), 256);
+    }
+
+    #[test]
+    fn test_signature_blob_type_alias() {
+        let blob: SignatureBlob = SignatureBlob::new();
+        assert_eq!(blob.capacity(), SIGNATURE_BLOB_SIZE);
+        assert_eq!(blob.capacity(), 72);
+    }
+
+    #[test]
     fn test_uri_blob_type_alias() {
-        let blob: UriBlob = Blob::new();
-        assert_eq!(blob.capacity(), NFT_URI_MAX_SIZE);
+        let blob: UriBlob = UriBlob::new();
+        assert_eq!(blob.capacity(), URI_BLOB_SIZE);
         assert_eq!(blob.capacity(), 256);
     }
 

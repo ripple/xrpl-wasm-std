@@ -62,7 +62,6 @@ use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
 use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
 use crate::core::types::public_key::PublicKey;
-use crate::core::types::signature::{SIGNATURE_MAX_SIZE, Signature};
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::{HASH256_SIZE, Hash256};
 use crate::core::types::vector_256::Vector256;
@@ -94,7 +93,7 @@ use crate::host::{Error, Result, error_codes, get_tx_field};
 /// use xrpl_wasm_stdlib::core::current_tx::{get_field, get_field_optional};
 /// use xrpl_wasm_stdlib::core::types::account_id::AccountID;
 /// use xrpl_wasm_stdlib::core::types::amount::Amount;
-/// use xrpl_wasm_stdlib::core::types::blob::{Blob, MEMO_BLOB_SIZE};
+/// use xrpl_wasm_stdlib::core::types::blob::{MemoBlob, MEMO_BLOB_SIZE};
 /// use xrpl_wasm_stdlib::sfield;
 /// # fn example() {
 ///   // Get required fields from the current transaction
@@ -104,7 +103,7 @@ use crate::host::{Error, Result, error_codes, get_tx_field};
 ///
 ///   // Get optional fields from the current transaction
 ///   let flags: Option<u32> = get_field_optional(sfield::Flags).unwrap();
-///   let memo: Option<Blob<{MEMO_BLOB_SIZE}>> = get_field_optional(sfield::Memo).unwrap();
+///   let memo: Option<MemoBlob> = get_field_optional(sfield::Memo).unwrap();
 /// # }
 /// ```
 ///
@@ -318,45 +317,6 @@ impl CurrentTxFieldGetter for PublicKey {
         let result_code = unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), 33) };
         match_result_code_with_expected_bytes_optional(result_code, 33, || {
             Some(unsafe { buffer.assume_init() }.into())
-        })
-    }
-}
-
-/// Implementation of `CurrentTxFieldGetter` for XRPL transaction signatures.
-///
-/// This implementation handles signature fields in XRPL transactions, which can contain
-/// either EdDSA (64 bytes) or ECDSA (70-72 bytes) signatures. The buffer is sized to
-/// accommodate the maximum possible signature size (72 bytes).
-///
-/// # Buffer Management
-///
-/// Uses a 72-byte buffer to accommodate both signature types. The actual length of the
-/// signature is determined by the return value from the host function and stored in the
-/// Signature's underlying Blob `len` field.
-impl CurrentTxFieldGetter for Signature {
-    #[inline]
-    fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; SIGNATURE_MAX_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), SIGNATURE_MAX_SIZE) };
-        match_result_code(result_code, || {
-            Signature(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            })
-        })
-    }
-
-    #[inline]
-    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; SIGNATURE_MAX_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), SIGNATURE_MAX_SIZE) };
-        match_result_code_optional(result_code, || {
-            Some(Signature(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            }))
         })
     }
 }
