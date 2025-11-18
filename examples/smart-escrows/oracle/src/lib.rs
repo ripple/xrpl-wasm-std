@@ -3,14 +3,14 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::core::locator::Locator;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::keylets::oracle_keylet;
-use xrpl_wasm_std::host::error_codes::match_result_code;
-use xrpl_wasm_std::host::trace::{DataRepr, trace_data, trace_num};
-use xrpl_wasm_std::host::{Result, Result::Err, Result::Ok};
-use xrpl_wasm_std::r_address;
-use xrpl_wasm_std::{host, sfield};
+use xrpl_wasm_stdlib::core::locator::Locator;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::keylets::oracle_keylet;
+use xrpl_wasm_stdlib::host::error_codes::match_result_code;
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace_data, trace_num};
+use xrpl_wasm_stdlib::host::{Result, Result::Err, Result::Ok};
+use xrpl_wasm_stdlib::r_address;
+use xrpl_wasm_stdlib::{host, sfield};
 
 const ORACLE_OWNER: AccountID = AccountID(r_address!("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"));
 const ORACLE_DOCUMENT_ID: i32 = 1;
@@ -39,7 +39,7 @@ pub fn get_price_from_oracle(slot: i32) -> Result<u64> {
     let result_code = unsafe {
         host::get_ledger_obj_nested_field(
             slot,
-            locator.get_addr(),
+            locator.as_ptr(),
             locator.num_packed_bytes(),
             data.as_mut_ptr(),
             data.len(),

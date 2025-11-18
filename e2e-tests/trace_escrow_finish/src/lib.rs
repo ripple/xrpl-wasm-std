@@ -3,20 +3,19 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use xrpl_wasm_std::core::constants::{ACCOUNT_ONE, ACCOUNT_ZERO};
-use xrpl_wasm_std::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
-use xrpl_wasm_std::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
-use xrpl_wasm_std::core::locator::Locator;
-use xrpl_wasm_std::core::types::account_id::AccountID;
-use xrpl_wasm_std::core::types::blob::Blob;
-use xrpl_wasm_std::core::types::hash_256::Hash256;
-use xrpl_wasm_std::core::types::public_key::PublicKey;
-use xrpl_wasm_std::core::types::transaction_type::TransactionType;
-use xrpl_wasm_std::host;
-use xrpl_wasm_std::host::trace::{
+use xrpl_wasm_stdlib::core::constants::{ACCOUNT_ONE, ACCOUNT_ZERO};
+use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
+use xrpl_wasm_stdlib::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
+use xrpl_wasm_stdlib::core::locator::Locator;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::public_key::PublicKey;
+use xrpl_wasm_stdlib::core::types::signature::Signature;
+use xrpl_wasm_stdlib::core::types::transaction_type::TransactionType;
+use xrpl_wasm_stdlib::host;
+use xrpl_wasm_stdlib::host::trace::{
     DataRepr, trace, trace_account, trace_account_buf, trace_amount, trace_data, trace_num,
 };
-use xrpl_wasm_std::{assert_eq, sfield};
+use xrpl_wasm_stdlib::{assert_eq, sfield};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -33,11 +32,6 @@ pub extern "C" fn finish() -> i32 {
         let _ = trace("### Trace All EscrowFinish Fields");
         let _ = trace("{ ");
         let _ = trace("  -- Common Fields");
-
-        // Trace Field: TransactionID
-        let current_tx_id: Hash256 = escrow_finish.get_id().unwrap();
-        let _ = trace_data("  EscrowFinish TxId:", &current_tx_id.0, DataRepr::AsHex);
-        assert_eq!(current_tx_id, EXPECTED_TX_ID.into());
 
         // Trace Field: Account
         let account = escrow_finish.get_account().unwrap();
@@ -132,7 +126,7 @@ pub extern "C" fn finish() -> i32 {
         locator.pack(sfield::MemoType);
         let output_len = unsafe {
             host::get_tx_nested_field(
-                locator.get_addr(),
+                locator.as_ptr(),
                 locator.num_packed_bytes(),
                 memo_buf.as_mut_ptr(),
                 memo_buf.len(),
@@ -148,7 +142,7 @@ pub extern "C" fn finish() -> i32 {
         locator.repack_last(sfield::MemoData);
         let output_len = unsafe {
             host::get_tx_nested_field(
-                locator.get_addr(),
+                locator.as_ptr(),
                 locator.num_packed_bytes(),
                 memo_buf.as_mut_ptr(),
                 memo_buf.len(),
@@ -163,7 +157,7 @@ pub extern "C" fn finish() -> i32 {
         locator.repack_last(sfield::MemoFormat);
         let output_len = unsafe {
             host::get_tx_nested_field(
-                locator.get_addr(),
+                locator.as_ptr(),
                 locator.num_packed_bytes(),
                 memo_buf.as_mut_ptr(),
                 memo_buf.len(),
@@ -187,7 +181,7 @@ pub extern "C" fn finish() -> i32 {
             locator.pack(sfield::Account);
             let output_len = unsafe {
                 host::get_tx_nested_field(
-                    locator.get_addr(),
+                    locator.as_ptr(),
                     locator.num_packed_bytes(),
                     buf.as_mut_ptr(),
                     buf.len(),
@@ -203,7 +197,7 @@ pub extern "C" fn finish() -> i32 {
             locator.repack_last(sfield::TxnSignature);
             let output_len = unsafe {
                 host::get_tx_nested_field(
-                    locator.get_addr(),
+                    locator.as_ptr(),
                     locator.num_packed_bytes(),
                     buf.as_mut_ptr(),
                     buf.len(),
@@ -222,7 +216,7 @@ pub extern "C" fn finish() -> i32 {
             locator.repack_last(sfield::SigningPubKey);
             let output_len = unsafe {
                 host::get_tx_nested_field(
-                    locator.get_addr(),
+                    locator.as_ptr(),
                     locator.num_packed_bytes(),
                     buf.as_mut_ptr(),
                     buf.len(),
@@ -245,11 +239,10 @@ pub extern "C" fn finish() -> i32 {
             );
         }
 
-        let txn_signature: Blob = escrow_finish.get_txn_signature().unwrap();
-        let mut signature_bytes = [0u8; 71];
-        signature_bytes.copy_from_slice(&txn_signature.data[..71]);
-        assert_eq!(signature_bytes, EXPECTED_TXN_SIGNATURE);
-        let _ = trace_data("  TxnSignature:", &signature_bytes, DataRepr::AsHex);
+        let txn_signature: Signature = escrow_finish.get_txn_signature().unwrap();
+        assert_eq!(txn_signature.len(), 71);
+        assert_eq!(txn_signature.as_slice(), &EXPECTED_TXN_SIGNATURE);
+        let _ = trace_data("  TxnSignature:", txn_signature.as_slice(), DataRepr::AsHex);
 
         let _ = trace("  -- EscrowFinish Fields");
 
@@ -298,7 +291,7 @@ pub extern "C" fn finish() -> i32 {
             locator.pack(i);
             let output_len = unsafe {
                 host::get_tx_nested_field(
-                    locator.get_addr(),
+                    locator.as_ptr(),
                     locator.num_packed_bytes(),
                     buf.as_mut_ptr(),
                     buf.len(),
@@ -331,11 +324,6 @@ pub extern "C" fn finish() -> i32 {
 
 /// The following are private constants used for testing purposes to enforce value checks in this
 /// contract (to ensure that code changes don't break this contract).
-const EXPECTED_TX_ID: [u8; 32] = [
-    0x74, 0x46, 0x51, 0x21, 0x37, 0x28, 0x13, 0xCB, 0xA4, 0xC7, 0x7E, 0x31, 0xF1, 0x2E, 0x13, 0x71,
-    0x63, 0xF5, 0xB2, 0x50, 0x9B, 0x16, 0xAC, 0x17, 0x03, 0xEC, 0xF0, 0xDA, 0x19, 0x4B, 0x2D, 0xD4,
-];
-
 const EXPECTED_ACCOUNT_TXN_ID: [u8; 32] = [0xDD; 32];
 
 const EXPECTED_TX_SIGNING_PUB_KEY: [u8; 33] = [

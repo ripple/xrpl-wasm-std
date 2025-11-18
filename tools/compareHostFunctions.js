@@ -69,11 +69,11 @@ async function main() {
   )
   const rustHostFunctionFile = await readFile(
     __dirname,
-    "../xrpl-wasm-std/src/host/host_bindings.rs",
+    "../xrpl-wasm-stdlib/src/host/host_bindings.rs",
   )
   const rustHostFunctionTestFile = await readFile(
     __dirname,
-    "../xrpl-wasm-std/src/host/host_bindings_for_testing.rs",
+    "../xrpl-wasm-stdlib/src/host/host_bindings_for_testing.rs",
   )
 
   let importHits = [

@@ -21,7 +21,7 @@ async function readFile(folder, filename) {
 async function main() {
   const rustHostFunctionFile = await readFile(
     __dirname,
-    "../xrpl-wasm-std/src/host/host_bindings.rs",
+    "../xrpl-wasm-stdlib/src/host/host_bindings.rs",
   )
 
   let rustHits = [
@@ -56,7 +56,7 @@ async function main() {
 
   const rustHostFunctionTestFile = path.join(
     __dirname,
-    "../xrpl-wasm-std/src/host/host_bindings_for_testing.rs",
+    "../xrpl-wasm-stdlib/src/host/host_bindings_for_testing.rs",
   )
   await fs.writeFile(rustHostFunctionTestFile, rustHostFunctions, "utf8")
   console.log(`Wrote host bindings for testing to ${rustHostFunctionTestFile}`)

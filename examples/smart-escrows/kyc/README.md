@@ -15,13 +15,15 @@ The contract checks whether the destination account has a credential with the ty
 - Rust toolchain with `wasm32v1-none` target
 - Node.js 18+
 
-```shell
-npm install
-```
-
 ## Step-by-step: Use on WASM Devnet
 
 This guide uses the public Devnet WASM endpoint at `wss://wasm.devnet.rippletest.net:51233`.
+
+### 1. Install dependencies
+
+```shell
+npm install
+```
 
 ### 2. Build the WASM
 
@@ -32,12 +34,12 @@ cargo build --target wasm32v1-none --release
 Artifact:
 
 ```
-examples/smart-escrows/kyc/target/wasm32v1-none/release/kyc.wasm
+./target/wasm32v1-none/release/kyc.wasm
 ```
 
-### 3. Deploy WASM to Devnet & Execute
+### 3. Deploy and test on Devnet
 
-Use the helper to deploy an escrow that references your compiled `FinishFunction` (Note: the following example attempts to run the script from this project's root folder).
+Use the test script to deploy an escrow and test the FinishFunction.
 
 ```shell
 cd ../../..

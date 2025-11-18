@@ -1,14 +1,19 @@
 [workspace]
 resolver = "2"
 members = [
-    "xrpl-wasm-std",
-    "xrpl-wasm-std/xrpl-address-macro",
-    "xrpl-wasm-std/xrpl-parameter-macro",
+    "xrpl-wasm-stdlib",
+    "xrpl-wasm-stdlib/xrpl-address-macro",
+    "xrpl-wasm-stdlib/xrpl-parameter-macro",
 ]
 exclude = [
     "examples",
     "e2e-tests",
 ]
+
+[workspace.package]
+version = "0.7.1"
+license = "ISC"
+repository = "https://github.com/ripple/xrpl-wasm-stdlib"
 
 [profile.release]
 opt-level = "s"   # Optimize for size

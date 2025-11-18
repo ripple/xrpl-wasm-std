@@ -25,3 +25,6 @@ target/
 
 reference/build-rippled-*/
 /.idea
+
+# Benchmark results
+.benchmark/

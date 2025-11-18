@@ -36,23 +36,52 @@ const ORACLE_OWNER: AccountID = AccountID(*b"\xd5\xb9\x84VP\x9f \xb5'\x9d\x1eJ.\
 const ORACLE_DOCUMENT_ID: i32 = 1;
 ```
 
-## Building
+## Prerequisites
 
-### Prerequisites
+- Rust toolchain with `wasm32v1-none` target
+- Node.js 18+
 
-- Rust with `wasm32v1-none` target
-  - This is necessary for blockchain deployments because WebAssembly does not require a specific vendor (e.g., `apple`) or operating system (e.g., `darwin`), so both are `unknown`
-- XRPL standard library (dependency)
+## Step-by-step: Use on WASM Devnet
 
-### Build Commands
+This guide uses the public Devnet WASM endpoint at `wss://wasm.devnet.rippletest.net:51233`.
 
-```bash
-# Debug build
-cargo build --target wasm32v1-none
+### 1. Install dependencies
 
-# Release build (optimized)
+```shell
+npm install
+```
+
+The oracle owner and document ID are hardcoded in the source code. To use different values, edit `src/lib.rs` and modify the `ORACLE_OWNER` and `ORACLE_DOCUMENT_ID` constants.
+
+### 2. Build the WASM
+
+```shell
 cargo build --target wasm32v1-none --release
 ```
+
+Artifact:
+
+```
+./target/wasm32v1-none/release/oracle.wasm
+```
+
+### 3. Deploy and test on Devnet
+
+Use the test script to deploy an escrow and test the FinishFunction.
+
+```shell
+cd ../../..
+CI=1 ./scripts/run-tests.sh examples/smart-escrows/oracle
+```
+
+This will:
+
+- Connect to WASM Devnet
+- Create and fund two wallets (Origin and Destination)
+- Create an oracle object with price data
+- Create an EscrowCreate transaction with your compiled `FinishFunction`
+- Submit an `EscrowFinish` transaction
+- Verify that the escrow unlocks only if the oracle price is greater than 1
 
 ## Testing
 

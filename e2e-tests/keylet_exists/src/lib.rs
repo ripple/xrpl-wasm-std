@@ -4,17 +4,19 @@
 extern crate std;
 
 use crate::host::{Error, Result, Result::Err, Result::Ok};
-use xrpl_wasm_std::core::ledger_objects::current_escrow::CurrentEscrow;
-use xrpl_wasm_std::core::ledger_objects::current_escrow::get_current_escrow;
-use xrpl_wasm_std::core::ledger_objects::ledger_object;
-use xrpl_wasm_std::core::ledger_objects::traits::CurrentEscrowFields;
-use xrpl_wasm_std::core::types::currency::Currency;
-use xrpl_wasm_std::core::types::issue::{IouIssue, Issue, XrpIssue};
-use xrpl_wasm_std::core::types::keylets;
-use xrpl_wasm_std::core::types::mpt_id::MptId;
-use xrpl_wasm_std::host;
-use xrpl_wasm_std::host::trace::{DataRepr, trace, trace_account, trace_data, trace_num};
-use xrpl_wasm_std::sfield;
+use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::CurrentEscrow;
+use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::get_current_escrow;
+use xrpl_wasm_stdlib::core::ledger_objects::ledger_object;
+use xrpl_wasm_stdlib::core::ledger_objects::traits::CurrentEscrowFields;
+use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+use xrpl_wasm_stdlib::core::types::currency::Currency;
+use xrpl_wasm_stdlib::core::types::issue::{IouIssue, Issue, XrpIssue};
+use xrpl_wasm_stdlib::core::types::keylets;
+use xrpl_wasm_stdlib::core::types::mpt_id::MptId;
+use xrpl_wasm_stdlib::core::types::uint::Hash256;
+use xrpl_wasm_stdlib::host;
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_account, trace_data, trace_num};
+use xrpl_wasm_stdlib::sfield;
 
 #[unsafe(no_mangle)]
 pub fn object_exists(
@@ -34,7 +36,7 @@ pub fn object_exists(
             if field == 0 {
                 let new_field = sfield::PreviousTxnID;
                 let _ = trace_num("Getting field: ", new_field.into());
-                match ledger_object::get_hash_256_field(slot, new_field) {
+                match ledger_object::get_field::<Hash256>(slot, new_field) {
                     Ok(data) => {
                         let _ = trace_data("Field data: ", &data.0, DataRepr::AsHex);
                     }
@@ -45,7 +47,7 @@ pub fn object_exists(
                 }
             } else {
                 let _ = trace_num("Getting field: ", field.into());
-                match ledger_object::get_account_id_field(slot, field) {
+                match ledger_object::get_field::<AccountID>(slot, field) {
                     Ok(data) => {
                         let _ = trace_data("Field data: ", &data.0, DataRepr::AsHex);
                     }
@@ -152,6 +154,10 @@ pub extern "C" fn finish() -> i32 {
 
     let offer_keylet = keylets::offer_keylet(&account, seq);
     check_object_exists!(offer_keylet, "Offer", sfield::Account);
+    seq += 1;
+
+    let oracle_keylet = keylets::oracle_keylet(&account, seq);
+    check_object_exists!(oracle_keylet, "Oracle", sfield::Owner);
     seq += 1;
 
     let paychan_keylet = keylets::paychan_keylet(&account, &destination, seq);
