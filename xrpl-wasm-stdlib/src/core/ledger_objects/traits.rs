@@ -1,9 +1,10 @@
 use crate::core::ledger_objects::{current_ledger_object, ledger_object};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
-use crate::core::types::blob::{Blob, CONDITION_BLOB_SIZE, ConditionBlob, DEFAULT_BLOB_SIZE};
+use crate::core::types::blob::{
+    Blob, CONDITION_BLOB_SIZE, ConditionBlob, DEFAULT_BLOB_SIZE, UriBlob,
+};
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
-use crate::core::types::nft::NFT_URI_MAX_SIZE;
 use crate::core::types::public_key::PUBLIC_KEY_BUFFER_SIZE;
 use crate::core::types::uint::{Hash128, Hash256};
 
@@ -451,7 +452,7 @@ pub trait AccountFields: LedgerObjectCommonFields {
 
     /// A domain associated with this account. In JSON, this is the hexadecimal for the ASCII representation of the
     /// domain. Cannot be more than 256 bytes in length.
-    fn domain(&self) -> Result<Option<Blob<NFT_URI_MAX_SIZE>>> {
+    fn domain(&self) -> Result<Option<UriBlob>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::Domain)
     }
 

@@ -1,5 +1,3 @@
-use crate::core::types::nft::NFT_URI_MAX_SIZE;
-
 /// Default blob size for general use (memos, etc.)
 pub const DEFAULT_BLOB_SIZE: usize = 1024;
 
@@ -22,7 +20,10 @@ pub const FULFILLMENT_BLOB_SIZE: usize = 256;
 pub const SIGNATURE_BLOB_SIZE: usize = 72;
 
 /// Maximum size of an NFT URI in bytes.
-pub const NFT_BLOB_SIZE: usize = NFT_URI_MAX_SIZE;
+pub const NFT_URI_BLOB_SIZE: usize = 256;
+
+/// Maximum size of a URI in bytes.
+pub const URI_BLOB_SIZE: usize = 256;
 
 /// A variable-length binary data container with a fixed maximum size.
 ///
@@ -37,7 +38,7 @@ pub const NFT_BLOB_SIZE: usize = NFT_URI_MAX_SIZE;
 /// # Examples
 ///
 /// ```
-/// use xrpl_wasm_stdlib::core::types::blob::{Blob, StandardBlob, UriBlob, DEFAULT_BLOB_SIZE};
+/// use xrpl_wasm_stdlib::core::types::blob::{Blob, StandardBlob, NftUriBlob, DEFAULT_BLOB_SIZE};
 ///
 /// // Create a standard 1024-byte blob
 /// let standard_blob: Blob<DEFAULT_BLOB_SIZE> = Blob::new();
@@ -46,7 +47,7 @@ pub const NFT_BLOB_SIZE: usize = NFT_URI_MAX_SIZE;
 /// let standard_blob_typed: StandardBlob = StandardBlob::new();
 ///
 /// // Create a smaller 256-byte blob for URIs
-/// let uri_blob: UriBlob = UriBlob::new();
+/// let uri_blob: NftUriBlob = NftUriBlob::new();
 /// ```
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
@@ -128,14 +129,13 @@ pub type FulfillmentBlob = Blob<{ FULFILLMENT_BLOB_SIZE }>;
 /// Type alias for 1024-byte blob (for Memo fields).
 pub type MemoBlob = Blob<{ MEMO_BLOB_SIZE }>;
 
-/// Type alias for 256-byte blob (for NFT URIs)
-pub type NftBlob = Blob<{ NFT_BLOB_SIZE }>;
-
 /// Type alias for 72-byte blob (for Signature fields).
 pub type SignatureBlob = Blob<{ SIGNATURE_BLOB_SIZE }>;
 
 /// Type alias for 256-byte blob (for URIs and smaller fields)
-pub type UriBlob = Blob<{ NFT_URI_MAX_SIZE }>;
+pub type NftUriBlob = Blob<{ NFT_URI_BLOB_SIZE }>;
+
+pub type UriBlob = Blob<{ URI_BLOB_SIZE }>;
 
 pub type EmptyBlob = Blob<0>;
 
@@ -264,8 +264,8 @@ mod tests {
 
     #[test]
     fn test_uri_blob_type_alias() {
-        let blob: UriBlob = Blob::new();
-        assert_eq!(blob.capacity(), NFT_URI_MAX_SIZE);
+        let blob: NftUriBlob = Blob::new();
+        assert_eq!(blob.capacity(), NFT_URI_BLOB_SIZE);
         assert_eq!(blob.capacity(), 256);
     }
 
