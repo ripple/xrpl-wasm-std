@@ -688,3 +688,189 @@ pub unsafe fn trace_amount(
         sum as i32
     }
 }
+
+// #####################################
+// SMART CONTRACT HOST FUNCTIONS
+// #####################################
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn instance_param(
+    _index: i32,
+    _st_type_id: i32,
+    _out_buff_ptr: *mut u8,
+    _out_buff_len: usize,
+) -> i32 {
+    _out_buff_len as i32
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn function_param(
+    _index: i32,
+    _st_type_id: i32,
+    _out_buff_ptr: *mut u8,
+    _out_buff_len: usize,
+) -> i32 {
+    _out_buff_len as i32
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn get_data_object_field(
+    _account_ptr: *const u8,
+    _account_len: usize,
+    _key_ptr: *const u8,
+    _key_len: usize,
+    _out_buff_ptr: *const u8,
+    _out_buff_len: usize,
+) -> i32 {
+    _out_buff_len as i32
+}
+
+#[allow(unused)]
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn get_data_nested_object_field(
+    _account_ptr: *const u8,
+    _account_len: usize,
+    _key_ptr: *const u8,
+    _key_len: usize,
+    _nst_ptr: *const u8,
+    _nst_len: usize,
+    _out_buff_ptr: *const u8,
+    _out_buff_len: usize,
+) -> i32 {
+    _out_buff_len as i32
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn get_data_array_element_field(
+    _account_ptr: *const u8,
+    _account_len: usize,
+    _key_ptr: *const u8,
+    _key_len: usize,
+    _index: i32,
+    _out_buff_ptr: *const u8,
+    _out_buff_len: usize,
+) -> i32 {
+    _out_buff_len as i32
+}
+
+#[allow(unused)]
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn get_data_nested_array_element_field(
+    _account_ptr: *const u8,
+    _account_len: usize,
+    _key_ptr: *const u8,
+    _key_len: usize,
+    _index: i32,
+    _nst_ptr: *const u8,
+    _nst_len: usize,
+    _out_buff_ptr: *const u8,
+    _out_buff_len: usize,
+) -> i32 {
+    _out_buff_len as i32
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn set_data_object_field(
+    _account_ptr: *const u8,
+    _account_len: usize,
+    _key_ptr: *const u8,
+    _key_len: usize,
+    _data_ptr: *const u8,
+    _data_len: usize,
+) -> i32 {
+    0
+}
+
+#[allow(unused)]
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn set_data_nested_object_field(
+    _account_ptr: *const u8,
+    _account_len: usize,
+    _key_ptr: *const u8,
+    _key_len: usize,
+    _nst_ptr: *const u8,
+    _nst_len: usize,
+    _data_ptr: *const u8,
+    _data_len: usize,
+) -> i32 {
+    0
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn set_data_array_element_field(
+    _account_ptr: *const u8,
+    _account_len: usize,
+    _key_ptr: *const u8,
+    _key_len: usize,
+    _index: i32,
+    _data_ptr: *const u8,
+    _data_len: usize,
+) -> i32 {
+    0
+}
+
+#[allow(unused)]
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn set_data_nested_array_element_field(
+    _account_ptr: *const u8,
+    _account_len: usize,
+    _key_ptr: *const u8,
+    _key_len: usize,
+    _index: i32,
+    _nst_ptr: *const u8,
+    _nst_len: usize,
+    _data_ptr: *const u8,
+    _data_len: usize,
+) -> i32 {
+    0
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn build_txn(_txn_type: i32) -> i32 {
+    1
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn add_txn_field(
+    _index: i32,
+    _field: i32,
+    _write_ptr: *const u8,
+    _write_len: usize,
+) -> i32 {
+    0
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn emit_built_txn(_index: i32) -> i32 {
+    0
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn emit_txn(_txn_read_ptr: *const u8, _txn_read_len: usize) -> i32 {
+    0
+}
+
+#[allow(unused)]
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn emit_event(
+    _name_ptr: *const u8,
+    _name_len: usize,
+    _data_ptr: *const u8,
+    _data_len: usize,
+) -> i32 {
+    0
+}

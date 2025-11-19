@@ -22,9 +22,9 @@ dependencies = [
 
 [[package]]
 name = "cfg-if"
-version = "1.0.3"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fd1289c04a9ea8cb22300a459a72a385d7c73d3259e2ed7dcb2af674838cfa9"
+checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "cpufeatures"
@@ -56,20 +56,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "float_tests"
-version = "0.5.1-devnet5"
-dependencies = [
- "xrpl-wasm-stdlib",
-]
-
-[[package]]
-name = "gas_benchmark"
-version = "0.5.1-devnet5"
-dependencies = [
- "xrpl-wasm-stdlib",
-]
-
-[[package]]
 name = "generic-array"
 version = "0.14.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -80,14 +66,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "host_functions_test"
-version = "0.5.1-devnet5"
-dependencies = [
- "xrpl-wasm-stdlib",
-]
-
-[[package]]
-name = "keylet_exists"
+name = "instance_params_other"
 version = "0.1.0"
 dependencies = [
  "xrpl-wasm-stdlib",
@@ -101,9 +80,9 @@ checksum = "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.101"
+version = "1.0.103"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89ae43fd86e4158d6db51ad8e2b80f313af9cc74f5c0e03ccb87de09998732de"
+checksum = "5ee95bc4ef87b8d5ba32e8b7714ccc834865276eab0aed5c9958d00ec45f49e8"
 dependencies = [
  "unicode-ident",
 ]
@@ -130,9 +109,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.106"
+version = "2.0.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ede7c438028d4436d71104916910f5bb611972c5cfd7f89b8300a8186e6fada6"
+checksum = "da58917d35242480a05c2897064da0a80589a2a0476c9a3f2fdc83b53502e917"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -155,27 +134,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
-name = "trace_escrow_account"
-version = "0.5.1-devnet5"
-dependencies = [
- "xrpl-wasm-stdlib",
-]
-
-[[package]]
-name = "trace_escrow_finish"
-version = "0.5.1-devnet5"
-dependencies = [
- "xrpl-wasm-stdlib",
-]
-
-[[package]]
-name = "trace_escrow_ledger_object"
-version = "0.5.1-devnet5"
-dependencies = [
- "xrpl-wasm-stdlib",
-]
-
-[[package]]
 name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -183,9 +141,9 @@ checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.19"
+version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f63a545481291138910575129486daeaf8ac54aee4387fe7906919f7830c7d9d"
+checksum = "462eeb75aeb73aea900253ce739c8e18a67423fadf006037cd3ff27e82748a06"
 
 [[package]]
 name = "version_check"

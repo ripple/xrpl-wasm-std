@@ -1,5 +1,7 @@
 #![allow(non_upper_case_globals)]
 
+pub const hash: i32 = 327937;
+pub const index: i32 = 327938;
 pub const Invalid: i32 = -1;
 pub const Generic: i32 = 0;
 pub const LedgerEntryType: i32 = 65537;
@@ -209,6 +211,7 @@ pub const AttestationRewardAccount: i32 = 524309;
 pub const LockingChainDoor: i32 = 524310;
 pub const IssuingChainDoor: i32 = 524311;
 pub const Subject: i32 = 524312;
+pub const ContractAccount: i32 = 524313;
 pub const Number: i32 = 589825;
 pub const AssetsAvailable: i32 = 589826;
 pub const AssetsMaximum: i32 = 589827;

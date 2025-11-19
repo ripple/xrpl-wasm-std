@@ -402,3 +402,13 @@ pub trait EscrowFinishFields: TransactionCommonFields {
     // TODO: credential IDS
     // TODO: Signers
 }
+
+pub trait ContractCallFields: TransactionCommonFields {
+    fn get_contract_account(&self) -> Result<AccountID> {
+        get_field(sfield::ContractAccount)
+    }
+
+    fn get_id(&self) -> Result<Hash256> {
+        get_field(sfield::hash)
+    }
+}
