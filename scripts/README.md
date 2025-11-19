@@ -40,6 +40,10 @@ You can also run individual test suites:
 - **`host-function-audit.sh`** - Audit host functions against XRPLd (requires Node.js)
 - **`benchmark-gas.sh`** - Measure and compare gas costs of optimized helper functions
 
+### Project Generation Scripts
+
+- **`create-example.sh`** - Generate a new XRPL WASM example project with standard structure
+
 ## Usage Examples
 
 ```shell
@@ -63,6 +67,10 @@ You can also run individual test suites:
 
 # Run gas benchmarks (requires local rippled instance)
 ./scripts/benchmark-gas.sh
+
+# Create a new example project
+./scripts/create-example.sh examples/smart-escrows/my_project
+./scripts/create-example.sh examples/smart-escrows/my_project -d "Custom description"
 ```
 
 ## Environment Variables
@@ -100,6 +108,40 @@ This script:
 
 - `gas_benchmark_results.json` - Raw measurement data
 - `GAS_BENCHMARK_REPORT.md` - Formatted comparison report
+
+## Project Generation Script
+
+The `create-example.sh` script generates a new XRPL WASM example project with the standard structure:
+
+```shell
+# Create a new project in smart-escrows
+./scripts/create-example.sh examples/smart-escrows/my_project
+
+# Create with custom description
+./scripts/create-example.sh examples/smart-escrows/my_project -d "A custom smart escrow"
+
+# Create in a different category
+./scripts/create-example.sh examples/my-category/my_project
+
+# Show help
+./scripts/create-example.sh --help
+```
+
+This script:
+
+1. Creates the project directory structure
+2. Generates `Cargo.toml` with proper WASM configuration
+3. Creates `src/lib.rs` with the standard template
+4. Generates `runTest.js` with the test harness
+5. Creates `README.md` with usage instructions
+6. Automatically calculates the correct relative path to `xrpl-wasm-stdlib`
+
+**Generated files:**
+
+- `Cargo.toml` - Package configuration with `cdylib` crate type
+- `src/lib.rs` - Template with `finish()` function
+- `runTest.js` - Integration test harness
+- `README.md` - Project documentation with build and test instructions
 
 ## Requirements
 
