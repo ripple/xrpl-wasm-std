@@ -1,4 +1,6 @@
 name: Test
+permissions:
+  contents: read
 
 on:
   push:
@@ -152,3 +154,29 @@ jobs:
 
       - name: Run end-to-end tests
         run: ./scripts/run-tests.sh
+
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v5
+      - name: Cache dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install Rust
+        run: rustup update stable
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate code coverage
+        run: |
+          cargo llvm-cov --all-features --workspace -- --nocapture
+          cd e2e-tests
+          cargo llvm-cov --all-features --workspace --ignore-filename-regex "e2e-tests/.*" -- --nocapture
