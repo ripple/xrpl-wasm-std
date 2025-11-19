@@ -456,6 +456,6 @@ pub fn get_field_optional<T: CurrentTxFieldGetter>(field_code: i32) -> Result<Op
     T::get_from_current_tx_optional(field_code)
 }
 
-pub mod escrow_finish;
 pub mod contract_call;
+pub mod escrow_finish;
 pub mod traits;

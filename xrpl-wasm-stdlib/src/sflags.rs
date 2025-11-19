@@ -15,9 +15,13 @@ pub const tfRequireAuth: u32 = 0x00040000;
 pub const tfOptionalAuth: u32 = 0x00080000;
 pub const tfDisallowXRP: u32 = 0x00100000;
 pub const tfAllowXRP: u32 = 0x00200000;
-pub const tfAccountSetMask: u32 =
-    !(tfUniversal | tfRequireDestTag | tfOptionalDestTag | tfRequireAuth |
-      tfOptionalAuth | tfDisallowXRP | tfAllowXRP);
+pub const tfAccountSetMask: u32 = !(tfUniversal
+    | tfRequireDestTag
+    | tfOptionalDestTag
+    | tfRequireAuth
+    | tfOptionalAuth
+    | tfDisallowXRP
+    | tfAllowXRP);
 
 // AccountSet SetFlag/ClearFlag values
 pub const asfRequireDest: u32 = 1;
@@ -62,9 +66,14 @@ pub const tfSetFreeze: u32 = 0x00100000;
 pub const tfClearFreeze: u32 = 0x00200000;
 pub const tfSetDeepFreeze: u32 = 0x00400000;
 pub const tfClearDeepFreeze: u32 = 0x00800000;
-pub const tfTrustSetMask: u32 =
-    !(tfUniversal | tfSetfAuth | tfSetNoRipple | tfClearNoRipple | tfSetFreeze |
-      tfClearFreeze | tfSetDeepFreeze | tfClearDeepFreeze);
+pub const tfTrustSetMask: u32 = !(tfUniversal
+    | tfSetfAuth
+    | tfSetNoRipple
+    | tfClearNoRipple
+    | tfSetFreeze
+    | tfClearFreeze
+    | tfSetDeepFreeze
+    | tfClearDeepFreeze);
 pub const tfTrustSetPermissionMask: u32 = !(tfUniversal | tfSetfAuth | tfSetFreeze | tfClearFreeze);
 
 // EnableAmendment flags:
@@ -92,8 +101,13 @@ pub const tfMPTCanEscrow: u32 = 0x00000004; // placeholder - should match lsfMPT
 pub const tfMPTCanTrade: u32 = 0x00000008; // placeholder - should match lsfMPTCanTrade
 pub const tfMPTCanTransfer: u32 = 0x00000010; // placeholder - should match lsfMPTCanTransfer
 pub const tfMPTCanClawback: u32 = 0x00000020; // placeholder - should match lsfMPTCanClawback
-pub const tfMPTokenIssuanceCreateMask: u32 =
-    !(tfUniversal | tfMPTCanLock | tfMPTRequireAuth | tfMPTCanEscrow | tfMPTCanTrade | tfMPTCanTransfer | tfMPTCanClawback);
+pub const tfMPTokenIssuanceCreateMask: u32 = !(tfUniversal
+    | tfMPTCanLock
+    | tfMPTRequireAuth
+    | tfMPTCanEscrow
+    | tfMPTCanTrade
+    | tfMPTCanTransfer
+    | tfMPTCanClawback);
 
 // MPTokenIssuanceCreate MutableFlags:
 pub const tmfMPTCanMutateCanLock: u32 = 0x00000001; // placeholder - should match lmfMPTCanMutateCanLock
@@ -104,9 +118,14 @@ pub const tmfMPTCanMutateCanTransfer: u32 = 0x00000010; // placeholder
 pub const tmfMPTCanMutateCanClawback: u32 = 0x00000020; // placeholder
 pub const tmfMPTCanMutateMetadata: u32 = 0x00000040; // placeholder
 pub const tmfMPTCanMutateTransferFee: u32 = 0x00000080; // placeholder
-pub const tmfMPTokenIssuanceCreateMutableMask: u32 =
-    !(tmfMPTCanMutateCanLock | tmfMPTCanMutateRequireAuth | tmfMPTCanMutateCanEscrow | tmfMPTCanMutateCanTrade
-    | tmfMPTCanMutateCanTransfer | tmfMPTCanMutateCanClawback | tmfMPTCanMutateMetadata | tmfMPTCanMutateTransferFee);
+pub const tmfMPTokenIssuanceCreateMutableMask: u32 = !(tmfMPTCanMutateCanLock
+    | tmfMPTCanMutateRequireAuth
+    | tmfMPTCanMutateCanEscrow
+    | tmfMPTCanMutateCanTrade
+    | tmfMPTCanMutateCanTransfer
+    | tmfMPTCanMutateCanClawback
+    | tmfMPTCanMutateMetadata
+    | tmfMPTCanMutateTransferFee);
 
 // MPTokenAuthorize flags:
 pub const tfMPTUnauthorize: u32 = 0x00000001;
@@ -131,23 +150,27 @@ pub const tmfMPTSetCanTransfer: u32 = 0x00000100;
 pub const tmfMPTClearCanTransfer: u32 = 0x00000200;
 pub const tmfMPTSetCanClawback: u32 = 0x00000400;
 pub const tmfMPTClearCanClawback: u32 = 0x00000800;
-pub const tmfMPTokenIssuanceSetMutableMask: u32 = !(tmfMPTSetCanLock | tmfMPTClearCanLock |
-    tmfMPTSetRequireAuth | tmfMPTClearRequireAuth | tmfMPTSetCanEscrow | tmfMPTClearCanEscrow |
-    tmfMPTSetCanTrade | tmfMPTClearCanTrade | tmfMPTSetCanTransfer | tmfMPTClearCanTransfer |
-    tmfMPTSetCanClawback | tmfMPTClearCanClawback);
+pub const tmfMPTokenIssuanceSetMutableMask: u32 = !(tmfMPTSetCanLock
+    | tmfMPTClearCanLock
+    | tmfMPTSetRequireAuth
+    | tmfMPTClearRequireAuth
+    | tmfMPTSetCanEscrow
+    | tmfMPTClearCanEscrow
+    | tmfMPTSetCanTrade
+    | tmfMPTClearCanTrade
+    | tmfMPTSetCanTransfer
+    | tmfMPTClearCanTransfer
+    | tmfMPTSetCanClawback
+    | tmfMPTClearCanClawback);
 
 // MPTokenIssuanceDestroy flags:
 pub const tfMPTokenIssuanceDestroyMask: u32 = !tfUniversal;
 
 // NFToken masks:
-pub const tfNFTokenMintMask: u32 =
-    !(tfUniversal | tfBurnable | tfOnlyXRP | tfTransferable);
-pub const tfNFTokenMintOldMask: u32 =
-    !(!tfNFTokenMintMask | tfTrustLine);
-pub const tfNFTokenMintOldMaskWithMutable: u32 =
-    !(!tfNFTokenMintOldMask | tfMutable);
-pub const tfNFTokenMintMaskWithMutable: u32 =
-    !(!tfNFTokenMintMask | tfMutable);
+pub const tfNFTokenMintMask: u32 = !(tfUniversal | tfBurnable | tfOnlyXRP | tfTransferable);
+pub const tfNFTokenMintOldMask: u32 = !(!tfNFTokenMintMask | tfTrustLine);
+pub const tfNFTokenMintOldMaskWithMutable: u32 = !(!tfNFTokenMintOldMask | tfMutable);
+pub const tfNFTokenMintMaskWithMutable: u32 = !(!tfNFTokenMintMask | tfMutable);
 
 // NFTokenCreateOffer flags:
 pub const tfSellNFToken: u32 = 0x00000001;
@@ -171,12 +194,15 @@ pub const tfTwoAsset: u32 = 0x00100000;
 pub const tfOneAssetLPToken: u32 = 0x00200000;
 pub const tfLimitLPToken: u32 = 0x00400000;
 pub const tfTwoAssetIfEmpty: u32 = 0x00800000;
-pub const tfWithdrawSubTx: u32 =
-    tfLPToken | tfSingleAsset | tfTwoAsset | tfOneAssetLPToken |
-    tfLimitLPToken | tfWithdrawAll | tfOneAssetWithdrawAll;
+pub const tfWithdrawSubTx: u32 = tfLPToken
+    | tfSingleAsset
+    | tfTwoAsset
+    | tfOneAssetLPToken
+    | tfLimitLPToken
+    | tfWithdrawAll
+    | tfOneAssetWithdrawAll;
 pub const tfDepositSubTx: u32 =
-    tfLPToken | tfSingleAsset | tfTwoAsset | tfOneAssetLPToken |
-    tfLimitLPToken | tfTwoAssetIfEmpty;
+    tfLPToken | tfSingleAsset | tfTwoAsset | tfOneAssetLPToken | tfLimitLPToken | tfTwoAssetIfEmpty;
 pub const tfWithdrawMask: u32 = !(tfUniversal | tfWithdrawSubTx);
 pub const tfDepositMask: u32 = !(tfUniversal | tfDepositSubTx);
 
@@ -213,5 +239,4 @@ pub const tfContractMask: u32 =
 pub const tfSendAmount: u32 = 0x00010000;
 pub const tfSendNFToken: u32 = 0x00020000;
 pub const tfAuthorizeToken: u32 = 0x00040000;
-pub const tfContractParameterMask: u32 =
-    !(tfSendAmount | tfSendNFToken | tfAuthorizeToken);
+pub const tfContractParameterMask: u32 = !(tfSendAmount | tfSendNFToken | tfAuthorizeToken);

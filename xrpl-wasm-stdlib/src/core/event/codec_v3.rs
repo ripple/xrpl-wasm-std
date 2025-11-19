@@ -1,10 +1,9 @@
-use crate::host::emit_event;
-use crate::core::types::account_id::AccountID;
 use crate::core::type_codes::{
-    STI_UINT8, STI_UINT16, STI_UINT32, STI_UINT64, STI_UINT128,
-    STI_UINT160, STI_UINT192, STI_UINT256, STI_AMOUNT, STI_VL, STI_ACCOUNT,
-    STI_CURRENCY
+    STI_ACCOUNT, STI_AMOUNT, STI_CURRENCY, STI_UINT8, STI_UINT16, STI_UINT32, STI_UINT64,
+    STI_UINT128, STI_UINT160, STI_UINT192, STI_UINT256, STI_VL,
 };
+use crate::core::types::account_id::AccountID;
+use crate::host::emit_event;
 
 use core::mem::MaybeUninit;
 
@@ -20,7 +19,7 @@ pub struct EventBuffer {
 }
 
 impl Default for EventBuffer {
- fn default() -> Self {
+    fn default() -> Self {
         Self::new()
     }
 }
@@ -37,18 +36,18 @@ impl EventBuffer {
         buf.write_byte(0, 0);
         buf
     }
-    
+
     #[inline(always)]
     fn write_byte(&mut self, index: usize, value: u8) {
         unsafe {
             (*self.data.as_mut_ptr())[index] = value;
         }
     }
-    
+
     #[inline(always)]
     fn update_total_size(&mut self) {
         let content_size = self.pos - self.vl_size;
-        
+
         let vl_size_needed = if content_size <= 192 {
             1
         } else if content_size <= 12480 {
@@ -56,14 +55,14 @@ impl EventBuffer {
         } else {
             3
         };
-        
+
         unsafe {
             let buffer_ptr = self.data.as_mut_ptr() as *mut u8;
             let buffer_slice = core::slice::from_raw_parts_mut(buffer_ptr, 1024);
-            
+
             if vl_size_needed != self.vl_size {
                 let shift = vl_size_needed - self.vl_size;
-                
+
                 if shift > 0 {
                     let mut i = self.pos;
                     while i > self.vl_size {
@@ -72,10 +71,10 @@ impl EventBuffer {
                     }
                     self.pos += shift;
                 }
-                
+
                 self.vl_size = vl_size_needed;
             }
-            
+
             let final_content_size = self.pos - self.vl_size;
             encode_vl_length(buffer_slice, 0, final_content_size);
         }
@@ -84,19 +83,14 @@ impl EventBuffer {
     #[inline]
     pub fn emit(&mut self, event_type: &str) -> Result<(), i32> {
         self.update_total_size();
-        
+
         unsafe {
             let ptr = self.data.as_ptr() as *const u8;
-            emit_event(
-                event_type.as_ptr(),
-                event_type.len(),
-                ptr,
-                self.pos
-            );
+            emit_event(event_type.as_ptr(), event_type.len(), ptr, self.pos);
         }
         Ok(())
     }
-    
+
     #[inline]
     pub fn get_buffer(&mut self) -> (*const u8, usize) {
         self.update_total_size();
@@ -109,12 +103,7 @@ pub fn emit_event_direct(buf: &mut EventBuffer, event_type: &str) -> Result<(), 
     buf.update_total_size();
     unsafe {
         let ptr = buf.data.as_ptr() as *const u8;
-        emit_event(
-            event_type.as_ptr(),
-            event_type.len(),
-            ptr,
-            buf.pos
-        );
+        emit_event(event_type.as_ptr(), event_type.len(), ptr, buf.pos);
     }
     Ok(())
 }
@@ -147,18 +136,18 @@ impl ToEventBytes for u8 {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(1)
         let space_needed = 1 + key_len + 1 + 1 + 1;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -166,19 +155,19 @@ impl ToEventBytes for u8 {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 2 bytes)
         buf.write_byte(buf.pos, 2);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_UINT8);
         buf.pos += 1;
-        
+
         // Write value
         buf.write_byte(buf.pos, *value);
         buf.pos += 1;
-        
+
         Ok(())
     }
 }
@@ -192,18 +181,18 @@ impl ToEventBytes for u16 {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(2)
         let space_needed = 1 + key_len + 1 + 1 + 2;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -211,20 +200,20 @@ impl ToEventBytes for u16 {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 3 bytes)
         buf.write_byte(buf.pos, 3);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_UINT16);
         buf.pos += 1;
-        
+
         // Write value (big-endian)
         buf.write_byte(buf.pos, (*value >> 8) as u8);
         buf.write_byte(buf.pos + 1, *value as u8);
         buf.pos += 2;
-        
+
         Ok(())
     }
 }
@@ -238,18 +227,18 @@ impl ToEventBytes for u32 {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(4)
         let space_needed = 1 + key_len + 1 + 1 + 4;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -257,22 +246,22 @@ impl ToEventBytes for u32 {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 5 bytes)
         buf.write_byte(buf.pos, 5);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_UINT32);
         buf.pos += 1;
-        
+
         // Write value (big-endian)
         buf.write_byte(buf.pos, (*value >> 24) as u8);
         buf.write_byte(buf.pos + 1, (*value >> 16) as u8);
         buf.write_byte(buf.pos + 2, (*value >> 8) as u8);
         buf.write_byte(buf.pos + 3, *value as u8);
         buf.pos += 4;
-        
+
         Ok(())
     }
 }
@@ -286,18 +275,18 @@ impl ToEventBytes for u64 {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(8)
         let space_needed = 1 + key_len + 1 + 1 + 8;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -305,15 +294,15 @@ impl ToEventBytes for u64 {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 9 bytes)
         buf.write_byte(buf.pos, 9);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_UINT64);
         buf.pos += 1;
-        
+
         // Write value (big-endian)
         buf.write_byte(buf.pos, (*value >> 56) as u8);
         buf.write_byte(buf.pos + 1, (*value >> 48) as u8);
@@ -324,7 +313,7 @@ impl ToEventBytes for u64 {
         buf.write_byte(buf.pos + 6, (*value >> 8) as u8);
         buf.write_byte(buf.pos + 7, *value as u8);
         buf.pos += 8;
-        
+
         Ok(())
     }
 }
@@ -338,18 +327,18 @@ impl ToEventBytes for [u8; 16] {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(16)
         let space_needed = 1 + key_len + 1 + 1 + 16;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -357,15 +346,15 @@ impl ToEventBytes for [u8; 16] {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 17 bytes)
         buf.write_byte(buf.pos, 17);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_UINT128);
         buf.pos += 1;
-        
+
         // Write value
         let mut i = 0;
         while i < 16 {
@@ -373,7 +362,7 @@ impl ToEventBytes for [u8; 16] {
             i += 1;
         }
         buf.pos += 16;
-        
+
         Ok(())
     }
 }
@@ -388,18 +377,18 @@ impl ToEventBytes for [u8; 20] {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(20)
         let space_needed = 1 + key_len + 1 + 1 + 20;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -407,15 +396,15 @@ impl ToEventBytes for [u8; 20] {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 21 bytes)
         buf.write_byte(buf.pos, 21);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_UINT160);
         buf.pos += 1;
-        
+
         // Write value
         let mut i = 0;
         while i < 20 {
@@ -423,7 +412,7 @@ impl ToEventBytes for [u8; 20] {
             i += 1;
         }
         buf.pos += 20;
-        
+
         Ok(())
     }
 }
@@ -437,18 +426,18 @@ impl ToEventBytes for [u8; 24] {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(24)
         let space_needed = 1 + key_len + 1 + 1 + 24;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -456,15 +445,15 @@ impl ToEventBytes for [u8; 24] {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 25 bytes)
         buf.write_byte(buf.pos, 25);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_UINT192);
         buf.pos += 1;
-        
+
         // Write value
         let mut i = 0;
         while i < 24 {
@@ -472,7 +461,7 @@ impl ToEventBytes for [u8; 24] {
             i += 1;
         }
         buf.pos += 24;
-        
+
         Ok(())
     }
 }
@@ -486,18 +475,18 @@ impl ToEventBytes for [u8; 32] {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(32)
         let space_needed = 1 + key_len + 1 + 1 + 32;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -505,15 +494,15 @@ impl ToEventBytes for [u8; 32] {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 33 bytes)
         buf.write_byte(buf.pos, 33);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_UINT256);
         buf.pos += 1;
-        
+
         // Write value
         let mut i = 0;
         while i < 32 {
@@ -521,7 +510,7 @@ impl ToEventBytes for [u8; 32] {
             i += 1;
         }
         buf.pos += 32;
-        
+
         Ok(())
     }
 }
@@ -535,18 +524,18 @@ impl ToEventBytes for [u8; 8] {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(8)
         let space_needed = 1 + key_len + 1 + 1 + 8;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -554,15 +543,15 @@ impl ToEventBytes for [u8; 8] {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 9 bytes)
         buf.write_byte(buf.pos, 9);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_AMOUNT);
         buf.pos += 1;
-        
+
         // Write value
         let mut i = 0;
         while i < 8 {
@@ -570,7 +559,7 @@ impl ToEventBytes for [u8; 8] {
             i += 1;
         }
         buf.pos += 8;
-        
+
         Ok(())
     }
 }
@@ -586,18 +575,18 @@ impl ToEventBytes for AccountID {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + prefix(1) + value(20)
         let space_needed = 1 + key_len + 1 + 1 + 1 + 20;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -605,19 +594,19 @@ impl ToEventBytes for AccountID {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + prefix + data = 22 bytes)
         buf.write_byte(buf.pos, 22);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_ACCOUNT);
         buf.pos += 1;
-        
+
         // Write account length prefix
         buf.write_byte(buf.pos, 0x14);
         buf.pos += 1;
-        
+
         // Write value
         let mut i = 0;
         while i < 20 {
@@ -625,7 +614,7 @@ impl ToEventBytes for AccountID {
             i += 1;
         }
         buf.pos += 20;
-        
+
         Ok(())
     }
 }
@@ -643,18 +632,18 @@ impl ToEventBytes for Currency {
     fn add_to_event(buf: &mut EventBuffer, key: &str, value: &Self) -> Result<(), i32> {
         let key_bytes = key.as_bytes();
         let key_len = key_bytes.len();
-        
+
         // Space needed = key_size(1) + key_len + value_size(1) + type(1) + value(20)
         let space_needed = 1 + key_len + 1 + 1 + 20;
-        
+
         if key_len > 127 || buf.pos + space_needed > 1024 {
             return Err(-1);
         }
-        
+
         // Write key size
         buf.write_byte(buf.pos, key_len as u8);
         buf.pos += 1;
-        
+
         // Write key
         let mut i = 0;
         while i < key_len {
@@ -662,15 +651,15 @@ impl ToEventBytes for Currency {
             i += 1;
         }
         buf.pos += key_len;
-        
+
         // Write value size (type + data = 21 bytes)
         buf.write_byte(buf.pos, 21);
         buf.pos += 1;
-        
+
         // Write type
         buf.write_byte(buf.pos, STI_CURRENCY);
         buf.pos += 1;
-        
+
         // Write value
         let mut i = 0;
         while i < 20 {
@@ -678,7 +667,7 @@ impl ToEventBytes for Currency {
             i += 1;
         }
         buf.pos += 20;
-        
+
         Ok(())
     }
 }
@@ -724,11 +713,11 @@ pub fn event_add_str(buf: &mut EventBuffer, key: &str, value: &str) -> Result<()
     let key_len = key_bytes.len();
     let value_bytes = value.as_bytes();
     let value_len = value_bytes.len();
-    
+
     if value_len > 918744 || key_len > 127 {
         return Err(-1);
     }
-    
+
     let vl_len_size = if value_len <= 192 {
         1
     } else if value_len <= 12480 {
@@ -736,42 +725,42 @@ pub fn event_add_str(buf: &mut EventBuffer, key: &str, value: &str) -> Result<()
     } else {
         3
     };
-    
+
     let space_needed = 1 + key_len + 1 + 1 + vl_len_size + value_len;
-    
+
     if buf.pos + space_needed > 1024 {
         return Err(-1);
     }
-    
+
     buf.write_byte(buf.pos, key_len as u8);
     buf.pos += 1;
-    
+
     let mut i = 0;
     while i < key_len {
         buf.write_byte(buf.pos + i, key_bytes[i]);
         i += 1;
     }
     buf.pos += key_len;
-    
+
     buf.write_byte(buf.pos, (1 + vl_len_size + value_len) as u8);
     buf.pos += 1;
-    
+
     buf.write_byte(buf.pos, STI_VL);
     buf.pos += 1;
-    
+
     unsafe {
         let buffer_ptr = buf.data.as_mut_ptr() as *mut u8;
         let buffer_slice = core::slice::from_raw_parts_mut(buffer_ptr, 1024);
         let bytes_written = encode_vl_length(buffer_slice, buf.pos, value_len);
         buf.pos += bytes_written;
     }
-    
+
     let mut i = 0;
     while i < value_len {
         buf.write_byte(buf.pos + i, value_bytes[i]);
         i += 1;
     }
     buf.pos += value_len;
-    
+
     Ok(())
 }
