@@ -58,7 +58,6 @@
 //! let _flags = tx.get_flags().unwrap_or_panic();
 //! ```
 
-use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
 use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
 use crate::core::types::public_key::PublicKey;
@@ -190,41 +189,6 @@ impl CurrentTxFieldGetter for u32 {
             |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
         ) {
             Result::Ok(buffer) => Result::Ok(buffer.map(u32::from_le_bytes)),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `CurrentTxFieldGetter` for XRPL account identifiers.
-///
-/// This implementation handles 20-byte account ID fields in XRPL transactions.
-/// Account IDs identify transaction participants such as the sending account,
-/// destination account, and various other account references throughout the transaction.
-///
-/// # Buffer Management
-///
-/// Uses a 20-byte buffer (ACCOUNT_ID_SIZE) and validates that exactly 20 bytes
-/// are returned from the host function. The buffer is converted to an AccountID
-/// using the `From<[u8; 20]>` implementation.
-impl CurrentTxFieldGetter for AccountID {
-    #[inline]
-    fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<ACCOUNT_ID_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<ACCOUNT_ID_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
             Result::Err(e) => Result::Err(e),
         }
     }
