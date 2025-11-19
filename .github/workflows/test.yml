@@ -78,6 +78,14 @@ jobs:
       - name: Run host function audit
         run: ./scripts/host-function-audit.sh
 
+  validate_ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate UI
+        run: ./scripts/validate-ui.sh
+
   build_and_test:
     runs-on: ubuntu-latest
     steps:
