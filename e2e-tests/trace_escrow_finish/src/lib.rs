@@ -120,10 +120,10 @@ pub extern "C" fn finish() -> i32 {
 
         let mut memo_buf = [0u8; 1024];
         let mut locator = Locator::new();
-        locator.pack(sfield::Memos.into());
+        locator.pack(sfield::Memos);
         locator.pack(0);
-        locator.pack(sfield::Memo.into());
-        locator.pack(sfield::MemoType.into());
+        locator.pack(sfield::Memo);
+        locator.pack(sfield::MemoType);
         let output_len = unsafe {
             host::get_tx_nested_field(
                 locator.as_ptr(),
@@ -139,7 +139,7 @@ pub extern "C" fn finish() -> i32 {
             DataRepr::AsHex,
         );
 
-        locator.repack_last(sfield::MemoData.into());
+        locator.repack_last(sfield::MemoData);
         let output_len = unsafe {
             host::get_tx_nested_field(
                 locator.as_ptr(),
@@ -154,7 +154,7 @@ pub extern "C" fn finish() -> i32 {
             DataRepr::AsHex,
         );
 
-        locator.repack_last(sfield::MemoFormat.into());
+        locator.repack_last(sfield::MemoFormat);
         let output_len = unsafe {
             host::get_tx_nested_field(
                 locator.as_ptr(),
@@ -176,9 +176,9 @@ pub extern "C" fn finish() -> i32 {
         for i in 0..array_len {
             let mut buf = [0x00; 64];
             let mut locator = Locator::new();
-            locator.pack(sfield::Signers.into());
+            locator.pack(sfield::Signers);
             locator.pack(i);
-            locator.pack(sfield::Account.into());
+            locator.pack(sfield::Account);
             let output_len = unsafe {
                 host::get_tx_nested_field(
                     locator.as_ptr(),
@@ -194,7 +194,7 @@ pub extern "C" fn finish() -> i32 {
             let _ = trace_num("    Signer #:", i as i64);
             let _ = trace_account_buf("     Account:", &buf[..20].try_into().unwrap());
 
-            locator.repack_last(sfield::TxnSignature.into());
+            locator.repack_last(sfield::TxnSignature);
             let output_len = unsafe {
                 host::get_tx_nested_field(
                     locator.as_ptr(),
@@ -213,7 +213,7 @@ pub extern "C" fn finish() -> i32 {
                 DataRepr::AsHex,
             );
 
-            locator.repack_last(sfield::SigningPubKey.into());
+            locator.repack_last(sfield::SigningPubKey);
             let output_len = unsafe {
                 host::get_tx_nested_field(
                     locator.as_ptr(),
@@ -287,7 +287,7 @@ pub extern "C" fn finish() -> i32 {
         for i in 0..array_len {
             let mut buf = [0x00; 32];
             let mut locator = Locator::new();
-            locator.pack(sfield::CredentialIDs.into());
+            locator.pack(sfield::CredentialIDs);
             locator.pack(i);
             let output_len = unsafe {
                 host::get_tx_nested_field(

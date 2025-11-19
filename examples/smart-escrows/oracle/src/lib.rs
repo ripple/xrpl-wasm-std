@@ -31,9 +31,9 @@ pub fn get_u64_from_buffer(bytes: &[u8]) -> u64 {
 
 pub fn get_price_from_oracle(slot: i32) -> Result<u64> {
     let mut locator = Locator::new();
-    locator.pack(sfield::PriceDataSeries.into());
+    locator.pack(sfield::PriceDataSeries);
     locator.pack(0);
-    locator.pack(sfield::AssetPrice.into());
+    locator.pack(sfield::AssetPrice);
 
     let mut data: [u8; 8] = [0; 8];
     let result_code = unsafe {
