@@ -20,6 +20,7 @@
 
 pub mod assert;
 pub mod error_codes;
+pub mod field_helpers;
 pub mod trace;
 
 //////////////////////////////////////

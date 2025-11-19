@@ -26,7 +26,17 @@ const LOCATOR_BUFFER_SIZE: usize = 64;
 /// A Locator allows a WASM developer located any field in any object (even nested fields) by
 /// specifying a `slot_num` (1 byte); a `locator_field_type` (1 byte); then one of an `sfield` (4
 /// bytes) or an `index` (4 bytes).
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Reasonable for this 72-byte struct when explicit copying is needed
+/// - `Eq, PartialEq`: Enable comparisons between locators
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (72 bytes).
+/// Large `Copy` types can lead to accidental expensive copies and poor performance.
+/// Use `.clone()` when you need to duplicate a locator.
+#[derive(Clone, PartialEq, Eq, Debug)]
 #[repr(C)]
 pub struct Locator {
     // The first packed value is 6 bytes; All nested/packed values are 5 bytes; so 64 bytes allow

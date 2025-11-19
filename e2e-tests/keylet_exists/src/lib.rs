@@ -33,10 +33,9 @@ pub fn object_exists<T: FieldGetter, const CODE: i32>(
                 return Err(Error::from_code(slot));
             }
             if CODE == 0 {
-                let new_field = sfield::PreviousTxnID;
-                let field_code: i32 = new_field.into();
+                let field_code: i32 = sfield::PreviousTxnID.into();
                 let _ = trace_num("Getting field: ", field_code as i64);
-                match ledger_object::get_field(slot, new_field) {
+                match ledger_object::get_field(slot, sfield::PreviousTxnID) {
                     Ok(data) => {
                         let _ = trace_data("Field data: ", &data.0, DataRepr::AsHex);
                     }
