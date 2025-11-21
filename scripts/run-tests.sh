@@ -20,11 +20,6 @@ scripts/build.sh
 scripts/build.sh release
 
 echo "🧪 Running integration tests..."
-if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
-    node tests/setupLedger.js "wss://wasm.devnet.rippletest.net:51233"
-else
-    node tests/setupLedger.js
-fi
 
 set +e
 
