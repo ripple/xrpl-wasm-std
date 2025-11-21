@@ -583,14 +583,42 @@ mod tests {
 
     #[test]
     fn test_nft_uri_method() {
+        use crate::mock_host;
+
         let nft_id = [0u8; 32];
         let nft = NFToken::new(nft_id);
         let owner = AccountID([0u8; ACCOUNT_ID_SIZE]);
+
+        // Mock the get_nft function to return a successful result
+        mock_host! {
+            get_nft(_account_ptr, _account_len, _nft_id_ptr, _nft_id_len, _out_buff_ptr, _out_buff_len) => 42
+        };
 
         // Positive case: should return Ok with URI blob
         let result = nft.uri(&owner);
         assert!(result.is_ok());
         let uri = result.unwrap();
         assert!(uri.len <= NFT_URI_MAX_SIZE);
+    }
+
+    #[test]
+    fn test_nft_uri_method_error() {
+        use crate::host::error_codes;
+        use crate::mock_host;
+
+        let nft_id = [0u8; 32];
+        let nft = NFToken::new(nft_id);
+        let owner = AccountID([0u8; ACCOUNT_ID_SIZE]);
+
+        // Mock the get_nft function to return an error (NFT not found)
+        mock_host! {
+            get_nft(_account_ptr, _account_len, _nft_id_ptr, _nft_id_len, _out_buff_ptr, _out_buff_len) => error_codes::LEDGER_OBJ_NOT_FOUND
+        };
+
+        // Negative case: should return Err when NFT is not found
+        let result = nft.uri(&owner);
+        assert!(result.is_err());
+        let error = result.err().unwrap();
+        assert_eq!(error.code(), error_codes::LEDGER_OBJ_NOT_FOUND);
     }
 }
