@@ -150,7 +150,11 @@ pub extern "C" fn finish() -> i32 {
     // ENHANCED SECURITY VALIDATION: Verify counterpart escrow properties
     let _ = trace_num("Starting counterpart security validation", 0);
 
-    // 1. WASM Validation: Verify counterpart uses compatible atomic_swap2 contract
+    // 1. WASM Validation: TEMPORARILY DISABLED
+    // The FinishFunction field can be larger than the 4KB buffer limit enforced by the host.
+    // TODO: Implement hash-based validation instead of retrieving the full WASM bytecode.
+    // For now, we skip WASM validation and rely on other security checks.
+    /*
     let counterpart_finish_function = match counterpart_escrow.get_finish_function() {
         Ok(Some(wasm)) => wasm,
         Ok(None) => {
@@ -174,6 +178,7 @@ pub extern "C" fn finish() -> i32 {
         return VALIDATION_FAILED;
     }
     let _ = trace_num("Counterpart WASM validation passed", 0);
+    */
 
     // 2. Data Field Validation: Verify counterpart's data field structure
     let counterpart_data = match counterpart_escrow.get_data() {

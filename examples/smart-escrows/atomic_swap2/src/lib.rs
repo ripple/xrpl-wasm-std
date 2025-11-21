@@ -135,7 +135,11 @@ pub extern "C" fn finish() -> i32 {
         // ENHANCED SECURITY VALIDATION: Verify first escrow properties
         let _ = trace_num("Starting first escrow security validation", 0);
 
-        // 1. WASM Validation: Verify first escrow uses compatible atomic_swap1 contract
+        // 1. WASM Validation: TEMPORARILY DISABLED
+        // The FinishFunction field can be larger than the 4KB buffer limit enforced by the host.
+        // TODO: Implement hash-based validation instead of retrieving the full WASM bytecode.
+        // For now, we skip WASM validation and rely on other security checks.
+        /*
         let first_finish_function = match first_escrow.get_finish_function() {
             Ok(Some(wasm)) => wasm,
             Ok(None) => {
@@ -157,6 +161,7 @@ pub extern "C" fn finish() -> i32 {
             return VALIDATION_FAILED;
         }
         let _ = trace_num("First escrow WASM validation passed", 0);
+        */
 
         // 2. Account Reversal Validation: Verify proper account setup between escrows
         let first_account = match first_escrow.get_account() {

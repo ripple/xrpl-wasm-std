@@ -1,7 +1,7 @@
 use crate::core::ledger_objects::{current_ledger_object, ledger_object};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
-use crate::core::types::blob::{Blob, DEFAULT_BLOB_SIZE};
+use crate::core::types::blob::{Blob, WASM_BLOB_SIZE};
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 use crate::core::types::crypto_condition::Condition;
 use crate::core::types::nft::NFT_URI_MAX_SIZE;
@@ -181,7 +181,7 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
     }
 
     /// The WASM code that is executing.
-    fn get_finish_function(&self) -> Result<Option<Blob<{ DEFAULT_BLOB_SIZE }>>> {
+    fn get_finish_function(&self) -> Result<Option<Blob<{ WASM_BLOB_SIZE }>>> {
         current_ledger_object::get_field_optional(sfield::FinishFunction)
     }
 
@@ -338,7 +338,7 @@ pub trait EscrowFields: LedgerObjectCommonFields {
     }
 
     /// The WASM code that is executing.
-    fn get_finish_function(&self) -> Result<Option<Blob<{ DEFAULT_BLOB_SIZE }>>> {
+    fn get_finish_function(&self) -> Result<Option<Blob<{ WASM_BLOB_SIZE }>>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::FinishFunction)
     }
 

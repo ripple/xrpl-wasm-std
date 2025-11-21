@@ -6,6 +6,10 @@ pub const DEFAULT_BLOB_SIZE: usize = 1024;
 // Declared here because there is no Memo struct.
 pub const MEMO_BLOB_SIZE: usize = DEFAULT_BLOB_SIZE;
 
+/// Buffer size for WASM bytecode (FinishFunction field)
+/// Set to 4KB to match the maximum allocation limit enforced by the host
+pub const WASM_BLOB_SIZE: usize = 4096;
+
 /// A variable-length binary data container with a fixed maximum size.
 ///
 /// The `Blob` type is generic over its maximum capacity `N`, allowing you to
