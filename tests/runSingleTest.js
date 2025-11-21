@@ -98,17 +98,17 @@ async function main() {
     finish,
   }
 
-  let exitCode = 0
+  let failed = false
   try {
     await test(testContext)
   } catch (error) {
     console.error("Error:", error.message)
     console.log(error)
-    exitCode = 1
+    failed = true
   } finally {
     if (interval) clearInterval(interval)
     await client.disconnect()
-    process.exit(exitCode)
+    if (failed) process.exit(1)
   }
 }
 
