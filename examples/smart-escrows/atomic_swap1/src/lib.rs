@@ -19,6 +19,7 @@ use xrpl_wasm_stdlib::types::{ContractData, XRPL_CONTRACT_DATA_SIZE};
 // Security constants for validation
 const VALIDATION_FAILED: i32 = 0;
 
+/*
 /// Validates if the provided WASM bytes represent a compatible atomic_swap2 contract.
 ///
 /// In a production system, this should validate the WASM hash against known good versions.
@@ -58,6 +59,7 @@ fn is_valid_atomic_swap2_wasm(wasm_bytes: &[u8]) -> bool {
 
     true
 }
+*/
 
 /// Extracts the first memo from the transaction.
 ///

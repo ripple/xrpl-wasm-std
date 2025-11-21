@@ -16,6 +16,7 @@ use xrpl_wasm_stdlib::{host, host::error_codes::match_result_code};
 const VALIDATION_FAILED: i32 = 0;
 const KEYLET_PLUS_TIMESTAMP_SIZE: usize = 36;
 
+/*
 /// Validates if the provided WASM bytes represent a compatible atomic_swap1 contract.
 ///
 /// In a production system, this should validate the WASM hash against known good versions.
@@ -55,6 +56,7 @@ fn is_valid_atomic_swap1_wasm(wasm_bytes: &[u8]) -> bool {
 
     true
 }
+*/
 
 /// Main finish function for data field-based atomic swap with two-phase execution.
 ///
