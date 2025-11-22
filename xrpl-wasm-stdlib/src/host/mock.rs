@@ -58,14 +58,37 @@ pub(crate) fn get_mock(name: &'static str) -> Option<MockFn> {
     MOCKS.with(|m| m.borrow().get(name).cloned())
 }
 
+/// Guard that clears mocks when dropped.
+pub struct MockGuard;
+
+impl Drop for MockGuard {
+    fn drop(&mut self) {
+        clear_all_mocks();
+    }
+}
+
 /// Macro for easily setting up mocks in tests.
+///
+/// This macro sets up the specified mocks and keeps them active until the end of the current scope.
+/// It expands to a `let` binding internally, so you don't need to assign the result to a variable.
+///
+/// # Usage
+///
+/// ```rust
+/// mock_host! {
+///     get_nft(...) => 42
+/// };
+/// ```
 #[macro_export]
 macro_rules! mock_host {
     // Simple value return
     ($($name:ident($($arg:ident),*) => $ret:expr),+ $(,)?) => {
-        $({
-            $crate::host::mock::set_mock(stringify!($name), move |_args| $ret);
-        })+
+        let _mock_guard = {
+            $({
+                $crate::host::mock::set_mock(stringify!($name), move |_args| $ret);
+            })+
+            $crate::host::mock::MockGuard
+        };
     };
 }
 
@@ -82,8 +105,6 @@ mod tests {
 
         let result = unsafe { super::super::get_nft_transfer_fee(ptr::null(), 0) };
         assert_eq!(result, 42);
-
-        clear_all_mocks();
     }
 
     #[test]
@@ -98,7 +119,5 @@ mod tests {
             100
         );
         assert_eq!(unsafe { super::super::get_nft_flags(ptr::null(), 0) }, 200);
-
-        clear_all_mocks();
     }
 }

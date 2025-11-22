@@ -621,4 +621,23 @@ mod tests {
         let error = result.err().unwrap();
         assert_eq!(error.code(), error_codes::LEDGER_OBJ_NOT_FOUND);
     }
+
+    #[test]
+    fn test_nft_flags_mocking() {
+        use crate::mock_host;
+
+        let nft_id = [0u8; 32];
+        let nft = NFToken::new(nft_id);
+
+        // Mock get_nft_flags to return a specific flag (e.g., BURNABLE = 1)
+        mock_host! {
+            get_nft_flags(_nft_id_ptr, _nft_id_len) => 1
+        };
+
+        let result = nft.flags();
+        assert!(result.is_ok());
+        let flags = result.unwrap();
+        assert!(flags.is_burnable());
+        assert_eq!(flags.as_u16(), 1);
+    }
 }
