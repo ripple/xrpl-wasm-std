@@ -94,7 +94,7 @@ macro_rules! mock_host {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+
     use core::ptr;
 
     #[test]
