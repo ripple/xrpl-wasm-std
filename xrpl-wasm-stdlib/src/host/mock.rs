@@ -120,4 +120,16 @@ mod tests {
         );
         assert_eq!(unsafe { super::super::get_nft_flags(ptr::null(), 0) }, 200);
     }
+
+    #[test]
+    fn test_mock_cleanup() {
+        {
+            mock_host! {
+                get_nft_flags(_ptr, _len) => 200
+            };
+            assert_eq!(unsafe { super::super::get_nft_flags(ptr::null(), 0) }, 200);
+        }
+        // Should return 0 (the length passed) when not mocked
+        assert_eq!(unsafe { super::super::get_nft_flags(ptr::null(), 0) }, 0);
+    }
 }
