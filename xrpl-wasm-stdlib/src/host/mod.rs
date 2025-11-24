@@ -26,7 +26,7 @@ pub mod trace;
 /// Mocking infrastructure for testing host functions.
 ///
 /// This module is only available when running tests (not in WASM builds).
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 pub mod mock;
 
 //////////////////////////////////////
