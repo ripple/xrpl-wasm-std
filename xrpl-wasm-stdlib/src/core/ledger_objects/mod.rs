@@ -3,7 +3,6 @@ pub mod current_escrow;
 pub mod escrow;
 pub mod traits;
 
-use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
 use crate::core::types::currency::{CURRENCY_SIZE, Currency};
 use crate::core::types::issue::Issue;
@@ -208,61 +207,6 @@ impl<T: FixedSizeFieldType> FieldGetter for T {
         match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
             Some(unsafe { value.assume_init() })
         })
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL amount values.
-///
-/// This implementation handles amount fields in XRPL ledger objects, which can represent
-/// either XRP amounts (8 bytes) or token amounts (up to 48 bytes including currency code
-/// and issuer information).
-///
-/// # Buffer Management
-///
-/// Uses a 48-byte buffer to accommodate the largest possible amount representation.
-/// The Amount type handles the parsing of different amount formats internally.
-/// No strict byte count validation is performed since amounts can vary in size.
-impl FieldGetter for Amount {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<AMOUNT_SIZE, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<AMOUNT_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(buffer, _len)| Amount::from(buffer))),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<AMOUNT_SIZE, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<AMOUNT_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(buffer, _len)| Amount::from(buffer))),
-            Result::Err(e) => Result::Err(e),
-        }
     }
 }
 

@@ -58,7 +58,6 @@
 //! let _flags = tx.get_flags().unwrap_or_panic();
 //! ```
 
-use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::signature::{SIGNATURE_MAX_SIZE, Signature};
@@ -189,41 +188,6 @@ impl CurrentTxFieldGetter for u32 {
             |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
         ) {
             Result::Ok(buffer) => Result::Ok(buffer.map(u32::from_le_bytes)),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `CurrentTxFieldGetter` for XRPL amount values.
-///
-/// This implementation handles amount fields in XRPL transactions, which can represent
-/// either XRP amounts (8 bytes) or token amounts (up to 48 bytes including currency code
-/// and issuer information). Common uses include transaction fees, payment amounts,
-/// offer amounts, and escrow amounts.
-///
-/// # Buffer Management
-///
-/// Uses a 48-byte buffer (AMOUNT_SIZE) to accommodate the largest possible amount
-/// representation. The Amount type handles the parsing of different amount formats
-/// internally. No strict byte count validation is performed since amounts can vary in size.
-impl CurrentTxFieldGetter for Amount {
-    #[inline]
-    fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<AMOUNT_SIZE, _>(field_code, |fc, buf, size| unsafe {
-            get_tx_field(fc, buf, size)
-        }) {
-            Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<AMOUNT_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(buffer, _len)| Amount::from(buffer))),
             Result::Err(e) => Result::Err(e),
         }
     }
