@@ -34,7 +34,7 @@ run_integration_test() {
     fi
     echo "🔧 Running integration test for $contract_name in $dir"
     exit_code=0
-    if [[ "${CI:-}" == "true" || -n "${CI:-}" ]]; then
+    if [[ "${DEVNET:-}" == "true" || -n "${DEVNET:-}" ]]; then
         node tests/runSingleTest.js "$dir" "$wasm_file_release" "wss://wasm.devnet.rippletest.net:51233"
         exit_code=$?
     else
