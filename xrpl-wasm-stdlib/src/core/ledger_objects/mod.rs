@@ -3,7 +3,6 @@ pub mod current_escrow;
 pub mod escrow;
 pub mod traits;
 
-use crate::core::types::blob::Blob;
 use crate::core::types::currency::{CURRENCY_SIZE, Currency};
 use crate::core::types::issue::Issue;
 use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
@@ -317,64 +316,6 @@ impl FieldGetter for Hash256 {
             |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
         ) {
             Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for variable-length binary data.
-///
-/// This implementation handles blob fields in XRPL ledger objects, which can contain
-/// arbitrary binary data such as memos, signatures, public keys, and other
-/// variable-length content.
-///
-/// # Buffer Management
-///
-/// Uses a buffer of size `N` to accommodate blob field data. The actual
-/// length of the data is determined by the return value from the host function
-/// and stored in the Blob's `len` field. No strict byte count validation is
-/// performed since blobs can vary significantly in size.
-///
-/// # Type Parameters
-///
-/// * `N` - The maximum capacity of the blob buffer in bytes
-impl<const N: usize> FieldGetter for Blob<N> {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
             Result::Err(e) => Result::Err(e),
         }
     }

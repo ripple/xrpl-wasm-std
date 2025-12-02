@@ -66,7 +66,6 @@ use crate::core::types::uint::{HASH256_SIZE, Hash256};
 use crate::host::error_codes::{match_result_code, match_result_code_optional};
 use crate::host::field_helpers::{
     get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
-    get_variable_size_field, get_variable_size_field_optional,
 };
 use crate::host::{Result, get_tx_field};
 
@@ -298,44 +297,6 @@ impl CurrentTxFieldGetter for Signature {
                 len: result_code as usize,
             }))
         })
-    }
-}
-
-/// Implementation of `CurrentTxFieldGetter` for variable-length binary data.
-///
-/// This implementation handles blob fields in XRPL transactions, which can contain
-/// arbitrary binary data such as transaction signatures, memos, fulfillment data,
-/// and other variable-length content that doesn't fit into fixed-size types.
-///
-/// # Buffer Management
-///
-/// Uses a buffer of size `N` to accommodate blob field data. The actual
-/// length of the data is determined by the return value from the host function
-/// and stored in the Blob's `len` field. No strict byte count validation is
-/// performed since blobs can vary significantly in size.
-///
-/// # Type Parameters
-///
-/// * `N` - The maximum capacity of the blob buffer in bytes
-impl<const N: usize> CurrentTxFieldGetter for Blob<N> {
-    #[inline]
-    fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_tx_field(fc, buf, size)
-        }) {
-            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_tx_field(fc, buf, size)
-        }) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
-            Result::Err(e) => Result::Err(e),
-        }
     }
 }
 
