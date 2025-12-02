@@ -3,15 +3,12 @@ pub mod current_escrow;
 pub mod escrow;
 pub mod traits;
 
-use crate::core::types::currency::{CURRENCY_SIZE, Currency};
-use crate::core::types::issue::Issue;
 use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
 use crate::host::error_codes::{
     match_result_code_with_expected_bytes, match_result_code_with_expected_bytes_optional,
 };
 use crate::host::field_helpers::{
     get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
-    get_variable_size_field, get_variable_size_field_optional,
 };
 use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 
@@ -316,70 +313,6 @@ impl FieldGetter for Hash256 {
             |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
         ) {
             Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL issues.
-///
-/// This implementation handles issue fields in XRPL ledger objects.
-/// Supports all three Issue variants: XRP, IOU, and MPT.
-///
-/// # Buffer Management
-///
-/// Uses a 40-byte buffer to accommodate all Issue types:
-/// - XRP: 20 bytes (all zeros)
-/// - IOU: 40 bytes (20 bytes currency + 20 bytes issuer)
-/// - MPT: 24 bytes (4 bytes sequence + 20 bytes issuer)
-///
-/// The implementation detects the Issue type based on the number of bytes returned
-/// from the host function.
-impl FieldGetter for Issue {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
-                Result::Ok(issue) => Result::Ok(Some(issue)),
-                Result::Err(e) => Result::Err(e),
-            },
-            Result::Ok(None) => Result::Ok(None),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
-                Result::Ok(issue) => Result::Ok(Some(issue)),
-                Result::Err(e) => Result::Err(e),
-            },
-            Result::Ok(None) => Result::Ok(None),
             Result::Err(e) => Result::Err(e),
         }
     }
