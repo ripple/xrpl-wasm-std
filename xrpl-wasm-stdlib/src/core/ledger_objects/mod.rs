@@ -321,61 +321,6 @@ impl FieldGetter for Hash256 {
     }
 }
 
-/// Implementation of `FieldGetter` for XRPL currency codes.
-///
-/// This implementation handles 20-byte currency code fields in XRPL ledger objects.
-/// Currency codes uniquely identify different currencies and assets on the XRPL.
-///
-/// # Buffer Management
-///
-/// Uses a 20-byte buffer and validates that exactly 20 bytes are returned
-/// from the host function to ensure data integrity.
-impl FieldGetter for Currency {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
 /// Implementation of `FieldGetter` for XRPL issues.
 ///
 /// This implementation handles issue fields in XRPL ledger objects.
