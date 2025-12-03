@@ -121,21 +121,21 @@ impl<const N: usize> Default for Blob<N> {
 pub type StandardBlob = Blob<DEFAULT_BLOB_SIZE>;
 
 /// Type alias for 128-byte blob (for Condition fields)
-pub type ConditionBlob = Blob<{ CONDITION_BLOB_SIZE }>;
+pub type ConditionBlob = Blob<CONDITION_BLOB_SIZE>;
 
 /// Type alias for 256-byte blob (for Fulfillment fields)
-pub type FulfillmentBlob = Blob<{ FULFILLMENT_BLOB_SIZE }>;
+pub type FulfillmentBlob = Blob<FULFILLMENT_BLOB_SIZE>;
 
 /// Type alias for 1024-byte blob (for Memo fields).
-pub type MemoBlob = Blob<{ MEMO_BLOB_SIZE }>;
+pub type MemoBlob = Blob<MEMO_BLOB_SIZE>;
 
 /// Type alias for 72-byte blob (for Signature fields).
-pub type SignatureBlob = Blob<{ SIGNATURE_BLOB_SIZE }>;
+pub type SignatureBlob = Blob<SIGNATURE_BLOB_SIZE>;
 
 /// Type alias for 256-byte blob (for URIs and smaller fields)
-pub type NftUriBlob = Blob<{ NFT_URI_BLOB_SIZE }>;
+pub type NftUriBlob = Blob<NFT_URI_BLOB_SIZE>;
 
-pub type UriBlob = Blob<{ URI_BLOB_SIZE }>;
+pub type UriBlob = Blob<URI_BLOB_SIZE>;
 
 pub type EmptyBlob = Blob<0>;
 
