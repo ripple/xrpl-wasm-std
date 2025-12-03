@@ -62,7 +62,6 @@ use crate::core::types::blob::Blob;
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::signature::{SIGNATURE_MAX_SIZE, Signature};
 use crate::core::types::transaction_type::TransactionType;
-use crate::core::types::uint::{HASH256_SIZE, Hash256};
 use crate::host::error_codes::{
     match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
     match_result_code_with_expected_bytes_optional,
@@ -225,40 +224,6 @@ impl<T: FixedSizeFieldType> CurrentTxFieldGetter for T {
         match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
             Some(unsafe { value.assume_init() })
         })
-    }
-}
-
-/// Implementation of `CurrentTxFieldGetter` for 256-bit cryptographic hashes.
-///
-/// This implementation handles 32-byte hash fields in XRPL transactions.
-/// Hash256 values are used for transaction IDs, account transaction IDs,
-/// references to other transactions, and various cryptographic identifiers.
-///
-/// # Buffer Management
-///
-/// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
-/// are returned from the host function to ensure data integrity.
-impl CurrentTxFieldGetter for Hash256 {
-    #[inline]
-    fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
     }
 }
 
