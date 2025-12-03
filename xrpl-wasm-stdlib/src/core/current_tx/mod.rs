@@ -59,7 +59,6 @@
 //! ```
 
 use crate::core::types::blob::Blob;
-use crate::core::types::public_key::PublicKey;
 use crate::core::types::signature::{SIGNATURE_MAX_SIZE, Signature};
 use crate::core::types::transaction_type::TransactionType;
 use crate::host::error_codes::{
@@ -224,41 +223,6 @@ impl<T: FixedSizeFieldType> CurrentTxFieldGetter for T {
         match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
             Some(unsafe { value.assume_init() })
         })
-    }
-}
-
-/// Implementation of `CurrentTxFieldGetter` for XRPL public keys.
-///
-/// This implementation handles 33-byte compressed public key fields in XRPL transactions.
-/// Public keys are used for cryptographic signature verification and are commonly found
-/// in the SigningPubKey field and various other cryptographic contexts.
-///
-/// # Buffer Management
-///
-/// Uses a 33-byte buffer and validates that exactly 33 bytes are returned
-/// from the host function. The buffer is converted to a PublicKey using
-/// the `From<[u8; 33]>` implementation.
-impl CurrentTxFieldGetter for PublicKey {
-    #[inline]
-    fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<33, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<33, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
     }
 }
 
