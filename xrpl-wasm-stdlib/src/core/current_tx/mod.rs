@@ -63,7 +63,10 @@ use crate::core::types::public_key::PublicKey;
 use crate::core::types::signature::{SIGNATURE_MAX_SIZE, Signature};
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::{HASH256_SIZE, Hash256};
-use crate::host::error_codes::{match_result_code, match_result_code_optional};
+use crate::host::error_codes::{
+    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
+    match_result_code_with_expected_bytes_optional,
+};
 use crate::host::field_helpers::{
     get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
 };
@@ -159,36 +162,69 @@ pub trait CurrentTxFieldGetter: Sized {
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>>;
 }
 
-/// Implementation of `CurrentTxFieldGetter` for 32-bit unsigned integers.
+/// Trait for types that can be retrieved as fixed-size fields from ledger objects.
 ///
-/// This implementation handles 4-byte integer fields in XRPL transactions.
-/// Common use cases include sequence numbers, flags, timestamps, ledger sequence
-/// numbers, and various counters and identifiers.
+/// This trait enables a generic implementation of `CurrentTxFieldGetter` for all fixed-size
+/// unsigned integer types (u8, u16, u32, u64). Types implementing this trait must
+/// have a known, constant size in bytes.
+///
+/// # Implementing Types
+///
+/// - `u8` - 1 byte
+/// - `u16` - 2 bytes
+/// - `u32` - 4 bytes
+/// - `u64` - 8 bytes
+trait FixedSizeFieldType: Sized {
+    /// The size of this type in bytes
+    const SIZE: usize;
+}
+
+impl FixedSizeFieldType for u8 {
+    const SIZE: usize = 1;
+}
+
+impl FixedSizeFieldType for u16 {
+    const SIZE: usize = 2;
+}
+
+impl FixedSizeFieldType for u32 {
+    const SIZE: usize = 4;
+}
+
+impl FixedSizeFieldType for u64 {
+    const SIZE: usize = 8;
+}
+
+/// Generic implementation of `CurrentTxFieldGetter` for all fixed-size unsigned integer types.
+///
+/// This single implementation handles u8, u16, u32, and u64 by leveraging the
+/// `FixedSizeFieldType` trait. The implementation:
+/// - Allocates a buffer of the appropriate size
+/// - Calls the host function to retrieve the field
+/// - Validates that the returned byte count matches the expected size
+/// - Converts the buffer to the target type
 ///
 /// # Buffer Management
 ///
-/// Uses a 4-byte buffer and validates that exactly 4 bytes are returned
-/// from the host function. The bytes are interpreted as little-endian.
-impl CurrentTxFieldGetter for u32 {
+/// Uses `MaybeUninit` for efficient stack allocation without initialization overhead.
+/// The buffer size is determined at compile-time via the `SIZE` constant.
+impl<T: FixedSizeFieldType> CurrentTxFieldGetter for T {
     #[inline]
     fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<4, _>(field_code, |fc, buf, size| unsafe {
-            get_tx_field(fc, buf, size)
-        }) {
-            Result::Ok(buffer) => Result::Ok(u32::from_le_bytes(buffer)),
-            Result::Err(e) => Result::Err(e),
-        }
+        let mut value = core::mem::MaybeUninit::<T>::uninit();
+        let result_code = unsafe { get_tx_field(field_code, value.as_mut_ptr().cast(), T::SIZE) };
+        match_result_code_with_expected_bytes(result_code, T::SIZE, || unsafe {
+            value.assume_init()
+        })
     }
 
     #[inline]
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<4, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(u32::from_le_bytes)),
-            Result::Err(e) => Result::Err(e),
-        }
+        let mut value = core::mem::MaybeUninit::<T>::uninit();
+        let result_code = unsafe { get_tx_field(field_code, value.as_mut_ptr().cast(), T::SIZE) };
+        match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
+            Some(unsafe { value.assume_init() })
+        })
     }
 }
 
