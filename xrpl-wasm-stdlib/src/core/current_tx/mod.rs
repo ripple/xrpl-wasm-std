@@ -58,12 +58,9 @@
 //! let _flags = tx.get_flags().unwrap_or_panic();
 //! ```
 
-use crate::core::types::blob::Blob;
-use crate::core::types::signature::{SIGNATURE_MAX_SIZE, Signature};
 use crate::core::types::transaction_type::TransactionType;
 use crate::host::error_codes::{
-    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
-    match_result_code_with_expected_bytes_optional,
+    match_result_code_with_expected_bytes, match_result_code_with_expected_bytes_optional,
 };
 use crate::host::field_helpers::{
     get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
@@ -222,45 +219,6 @@ impl<T: FixedSizeFieldType> CurrentTxFieldGetter for T {
         let result_code = unsafe { get_tx_field(field_code, value.as_mut_ptr().cast(), T::SIZE) };
         match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
             Some(unsafe { value.assume_init() })
-        })
-    }
-}
-
-/// Implementation of `CurrentTxFieldGetter` for XRPL transaction signatures.
-///
-/// This implementation handles signature fields in XRPL transactions, which can contain
-/// either EdDSA (64 bytes) or ECDSA (70-72 bytes) signatures. The buffer is sized to
-/// accommodate the maximum possible signature size (72 bytes).
-///
-/// # Buffer Management
-///
-/// Uses a 72-byte buffer to accommodate both signature types. The actual length of the
-/// signature is determined by the return value from the host function and stored in the
-/// Signature's underlying Blob `len` field.
-impl CurrentTxFieldGetter for Signature {
-    #[inline]
-    fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; SIGNATURE_MAX_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), SIGNATURE_MAX_SIZE) };
-        match_result_code(result_code, || {
-            Signature(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            })
-        })
-    }
-
-    #[inline]
-    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; SIGNATURE_MAX_SIZE]>::uninit();
-        let result_code =
-            unsafe { get_tx_field(field_code, buffer.as_mut_ptr().cast(), SIGNATURE_MAX_SIZE) };
-        match_result_code_optional(result_code, || {
-            Some(Signature(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            }))
         })
     }
 }
