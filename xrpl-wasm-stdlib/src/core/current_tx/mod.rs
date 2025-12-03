@@ -58,12 +58,8 @@
 //! let _flags = tx.get_flags().unwrap_or_panic();
 //! ```
 
-use crate::core::types::transaction_type::TransactionType;
 use crate::host::error_codes::{
     match_result_code_with_expected_bytes, match_result_code_with_expected_bytes_optional,
-};
-use crate::host::field_helpers::{
-    get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
 };
 use crate::host::{Result, get_tx_field};
 
@@ -220,36 +216,6 @@ impl<T: FixedSizeFieldType> CurrentTxFieldGetter for T {
         match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
             Some(unsafe { value.assume_init() })
         })
-    }
-}
-
-/// Implementation of `CurrentTxFieldGetter` for XRPL TransactionType enums.
-///
-/// This implementation handles 2byte transaction type fields in XRPL transactions.
-///
-/// # Buffer Management
-///
-/// Uses a 2-byte buffer and validates that exactly 2 bytes are returned from the host function.
-impl CurrentTxFieldGetter for TransactionType {
-    #[inline]
-    fn get_from_current_tx(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<2, _>(field_code, |fc, buf, size| unsafe {
-            get_tx_field(fc, buf, size)
-        }) {
-            Result::Ok(buffer) => Result::Ok(i16::from_le_bytes(buffer).into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<2, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| i16::from_le_bytes(b).into())),
-            Result::Err(e) => Result::Err(e),
-        }
     }
 }
 
