@@ -31,7 +31,7 @@ use crate::host::Error;
 pub const MAX_VECTOR_256_SIZE: usize = 8;
 
 /// A collection of 256-bit hashes with a maximum size
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 #[repr(C)]
 pub struct Vector256 {
     /// The hash values

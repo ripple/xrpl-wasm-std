@@ -66,7 +66,6 @@ pub extern "C" fn finish() -> i32 {
         let cancel_after = opt_cancel_after.expect("CancelAfter should be set for testing");
         let _ = trace_num("  CancelAfter:", cancel_after as i64);
 
-        // Trace Field: Condition (optional - require it for testing)
         // Trace Field: Condition (optional)
         match current_escrow.get_condition() {
             Ok(opt_condition) => {
@@ -78,7 +77,6 @@ pub extern "C" fn finish() -> i32 {
                         DataRepr::AsHex,
                     );
 
-                    // Assert the condition matches the expected value
                     assert_eq!(
                         condition.len(),
                         EXPECTED_CONDITION.len(),
@@ -174,8 +172,9 @@ pub extern "C" fn finish() -> i32 {
         let _ = trace_num("  SourceTag:", source_tag as i64);
 
         // Trace Field: Data (contract data)
-        // Note: Data field is optional and only present if set during EscrowCreate
-        // We don't set it in runTest.js, so this will likely return empty or error
+        // Note: Data field is optional and only present if set during EscrowCreate or
+        // updated via the FinishFunction. We don't set it in runTest.js, so this will likely
+        // return empty or error.
         let data_result = current_escrow.get_data();
         if let Ok(contract_data) = data_result
             && contract_data.len > 0

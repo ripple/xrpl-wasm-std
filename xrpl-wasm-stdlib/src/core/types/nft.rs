@@ -46,8 +46,14 @@ pub mod flags {
     pub const TRANSFERABLE: u16 = 0x0008;
 }
 
-// A wrapper around NFToken flags that provides efficient helper methods.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// A wrapper around NFToken flags that provides efficient helper methods.
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this 2-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NftFlags(u16);
 
 impl NftFlags {
@@ -125,7 +131,13 @@ impl From<NftFlags> for u16 {
 /// - **Bytes 4-23**: Issuer account address (160 bits)
 /// - **Bytes 24-27**: Scrambled taxon (32 bits, big-endian)
 /// - **Bytes 28-31**: Sequence number (32 bits, big-endian)
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this 32-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct NFToken(pub [u8; NFT_ID_SIZE]);
 
