@@ -48,7 +48,6 @@ use crate::core::types::public_key::PublicKey;
 use crate::core::types::signature::Signature;
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::Hash256;
-use crate::core::types::vector_256::Vector256;
 use crate::host::error_codes::match_result_code_optional;
 use crate::host::{Error, Result, get_tx_field};
 use crate::sfield;
@@ -412,43 +411,5 @@ pub trait EscrowFinishFields: TransactionCommonFields {
             };
             Some(blob)
         })
-    }
-
-    /// Retrieves the credential IDs from the current EscrowFinish transaction.
-    ///
-    /// This optional field contains an array of credential IDs that authorize the transaction.
-    /// Credentials are a mechanism for accounts to grant specific permissions or capabilities
-    /// to other accounts. When present, the credential IDs must reference valid, accepted
-    /// credentials on the ledger.
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<Option<Vector256>>` where:
-    /// * `Ok(Some(Vector256))` - An array of credential IDs (32-byte hashes) if provided
-    /// * `Ok(None)` - If no credential IDs are specified
-    /// * `Err(Error)` - If an error occurred during field retrieval
-    ///
-    /// # Credential ID Format
-    ///
-    /// Each credential ID is a 32-byte (256-bit) hash that uniquely identifies a credential
-    /// on the ledger. The credential ID is computed from the credential's issuer, subject,
-    /// and credential type.
-    ///
-    /// # Usage Example
-    ///
-    /// ```no_run
-    /// use xrpl_wasm_stdlib::core::current_tx::escrow_finish::EscrowFinish;
-    /// use xrpl_wasm_stdlib::core::current_tx::traits::EscrowFinishFields;
-    ///
-    /// let tx = EscrowFinish;
-    /// if let Some(creds) = tx.get_credential_ids().unwrap() {
-    ///     for i in 0..creds.len() {
-    ///         let cred_id = creds.get(i).unwrap();
-    ///         // Process credential ID...
-    ///     }
-    /// }
-    /// ```
-    fn get_credential_ids(&self) -> Result<Option<Vector256>> {
-        get_field_optional(sfield::CredentialIDs)
     }
 }

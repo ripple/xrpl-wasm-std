@@ -427,19 +427,24 @@ pub extern "C" fn finish() -> i32 {
             let _ = trace("  Fulfillment: not present (FinishFunction validates condition)");
         }
 
+        // As part of https://github.com/ripple/xrpl-wasm-stdlib/issues/91, we had the concept (for a minute) of a
+        // `vector_256` struct to represent a full `Vector256` field. In that design, all bytes of this kind of field
+        // would be loaded to get any portion particular value of the vector. This felt both inefficient but also
+        // deviated from the Locator style we're employing in this library for array fields (e.g., Memos, Signers, etc).
+        // See https://github.com/ripple/xrpl-wasm-stdlib/issues/108 for the issue that tracks fixing this particular
+        // portion of this test (Note: this portion of the test will need to be rewritten using the Locator style).
         // CredentialIDs (Vector256 - array of 256-bit hashes)
-        // Use the high-level API to get credential IDs
-        let opt_credential_ids = escrow_finish.get_credential_ids().unwrap();
-        if let Some(credential_ids) = opt_credential_ids {
-            let _ = trace_num("  Number of CredentialIDs:", credential_ids.len() as i64);
-            for i in 0..credential_ids.len() {
-                let cred_id = credential_ids.get(i).unwrap();
-                let _ = trace_num("  CredentialID index:", i as i64);
-                let _ = trace_data("    CredentialID:", cred_id.as_bytes(), DataRepr::AsHex);
-            }
-        } else {
-            let _ = trace("  No CredentialIDs present");
-        }
+        // let opt_credential_ids = escrow_finish.get_credential_ids().unwrap();
+        // if let Some(credential_ids) = opt_credential_ids {
+        //     let _ = trace_num("  Number of CredentialIDs:", credential_ids.len() as i64);
+        //     for i in 0..credential_ids.len() {
+        //         let cred_id = credential_ids.get(i).unwrap();
+        //         let _ = trace_num("  CredentialID index:", i as i64);
+        //         let _ = trace_data("    CredentialID:", cred_id.as_bytes(), DataRepr::AsHex);
+        //     }
+        // } else {
+        //     let _ = trace("  No CredentialIDs present");
+        // }
 
         let _ = trace("}");
         let _ = trace(""); // Newline

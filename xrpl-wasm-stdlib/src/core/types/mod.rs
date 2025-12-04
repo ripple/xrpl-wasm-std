@@ -14,4 +14,3 @@ pub mod public_key;
 pub mod signature;
 pub mod transaction_type;
 pub mod uint;
-pub mod vector_256;
