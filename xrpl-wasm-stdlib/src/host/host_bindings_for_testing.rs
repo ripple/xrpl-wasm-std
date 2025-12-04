@@ -1,6 +1,16 @@
 // This file exists as a host_binding stand-in for non-WASM targets. For example, this file will
 // be used during unit tests.
 
+// Float rounding mode constants (same as in host_bindings.rs)
+#[allow(unused)]
+pub const FLOAT_ROUNDING_MODES_TO_NEAREST: i32 = 0;
+#[allow(unused)]
+pub const FLOAT_ROUNDING_MODES_TOWARDS_ZERO: i32 = 1;
+#[allow(unused)]
+pub const FLOAT_ROUNDING_MODES_DOWNWARD: i32 = 2;
+#[allow(unused)]
+pub const FLOAT_ROUNDING_MODES_UPWARD: i32 = 3;
+
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn get_ledger_sqn() -> i32 {
