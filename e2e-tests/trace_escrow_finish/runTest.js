@@ -1,8 +1,7 @@
 const xrpl = require("xrpl")
 
 async function test(testContext) {
-  const { client, finish, submit, sourceWallet, destWallet, allWallets } =
-    testContext
+  const {client, finish, submit, sourceWallet, destWallet, fundWallet} = testContext
 
   // Create a custom escrow with comprehensive fields for testing
   await client.connect()
@@ -58,8 +57,8 @@ async function test(testContext) {
 
   // Setup multi-signing for the EscrowFinish transaction
   // We need at least 2 signers for the test
-  const signer1 = allWallets[0]
-  const signer2 = allWallets[1]
+  const signer1 = await fundWallet()
+  const signer2 = await fundWallet()
 
   // Set up SignerList on sourceWallet
   const signerListTx = {
@@ -232,4 +231,4 @@ async function test(testContext) {
   await client.disconnect()
 }
 
-module.exports = { test }
+module.exports = {test}
