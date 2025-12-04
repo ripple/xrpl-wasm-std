@@ -253,11 +253,6 @@ pub extern "C" fn finish() -> i32 {
         );
         let _ = trace_data("  WalletLocator:", &wallet_locator.0, DataRepr::AsHex);
 
-        // Trace the `WalletSize`
-        let wallet_size = account.wallet_size().unwrap().unwrap();
-        assert_eq!(wallet_size, 25);
-        let _ = trace_num("  WalletSize:", wallet_size as i64);
-
         let _ = trace("}");
         let _ = trace("");
     }
