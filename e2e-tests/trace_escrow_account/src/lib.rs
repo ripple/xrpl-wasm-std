@@ -119,6 +119,7 @@ pub extern "C" fn finish() -> i32 {
             .expect("Balance should be present");
         let _ = trace_amount("Balance of Account Finishing the Escrow:", &balance_amount);
 
+        #[cfg(target_arch = "wasm32")]
         match balance_amount {
             Amount::XRP { num_drops } => {
                 // Balance is system-generated, just verify it's reasonable
