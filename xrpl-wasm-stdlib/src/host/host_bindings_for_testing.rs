@@ -754,8 +754,7 @@ pub unsafe fn trace_opaque_float(
     let float_hex = if _opaque_float_ptr.is_null() || _opaque_float_len == 0 {
         String::new()
     } else {
-        let float_slice =
-            unsafe { slice::from_raw_parts(_opaque_float_ptr, _opaque_float_len) };
+        let float_slice = unsafe { slice::from_raw_parts(_opaque_float_ptr, _opaque_float_len) };
         float_slice
             .iter()
             .map(|b| format!("{:02X}", b))
