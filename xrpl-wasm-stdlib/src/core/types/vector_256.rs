@@ -89,9 +89,6 @@ impl Vector256 {
     pub fn from_bytes(bytes: &[u8]) -> crate::host::Result<Self> {
         use crate::host::trace::{trace, trace_num};
 
-        let _ = trace("Vector256::from_bytes called");
-        let _ = trace_num("  bytes.len():", bytes.len() as i64);
-
         if bytes.is_empty() {
             let _ = trace("  ERROR: Buffer is empty");
             return crate::host::Result::Err(Error::BufferTooSmall);
@@ -99,7 +96,6 @@ impl Vector256 {
 
         // Read VL-encoded length: first byte is total data length in bytes
         let data_len = bytes[0] as usize;
-        let _ = trace_num("  data_len (first byte):", data_len as i64);
 
         // Validate data length is a multiple of 32 (each hash is 32 bytes)
         if !data_len.is_multiple_of(32) {
@@ -110,7 +106,6 @@ impl Vector256 {
 
         // Calculate number of hashes from total data length
         let count = data_len / 32;
-        let _ = trace_num("  count (data_len / 32):", count as i64);
 
         // Enforce maximum size limit
         if count > MAX_VECTOR_256_SIZE {
@@ -122,7 +117,6 @@ impl Vector256 {
 
         // Verify buffer contains length byte + all hash data
         let expected_len = 1 + data_len;
-        let _ = trace_num("  expected_len (1 + data_len):", expected_len as i64);
         if bytes.len() < expected_len {
             let _ = trace("  ERROR: Buffer too small for expected data");
             let _ = trace_num("  bytes.len():", bytes.len() as i64);
@@ -131,7 +125,6 @@ impl Vector256 {
         }
 
         // Parse each 32-byte hash from the buffer
-        let _ = trace("  Parsing hashes...");
         let mut vector = Self::new();
         vector.len = count as u8;
 
@@ -143,7 +136,6 @@ impl Vector256 {
             vector.hashes[i] = Hash256::from(hash_bytes);
         }
 
-        let _ = trace("  Vector256::from_bytes SUCCESS");
         crate::host::Result::Ok(vector)
     }
 
