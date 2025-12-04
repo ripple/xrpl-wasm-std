@@ -1,7 +1,7 @@
 const xrpl = require("xrpl")
 
 async function test(testContext) {
-  const {client, finish, submit, sourceWallet, destWallet, fundWallet} =
+  const { client, finish, submit, sourceWallet, destWallet, fundWallet } =
     testContext
 
   // Create a custom escrow with comprehensive fields for testing
