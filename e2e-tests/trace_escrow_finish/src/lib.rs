@@ -114,7 +114,7 @@ pub extern "C" fn finish() -> i32 {
             let _ = trace_num("  TicketSequence:", ticket_sequence as i64);
         }
 
-        let array_len = unsafe { host::get_tx_array_len(sfield::Memos) };
+        let array_len = unsafe { host::get_tx_array_len(sfield::Memos.into()) };
         assert_eq!(array_len, 1);
         let _ = trace_num("  Memos array len:", array_len as i64);
 
@@ -169,7 +169,7 @@ pub extern "C" fn finish() -> i32 {
             DataRepr::AsHex,
         );
 
-        let array_len = unsafe { host::get_tx_array_len(sfield::Signers) };
+        let array_len = unsafe { host::get_tx_array_len(sfield::Signers.into()) };
         assert_eq!(array_len, 2);
         let _ = trace_num("  Signers array len:", array_len as i64);
 
@@ -282,7 +282,7 @@ pub extern "C" fn finish() -> i32 {
         }
 
         // CredentialIDs (Array of Hashes)
-        let array_len = unsafe { host::get_tx_array_len(sfield::CredentialIDs) };
+        let array_len = unsafe { host::get_tx_array_len(sfield::CredentialIDs.into()) };
         let _ = trace_num("  CredentialIDs array len:", array_len as i64);
         for i in 0..array_len {
             let mut buf = [0x00; 32];

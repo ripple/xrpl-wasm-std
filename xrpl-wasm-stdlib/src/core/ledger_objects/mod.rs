@@ -1,4 +1,5 @@
 pub mod account_root;
+pub mod array_object;
 pub mod current_escrow;
 pub mod escrow;
 pub mod traits;
@@ -6,9 +7,11 @@ pub mod traits;
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
 use crate::core::types::amount::{AMOUNT_SIZE, Amount};
 use crate::core::types::blob::Blob;
-use crate::core::types::currency::{CURRENCY_SIZE, Currency};
+use crate::core::types::currency::Currency;
 use crate::core::types::issue::Issue;
-use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
+use crate::core::types::uint::{
+    HASH128_SIZE, HASH160_SIZE, HASH192_SIZE, HASH256_SIZE, Hash128, Hash160, Hash192, Hash256,
+};
 use crate::host::error_codes::{
     match_result_code_with_expected_bytes, match_result_code_with_expected_bytes_optional,
 };
@@ -40,16 +43,17 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// ```rust,no_run
 /// use xrpl_wasm_stdlib::core::ledger_objects::{ledger_object, current_ledger_object};
 /// use xrpl_wasm_stdlib::core::types::account_id::AccountID;
+/// use xrpl_wasm_stdlib::core::types::amount::Amount;
 /// use xrpl_wasm_stdlib::sfield;
 ///
 /// fn example() {
 ///   let slot = 0;
 ///   // Get a required field from a specific ledger object
-///   let balance: u64 = ledger_object::get_field(slot, sfield::Balance).unwrap();
-///   let account: AccountID = ledger_object::get_field(slot, sfield::Account).unwrap();
+///   let balance = ledger_object::get_field(slot, sfield::Balance).unwrap();
+///   let account = ledger_object::get_field(slot, sfield::Account).unwrap();
 ///
 ///   // Get an optional field from the current ledger object
-///   let flags: Option<u32> = current_ledger_object::get_field_optional(sfield::Flags).unwrap();
+///   let flags = current_ledger_object::get_field_optional(sfield::Flags).unwrap();
 /// }
 /// ```
 ///
@@ -436,6 +440,239 @@ impl FieldGetter for Hash256 {
     }
 }
 
+/// Implementation of `FieldGetter` for 160-bit cryptographic hashes.
+///
+/// This implementation handles 20-byte hash fields in XRPL ledger objects.
+/// Hash160 values are used for various cryptographic operations and identifiers.
+///
+/// # Buffer Management
+///
+/// Uses a 20-byte buffer (HASH160_SIZE) and validates that exactly 20 bytes
+/// are returned from the host function to ensure data integrity.
+impl FieldGetter for Hash160 {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH160_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH160_SIZE)
+        };
+        match_result_code_with_expected_bytes(result_code, HASH160_SIZE, || {
+            Hash160::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH160_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH160_SIZE)
+        };
+        match_result_code_with_expected_bytes_optional(result_code, HASH160_SIZE, || {
+            Some(Hash160::from(unsafe { buffer.assume_init() }))
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH160_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                HASH160_SIZE,
+            )
+        };
+        match_result_code_with_expected_bytes(result_code, HASH160_SIZE, || {
+            Hash160::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH160_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                HASH160_SIZE,
+            )
+        };
+        match_result_code_with_expected_bytes_optional(result_code, HASH160_SIZE, || {
+            Some(Hash160::from(unsafe { buffer.assume_init() }))
+        })
+    }
+}
+
+/// Implementation of `FieldGetter` for 192-bit cryptographic hashes.
+///
+/// This implementation handles 24-byte hash fields in XRPL ledger objects.
+/// Hash192 values are used for various cryptographic operations and identifiers.
+///
+/// # Buffer Management
+///
+/// Uses a 24-byte buffer (HASH192_SIZE) and validates that exactly 24 bytes
+/// are returned from the host function to ensure data integrity.
+impl FieldGetter for Hash192 {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH192_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH192_SIZE)
+        };
+        match_result_code_with_expected_bytes(result_code, HASH192_SIZE, || {
+            Hash192::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH192_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH192_SIZE)
+        };
+        match_result_code_with_expected_bytes_optional(result_code, HASH192_SIZE, || {
+            Some(Hash192::from(unsafe { buffer.assume_init() }))
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH192_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                HASH192_SIZE,
+            )
+        };
+        match_result_code_with_expected_bytes(result_code, HASH192_SIZE, || {
+            Hash192::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; HASH192_SIZE]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(
+                register_num,
+                field_code,
+                buffer.as_mut_ptr().cast(),
+                HASH192_SIZE,
+            )
+        };
+        match_result_code_with_expected_bytes_optional(result_code, HASH192_SIZE, || {
+            Some(Hash192::from(unsafe { buffer.assume_init() }))
+        })
+    }
+}
+
+/// Implementation of `FieldGetter` for XRPL currency codes.
+///
+/// This implementation handles 20-byte currency code fields in XRPL ledger objects.
+/// Currency codes uniquely identify different currencies and assets on the XRPL.
+///
+/// # Buffer Management
+///
+/// Uses a 20-byte buffer and validates that exactly 20 bytes are returned
+/// from the host function to ensure data integrity.
+impl FieldGetter for Currency {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 20) };
+        match_result_code_with_expected_bytes(result_code, 20, || {
+            Currency::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
+        let result_code =
+            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), 20) };
+        match_result_code_with_expected_bytes_optional(result_code, 20, || {
+            Some(Currency::from(unsafe { buffer.assume_init() }))
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 20)
+        };
+        match_result_code_with_expected_bytes(result_code, 20, || {
+            Currency::from(unsafe { buffer.assume_init() })
+        })
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        let mut buffer = core::mem::MaybeUninit::<[u8; 20]>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), 20)
+        };
+        match_result_code_with_expected_bytes_optional(result_code, 20, || {
+            Some(Currency::from(unsafe { buffer.assume_init() }))
+        })
+    }
+}
+
+impl FieldGetter for Issue {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
+            get_current_ledger_obj_field(fc, buf, size)
+        }) {
+            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
+            get_current_ledger_obj_field(fc, buf, size)
+        }) {
+            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
+                Result::Ok(issue) => Result::Ok(Some(issue)),
+                Result::Err(e) => Result::Err(e),
+            },
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
+            get_ledger_obj_field(register_num, fc, buf, size)
+        }) {
+            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
+            get_ledger_obj_field(register_num, fc, buf, size)
+        }) {
+            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
+                Result::Ok(issue) => Result::Ok(Some(issue)),
+                Result::Err(e) => Result::Err(e),
+            },
+            Result::Ok(None) => Result::Ok(None),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+}
+
 /// Implementation of `FieldGetter` for variable-length binary data.
 ///
 /// This implementation handles blob fields in XRPL ledger objects, which can contain
@@ -494,150 +731,43 @@ impl<const N: usize> FieldGetter for Blob<N> {
     }
 }
 
-/// Implementation of `FieldGetter` for XRPL currency codes.
-///
-/// This implementation handles 20-byte currency code fields in XRPL ledger objects.
-/// Currency codes uniquely identify different currencies and assets on the XRPL.
-///
-/// # Buffer Management
-///
-/// Uses a 20-byte buffer and validates that exactly 20 bytes are returned
-/// from the host function to ensure data integrity.
-impl FieldGetter for Currency {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL issues.
-///
-/// This implementation handles issue fields in XRPL ledger objects.
-/// Supports all three Issue variants: XRP, IOU, and MPT.
-///
-/// # Buffer Management
-///
-/// Uses a 40-byte buffer to accommodate all Issue types:
-/// - XRP: 20 bytes (all zeros)
-/// - IOU: 40 bytes (20 bytes currency + 20 bytes issuer)
-/// - MPT: 24 bytes (4 bytes sequence + 20 bytes issuer)
-///
-/// The implementation detects the Issue type based on the number of bytes returned
-/// from the host function.
-impl FieldGetter for Issue {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
-                Result::Ok(issue) => Result::Ok(Some(issue)),
-                Result::Err(e) => Result::Err(e),
-            },
-            Result::Ok(None) => Result::Ok(None),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
-                Result::Ok(issue) => Result::Ok(Some(issue)),
-                Result::Err(e) => Result::Err(e),
-            },
-            Result::Ok(None) => Result::Ok(None),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
 pub mod current_ledger_object {
     use super::FieldGetter;
     use crate::host::Result;
+    use crate::sfield::SField;
 
     /// Retrieves a field from the current ledger object.
     ///
     /// # Arguments
     ///
-    /// * `field_code` - The field code identifying which field to retrieve
+    /// * `field` - An SField constant that encodes both the field code and expected type
     ///
     /// # Returns
     ///
     /// Returns a `Result<T>` where:
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use xrpl_wasm_stdlib::core::ledger_objects::current_ledger_object;
+    /// use xrpl_wasm_stdlib::sfield;
+    ///
+    /// // Type is automatically inferred from the SField constant
+    /// let flags = current_ledger_object::get_field(sfield::Flags).unwrap();  // u32
+    /// let balance = current_ledger_object::get_field(sfield::Balance).unwrap();  // u64
+    /// ```
     #[inline]
-    pub fn get_field<T: FieldGetter>(field_code: i32) -> Result<T> {
-        T::get_from_current_ledger_obj(field_code)
+    pub fn get_field<T: FieldGetter, const CODE: i32>(_field: SField<T, CODE>) -> Result<T> {
+        T::get_from_current_ledger_obj(CODE)
     }
 
     /// Retrieves an optionally present field from the current ledger object.
     ///
     /// # Arguments
     ///
-    /// * `field_code` - The field code identifying which field to retrieve
+    /// * `field` - An SField constant that encodes both the field code and expected type
     ///
     /// # Returns
     ///
@@ -646,30 +776,47 @@ pub mod current_ledger_object {
     /// * `Ok(None)` - If the field is not present
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field_optional<T: FieldGetter>(field_code: i32) -> Result<Option<T>> {
-        T::get_from_current_ledger_obj_optional(field_code)
+    pub fn get_field_optional<T: FieldGetter, const CODE: i32>(
+        _field: SField<T, CODE>,
+    ) -> Result<Option<T>> {
+        T::get_from_current_ledger_obj_optional(CODE)
     }
 }
 
 pub mod ledger_object {
     use super::FieldGetter;
     use crate::host::Result;
+    use crate::sfield::SField;
 
     /// Retrieves a field from a specified ledger object.
     ///
     /// # Arguments
     ///
     /// * `register_num` - The register number holding the ledger object to look for data in
-    /// * `field_code` - The field code identifying which field to retrieve
+    /// * `field` - An SField constant that encodes both the field code and expected type
     ///
     /// # Returns
     ///
     /// Returns a `Result<T>` where:
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use xrpl_wasm_stdlib::core::ledger_objects::ledger_object;
+    /// use xrpl_wasm_stdlib::sfield;
+    ///
+    /// // Type is automatically inferred from the SField constant
+    /// let balance = ledger_object::get_field(0, sfield::Balance).unwrap();  // u64
+    /// let account = ledger_object::get_field(0, sfield::Account).unwrap();  // AccountID
+    /// ```
     #[inline]
-    pub fn get_field<T: FieldGetter>(register_num: i32, field_code: i32) -> Result<T> {
-        T::get_from_ledger_obj(register_num, field_code)
+    pub fn get_field<T: FieldGetter, const CODE: i32>(
+        register_num: i32,
+        _field: SField<T, CODE>,
+    ) -> Result<T> {
+        T::get_from_ledger_obj(register_num, CODE)
     }
 
     /// Retrieves an optionally present field from a specified ledger object.
@@ -677,7 +824,7 @@ pub mod ledger_object {
     /// # Arguments
     ///
     /// * `register_num` - The register number holding the ledger object to look for data in
-    /// * `field_code` - The field code identifying which field to retrieve
+    /// * `field` - An SField constant that encodes both the field code and expected type
     ///
     /// # Returns
     ///
@@ -686,11 +833,11 @@ pub mod ledger_object {
     /// * `Ok(None)` - If the field is not present in the ledger object
     /// * `Err(Error)` - If the field retrieval operation failed
     #[inline]
-    pub fn get_field_optional<T: FieldGetter>(
+    pub fn get_field_optional<T: FieldGetter, const CODE: i32>(
         register_num: i32,
-        field_code: i32,
+        _field: SField<T, CODE>,
     ) -> Result<Option<T>> {
-        T::get_from_ledger_obj_optional(register_num, field_code)
+        T::get_from_ledger_obj_optional(register_num, CODE)
     }
 
     #[cfg(test)]
@@ -713,21 +860,21 @@ pub mod ledger_object {
         #[test]
         fn test_field_getter_basic_types() {
             // Test that all basic integer types work
-            assert!(u16::get_from_current_ledger_obj(sfield::LedgerEntryType).is_ok());
-            assert!(u32::get_from_current_ledger_obj(sfield::Flags).is_ok());
-            assert!(u64::get_from_current_ledger_obj(sfield::Balance).is_ok());
+            assert!(u16::get_from_current_ledger_obj(65537i32).is_ok());
+            assert!(u32::get_from_current_ledger_obj(65538i32).is_ok());
+            assert!(u64::get_from_current_ledger_obj(393216i32).is_ok());
         }
 
         #[test]
         fn test_field_getter_xrpl_types() {
             // Test that XRPL-specific types work
-            assert!(AccountID::get_from_current_ledger_obj(sfield::Account).is_ok());
-            assert!(Amount::get_from_current_ledger_obj(sfield::Amount).is_ok());
-            assert!(Hash128::get_from_current_ledger_obj(sfield::EmailHash).is_ok());
-            assert!(Hash256::get_from_current_ledger_obj(sfield::PreviousTxnID).is_ok());
+            assert!(AccountID::get_from_current_ledger_obj(524289i32).is_ok());
+            assert!(Amount::get_from_current_ledger_obj(393216i32).is_ok());
+            assert!(Hash128::get_from_current_ledger_obj(262145i32).is_ok());
+            assert!(Hash256::get_from_current_ledger_obj(262146i32).is_ok());
 
             let blob: Blob<DEFAULT_BLOB_SIZE> =
-                Blob::get_from_current_ledger_obj(sfield::PublicKey).unwrap();
+                Blob::get_from_current_ledger_obj(sfield::PublicKey.into()).unwrap();
             // The test host returns buffer length as the result
             assert_eq!(blob.len, DEFAULT_BLOB_SIZE);
         }
@@ -735,11 +882,11 @@ pub mod ledger_object {
         #[test]
         fn test_field_getter_optional_variants() {
             // Test optional field retrieval
-            let result = u32::get_from_current_ledger_obj_optional(sfield::Flags);
+            let result = u32::get_from_current_ledger_obj_optional(65538i32);
             assert!(result.is_ok());
             assert!(result.unwrap().is_some());
 
-            let result = AccountID::get_from_current_ledger_obj_optional(sfield::Account);
+            let result = AccountID::get_from_current_ledger_obj_optional(524289i32);
             assert!(result.is_ok());
             assert!(result.unwrap().is_some());
         }
@@ -748,16 +895,16 @@ pub mod ledger_object {
         fn test_field_getter_with_slot() {
             // Test ledger object field retrieval with slot numbers
             let slot = 0;
-            assert!(u32::get_from_ledger_obj(slot, sfield::Flags).is_ok());
-            assert!(u64::get_from_ledger_obj(slot, sfield::Balance).is_ok());
-            assert!(AccountID::get_from_ledger_obj(slot, sfield::Account).is_ok());
+            assert!(u32::get_from_ledger_obj(slot, 65538i32).is_ok());
+            assert!(u64::get_from_ledger_obj(slot, 393216i32).is_ok());
+            assert!(AccountID::get_from_ledger_obj(slot, 524289i32).is_ok());
         }
 
         #[test]
         fn test_field_getter_optional_with_slot() {
             // Test optional field retrieval with slot numbers
             let slot = 0;
-            let result = u32::get_from_ledger_obj_optional(slot, sfield::Flags);
+            let result = u32::get_from_ledger_obj_optional(slot, 65538i32);
             assert!(result.is_ok());
             assert!(result.unwrap().is_some());
         }
@@ -769,10 +916,10 @@ pub mod ledger_object {
         #[test]
         fn test_current_ledger_object_module() {
             // Test the current_ledger_object module's convenience functions
-            assert!(current_ledger_object::get_field::<u32>(sfield::Flags).is_ok());
-            assert!(current_ledger_object::get_field::<AccountID>(sfield::Account).is_ok());
+            assert!(current_ledger_object::get_field(sfield::Flags).is_ok());
+            assert!(current_ledger_object::get_field(sfield::Account).is_ok());
 
-            let result = current_ledger_object::get_field_optional::<u32>(sfield::Flags);
+            let result = current_ledger_object::get_field_optional(sfield::Flags);
             assert!(result.is_ok());
             assert!(result.unwrap().is_some());
         }
@@ -781,16 +928,16 @@ pub mod ledger_object {
         fn test_ledger_object_module() {
             // Test the ledger_object module's convenience functions
             let slot = 0;
-            assert!(ledger_object::get_field::<u16>(slot, sfield::LedgerEntryType).is_ok());
-            assert!(ledger_object::get_field::<u32>(slot, sfield::Flags).is_ok());
-            assert!(ledger_object::get_field::<u64>(slot, sfield::Balance).is_ok());
-            assert!(ledger_object::get_field::<AccountID>(slot, sfield::Account).is_ok());
-            assert!(ledger_object::get_field::<Amount>(slot, sfield::Amount).is_ok());
-            assert!(ledger_object::get_field::<Hash128>(slot, sfield::EmailHash).is_ok());
-            assert!(ledger_object::get_field::<Hash256>(slot, sfield::PreviousTxnID).is_ok());
-            assert!(ledger_object::get_field::<Blob<33>>(slot, sfield::PublicKey).is_ok());
+            assert!(ledger_object::get_field(slot, sfield::LedgerEntryType).is_ok());
+            assert!(ledger_object::get_field(slot, sfield::Flags).is_ok());
+            assert!(ledger_object::get_field(slot, sfield::Balance).is_ok());
+            assert!(ledger_object::get_field(slot, sfield::Account).is_ok());
+            assert!(ledger_object::get_field(slot, sfield::Amount).is_ok());
+            assert!(ledger_object::get_field(slot, sfield::EmailHash).is_ok());
+            assert!(ledger_object::get_field(slot, sfield::PreviousTxnID).is_ok());
+            assert!(ledger_object::get_field(slot, sfield::PublicKey).is_ok());
 
-            let result = ledger_object::get_field_optional::<u32>(slot, sfield::Flags);
+            let result = ledger_object::get_field_optional(slot, sfield::Flags);
             assert!(result.is_ok());
             assert!(result.unwrap().is_some());
         }
@@ -803,8 +950,8 @@ pub mod ledger_object {
         fn test_type_inference() {
             let slot = 0;
             // Verify type inference works with turbofish syntax
-            let _balance = get_field::<u64>(slot, sfield::Balance);
-            let _account = get_field::<AccountID>(slot, sfield::Account);
+            let _balance = get_field(slot, sfield::Balance);
+            let _account = get_field(slot, sfield::Account);
 
             // Verify type inference works with type annotations
             let _sequence: Result<u32> = get_field(slot, sfield::Sequence);
@@ -818,17 +965,17 @@ pub mod ledger_object {
         #[test]
         fn test_type_sizes() {
             // Verify that returned types have the expected sizes
-            let hash128 = Hash128::get_from_current_ledger_obj(sfield::EmailHash).unwrap();
+            let hash128 = Hash128::get_from_current_ledger_obj(262145i32).unwrap();
             assert_eq!(hash128.as_bytes().len(), HASH128_SIZE);
 
-            let hash256 = Hash256::get_from_current_ledger_obj(sfield::PreviousTxnID).unwrap();
+            let hash256 = Hash256::get_from_current_ledger_obj(262146i32).unwrap();
             assert_eq!(hash256.as_bytes().len(), HASH256_SIZE);
 
-            let account = AccountID::get_from_current_ledger_obj(sfield::Account).unwrap();
+            let account = AccountID::get_from_current_ledger_obj(524289i32).unwrap();
             assert_eq!(account.0.len(), ACCOUNT_ID_SIZE);
 
             let blob: Blob<{ PUBLIC_KEY_BUFFER_SIZE }> =
-                Blob::get_from_current_ledger_obj(sfield::PublicKey).unwrap();
+                Blob::get_from_current_ledger_obj(sfield::PublicKey.into()).unwrap();
             // In test environment, host returns buffer size as result code
             assert_eq!(blob.len, PUBLIC_KEY_BUFFER_SIZE);
             assert_eq!(blob.data.len(), PUBLIC_KEY_BUFFER_SIZE);
