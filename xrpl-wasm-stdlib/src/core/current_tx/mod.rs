@@ -64,7 +64,6 @@ use crate::core::types::blob::Blob;
 use crate::core::types::public_key::PublicKey;
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::{HASH256_SIZE, Hash256};
-use crate::host::error_codes::{match_result_code, match_result_code_optional};
 use crate::host::field_helpers::{
     get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
     get_variable_size_field, get_variable_size_field_optional,

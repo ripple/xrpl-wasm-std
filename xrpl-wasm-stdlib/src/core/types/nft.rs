@@ -18,7 +18,7 @@
 //! ```
 
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-use crate::core::types::blob::{NFT_URI_BLOB_SIZE, NftUriBlob};
+use crate::core::types::blob::{URI_BLOB_SIZE, UriBlob};
 use crate::host;
 use crate::host::{Error, Result};
 
@@ -314,8 +314,8 @@ impl NFToken {
     /// * `Err(Error)` - If the NFT is not found or the host function fails
     ///
     ///
-    pub fn uri(&self, owner: &AccountID) -> Result<NftUriBlob> {
-        let mut uri_buf = [0u8; NFT_URI_BLOB_SIZE];
+    pub fn uri(&self, owner: &AccountID) -> Result<UriBlob> {
+        let mut uri_buf = [0u8; URI_BLOB_SIZE];
         let result = unsafe {
             host::get_nft(
                 owner.0.as_ptr(),
@@ -328,7 +328,7 @@ impl NFToken {
         };
 
         match result {
-            code if code > 0 => Result::Ok(NftUriBlob::from(uri_buf)),
+            code if code > 0 => Result::Ok(UriBlob::from(uri_buf)),
             code => Result::Err(Error::from_code(code)),
         }
     }
@@ -588,6 +588,6 @@ mod tests {
         let result = nft.uri(&owner);
         assert!(result.is_ok());
         let uri = result.unwrap();
-        assert!(uri.len <= NFT_URI_BLOB_SIZE);
+        assert!(uri.len <= URI_BLOB_SIZE);
     }
 }
