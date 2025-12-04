@@ -64,6 +64,8 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace Field: ComputationAllowance
         let computation_allowance: u32 = escrow_finish.get_computation_allowance().unwrap();
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(computation_allowance, 1000001);
         // ComputationAllowance is set in the transaction - just verify it's reasonable
         let _ = trace_num("  ComputationAllowance:", computation_allowance as i64);
 
@@ -74,6 +76,8 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace Field: Sequence
         let sequence: u32 = escrow_finish.get_sequence().unwrap();
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(sequence, 4294967295);
         // Sequence is system-generated based on account state
         let _ = trace_num("  Sequence:", sequence as i64);
 
@@ -96,7 +100,7 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: LastLedgerSequence (optional)
         let opt_last_ledger_sequence = escrow_finish.get_last_ledger_sequence().unwrap();
         if let Some(last_ledger_sequence) = opt_last_ledger_sequence {
-            // LastLedgerSequence is optional expiration, just trace it
+            // LastLedgerSequence is optional, just trace it
             let _ = trace_num("  LastLedgerSequence:", last_ledger_sequence as i64);
         }
 
