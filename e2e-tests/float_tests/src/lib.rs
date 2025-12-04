@@ -16,11 +16,11 @@ use xrpl_wasm_stdlib::host::{
     float_subtract, get_ledger_obj_array_len, get_ledger_obj_field, get_ledger_obj_nested_field,
     trace_opaque_float,
 };
-use xrpl_wasm_stdlib::sfield;
 use xrpl_wasm_stdlib::sfield::{
     Account, AccountTxnID, Balance, Domain, EmailHash, Flags, LedgerEntryType, MessageKey,
     OwnerCount, PreviousTxnID, PreviousTxnLgrSeq, RegularKey, Sequence, TicketCount, TransferRate,
 };
+use xrpl_wasm_stdlib::{assert_eq, sfield};
 
 fn test_float_from_host() {
     let _ = trace("\n$$$ test_float_from_host $$$");
@@ -520,6 +520,6 @@ mod coverage_tests {
         // The finish() function returns 1 on success, or a negative error code.
         // With stub host functions, we expect success (though the actual
         // behavior depends on the stub implementations).
-        assert_eq!(result, 1, "finish() should return 1 on success");
+        core::assert_eq!(result, 1, "finish() should return 1 on success");
     }
 }
