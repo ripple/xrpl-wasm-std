@@ -17,7 +17,7 @@ use xrpl_wasm_stdlib::core::types::account_id::AccountID;
 use xrpl_wasm_stdlib::core::types::amount::Amount;
 use xrpl_wasm_stdlib::core::types::keylets::account_keylet;
 use xrpl_wasm_stdlib::host::cache_ledger_obj;
-use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_data, trace_num};
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_amount, trace_data, trace_num};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -117,6 +117,8 @@ pub extern "C" fn finish() -> i32 {
             .balance()
             .unwrap()
             .expect("Balance should be present");
+        let _ = trace_amount("Balance of Account Finishing the Escrow:", &balance_amount);
+
         match balance_amount {
             Amount::XRP { num_drops } => {
                 // Balance is system-generated, just verify it's reasonable
