@@ -4,7 +4,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 mod imports {
     extern crate std;
-    pub use std::{format, println, slice, string::String, vec::Vec};
+    pub use std::{fmt::Write, println, slice, string::String};
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -630,186 +630,92 @@ pub unsafe fn float_log(
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn trace(
-    _msg_read_ptr: *const u8,
-    _msg_read_len: usize,
-    _data_read_ptr: *const u8,
-    _data_read_len: usize,
+    msg_read_ptr: *const u8,
+    msg_read_len: usize,
+    data_read_ptr: *const u8,
+    data_read_len: usize,
     _as_hex: i32,
 ) -> i32 {
-    // Read the message bytes from the pointer and convert to UTF-8 string
-    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
-        String::new()
+    let msg = unsafe { read_message_from_ptr(msg_read_ptr, msg_read_len) };
+    let data_output = if _as_hex == 1 {
+        unsafe { format_bytes_as_hex(data_read_ptr, data_read_len) }
     } else {
-        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
-        String::from_utf8_lossy(msg_slice).into_owned()
-    };
-
-    // Read the data bytes
-    let data_output = if _data_read_ptr.is_null() || _data_read_len == 0 {
-        String::new()
-    } else {
-        let data_slice = unsafe { slice::from_raw_parts(_data_read_ptr, _data_read_len) };
-        // Print based on format (0 = UTF-8, 1 = hex)
-        if _as_hex == 1 {
-            data_slice
-                .iter()
-                .map(|b| format!("{:02X}", b))
-                .collect::<Vec<_>>()
-                .join("")
-        } else {
-            String::from_utf8_lossy(data_slice).into_owned()
-        }
+        unsafe { read_message_from_ptr(data_read_ptr, data_read_len) }
     };
 
     println!("{} {}", msg, data_output);
-
-    // Return the total number of bytes written (message + data)
-    let sum = _msg_read_len.saturating_add(_data_read_len);
-    if sum > i32::MAX as usize {
-        i32::MAX
-    } else {
-        sum as i32
-    }
+    calculate_return_sum(msg_read_len, data_read_len)
 }
 
 #[allow(clippy::missing_safety_doc)]
-pub unsafe fn trace_num(_msg_read_ptr: *const u8, _msg_read_len: usize, _number: i64) -> i32 {
-    // Read the message bytes from the pointer and convert to UTF-8 string
-    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
-        String::new()
-    } else {
-        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
-        String::from_utf8_lossy(msg_slice).into_owned()
-    };
-
-    // Log the message and number to console
-    println!("{} {}", msg, _number);
-
-    // Return the total number of bytes written (message + 8 bytes for i64)
-    let sum = _msg_read_len.saturating_add(8);
-    if sum > i32::MAX as usize {
-        i32::MAX
-    } else {
-        sum as i32
-    }
+pub unsafe fn trace_num(msg_read_ptr: *const u8, msg_read_len: usize, number: i64) -> i32 {
+    let msg = read_message_from_ptr(msg_read_ptr, msg_read_len);
+    println!("{} {}", msg, number);
+    calculate_return_sum(msg_read_len, 8)
 }
 
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn trace_account(
-    _msg_read_ptr: *const u8,
-    _msg_read_len: usize,
-    _account_ptr: *const u8,
-    _account_len: usize,
+    msg_read_ptr: *const u8,
+    msg_read_len: usize,
+    account_ptr: *const u8,
+    account_len: usize,
 ) -> i32 {
-    // Read the message bytes from the pointer and convert to UTF-8 string
-    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
-        String::new()
-    } else {
-        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
-        String::from_utf8_lossy(msg_slice).into_owned()
-    };
-
-    // Read the account bytes (should be 20 bytes) and format as hex
-    let account_hex = if _account_ptr.is_null() || _account_len == 0 {
-        String::new()
-    } else {
-        let account_slice = unsafe { slice::from_raw_parts(_account_ptr, _account_len) };
-        account_slice
-            .iter()
-            .map(|b| format!("{:02X}", b))
-            .collect::<Vec<_>>()
-            .join("")
-    };
-
-    // Log the message and account to console
+    let msg = read_message_from_ptr(msg_read_ptr, msg_read_len);
+    let account_hex = format_bytes_as_hex(account_ptr, account_len);
     println!("{} {}", msg, account_hex);
-
-    // Return the total number of bytes written (message + account)
-    let sum = _msg_read_len.saturating_add(_account_len);
-    if sum > i32::MAX as usize {
-        i32::MAX
-    } else {
-        sum as i32
-    }
+    calculate_return_sum(msg_read_len, account_len)
 }
 
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn trace_opaque_float(
-    _msg_read_ptr: *const u8,
-    _msg_read_len: usize,
-    _opaque_float_ptr: *const u8,
-    _opaque_float_len: usize,
+    msg_read_ptr: *const u8,
+    msg_read_len: usize,
+    opaque_float_ptr: *const u8,
+    opaque_float_len: usize,
 ) -> i32 {
-    // Read the message bytes from the pointer and convert to UTF-8 string
-    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
-        String::new()
-    } else {
-        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
-        String::from_utf8_lossy(msg_slice).into_owned()
-    };
-
-    // Read the opaque float bytes (should be 8 bytes) and format as hex
-    let float_hex = if _opaque_float_ptr.is_null() || _opaque_float_len == 0 {
-        String::new()
-    } else {
-        let float_slice = unsafe { slice::from_raw_parts(_opaque_float_ptr, _opaque_float_len) };
-        float_slice
-            .iter()
-            .map(|b| format!("{:02X}", b))
-            .collect::<Vec<_>>()
-            .join("")
-    };
-
-    // Log the message and opaque float to console
+    let msg = read_message_from_ptr(msg_read_ptr, msg_read_len);
+    let float_hex = format_bytes_as_hex(opaque_float_ptr, opaque_float_len);
     println!("{} {}", msg, float_hex);
-
-    // Return the total number of bytes written (message + opaque float)
-    let sum = _msg_read_len.saturating_add(_opaque_float_len);
-    if sum > i32::MAX as usize {
-        i32::MAX
-    } else {
-        sum as i32
-    }
+    calculate_return_sum(msg_read_len, opaque_float_len)
 }
 
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn trace_amount(
-    _msg_read_ptr: *const u8,
-    _msg_read_len: usize,
-    _amount_ptr: *const u8,
-    _amount_len: usize,
+    msg_read_ptr: *const u8,
+    msg_read_len: usize,
+    amount_ptr: *const u8,
+    amount_len: usize,
 ) -> i32 {
-    // Read the message bytes from the pointer and convert to UTF-8 string
-    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
-        String::new()
-    } else {
-        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
-        String::from_utf8_lossy(msg_slice).into_owned()
-    };
-
-    // Read the amount bytes (48 bytes for STAmount format) and format as hex
-    let amount_hex = if _amount_ptr.is_null() || _amount_len == 0 {
-        String::new()
-    } else {
-        let amount_slice = unsafe { slice::from_raw_parts(_amount_ptr, _amount_len) };
-        amount_slice
-            .iter()
-            .map(|b| format!("{:02X}", b))
-            .collect::<Vec<_>>()
-            .join("")
-    };
-
-    // Log the message and amount to console
+    let msg = read_message_from_ptr(msg_read_ptr, msg_read_len);
+    let amount_hex = format_bytes_as_hex(amount_ptr, amount_len);
     println!("{} {}", msg, amount_hex);
+    calculate_return_sum(msg_read_len, amount_len)
+}
 
-    // Return the total number of bytes written (message + amount)
-    let sum = _msg_read_len.saturating_add(_amount_len);
-    if sum > i32::MAX as usize {
-        i32::MAX
-    } else {
-        sum as i32
+// Private helper functions for trace operations.
+// Note: These are test-only mocks, so we keep them simple.
+
+/// Reads a message from a raw pointer and converts it to a UTF-8 string.
+fn read_message_from_ptr(ptr: *const u8, len: usize) -> String {
+    let slice = unsafe { slice::from_raw_parts(ptr, len) };
+    String::from_utf8_lossy(slice).into_owned()
+}
+
+/// Formats bytes as uppercase hexadecimal string.
+fn format_bytes_as_hex(ptr: *const u8, len: usize) -> String {
+    let slice = unsafe { slice::from_raw_parts(ptr, len) };
+    let mut result = String::with_capacity(len * 2);
+    for &byte in slice {
+        write!(&mut result, "{:02X}", byte).unwrap();
     }
+    result
+}
+
+/// Calculates the sum of two lengths, clamping to i32::MAX on overflow.
+fn calculate_return_sum(len1: usize, len2: usize) -> i32 {
+    len1.saturating_add(len2).min(i32::MAX as usize) as i32
 }
