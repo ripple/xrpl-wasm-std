@@ -7,20 +7,9 @@
 //! contract as the finish condition. When the escrow is finished, this contract loads the
 //! Escrow ledger object and traces every field to verify the WASM stdlib can access all
 //! escrow data correctly.
-
 #![cfg_attr(target_arch = "wasm32", no_std)]
 
-#[cfg(not(target_arch = "wasm32"))]
-extern crate std;
-
-use xrpl_wasm_stdlib::assert_eq;
-use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::{CurrentEscrow, get_current_escrow};
-use xrpl_wasm_stdlib::core::ledger_objects::traits::{
-    CurrentEscrowFields, CurrentLedgerObjectCommonFields,
-};
-use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_amount, trace_data, trace_num};
-use xrpl_wasm_stdlib::host::{Result::Err, Result::Ok};
-
+#[cfg(target_arch = "wasm32")]
 /// The following are private constants used for testing purposes to enforce value checks in this
 /// contract (to ensure that code changes don't break this contract).
 ///
@@ -31,6 +20,13 @@ const EXPECTED_CONDITION: [u8; 39] = [
     0x31, 0xEF, 0xF3, 0xB1, 0xFC, 0xF3, 0xCC, 0xA1, 0x98, 0x2A, 0x22, 0xD7, 0xFD, 0xB1, 0x11, 0x73,
     0x4C, 0x65, 0xE5, 0xE3, 0x81, 0x01, 0x03,
 ];
+
+use xrpl_wasm_stdlib::core::ledger_objects::current_escrow::{CurrentEscrow, get_current_escrow};
+use xrpl_wasm_stdlib::core::ledger_objects::traits::{
+    CurrentEscrowFields, CurrentLedgerObjectCommonFields,
+};
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_amount, trace_data, trace_num};
+use xrpl_wasm_stdlib::host::{Result::Err, Result::Ok};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -49,7 +45,8 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace Field: Account
         let account = current_escrow.get_account().unwrap();
-        assert_eq!(account.0.len(), 20);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(account.0.len(), 20);
         let _ = trace_data("  Account:", &account.0, DataRepr::AsHex);
 
         // Trace Field: Amount
@@ -58,7 +55,8 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace Field: LedgerEntryType
         let ledger_entry_type = current_escrow.get_ledger_entry_type().unwrap();
-        assert_eq!(ledger_entry_type, 117);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(ledger_entry_type, 117);
         let _ = trace_num("  LedgerEntryType:", ledger_entry_type as i64);
 
         // Trace Field: CancelAfter (optional - require it for testing)
@@ -77,12 +75,14 @@ pub extern "C" fn finish() -> i32 {
                         DataRepr::AsHex,
                     );
 
-                    assert_eq!(
+                    #[cfg(target_arch = "wasm32")]
+                    xrpl_wasm_stdlib::assert_eq!(
                         condition.len(),
                         EXPECTED_CONDITION.len(),
                         "Condition length mismatch"
                     );
-                    assert_eq!(
+                    #[cfg(target_arch = "wasm32")]
+                    xrpl_wasm_stdlib::assert_eq!(
                         condition.as_slice(),
                         &EXPECTED_CONDITION[..],
                         "Condition bytes mismatch"
@@ -102,14 +102,16 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: Destination
         let destination = current_escrow.get_destination().unwrap();
         // Destination is set in runTest.js (destWallet), just verify it's a valid AccountID
-        assert_eq!(destination.0.len(), 20);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(destination.0.len(), 20);
         let _ = trace_data("  Destination:", &destination.0, DataRepr::AsHex);
 
         // Trace Field: DestinationTag (optional - already set in runTest.js)
         let opt_destination_tag = current_escrow.get_destination_tag().unwrap();
         let destination_tag =
             opt_destination_tag.expect("DestinationTag should be set for testing");
-        assert_eq!(destination_tag, 23480);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(destination_tag, 23480);
         let _ = trace_num("  DestinationTag:", destination_tag as i64);
 
         // Trace Field: FinishAfter (optional - require it for testing)
@@ -157,7 +159,8 @@ pub extern "C" fn finish() -> i32 {
         let previous_txn_id = current_escrow.get_previous_txn_id().unwrap();
         // PreviousTxnID is the hash of the EscrowCreate transaction - unpredictable
         // Just verify it's 32 bytes (valid Hash256)
-        assert_eq!(previous_txn_id.0.len(), 32);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(previous_txn_id.0.len(), 32);
         let _ = trace_data("  PreviousTxnID:", &previous_txn_id.0, DataRepr::AsHex);
 
         // Trace Field: PreviousTxnLgrSeq
@@ -168,7 +171,8 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: SourceTag (optional - already set in runTest.js)
         let opt_source_tag = current_escrow.get_source_tag().unwrap();
         let source_tag = opt_source_tag.expect("SourceTag should be set for testing");
-        assert_eq!(source_tag, 11747);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(source_tag, 11747);
         let _ = trace_num("  SourceTag:", source_tag as i64);
 
         // Trace Field: Data (contract data)

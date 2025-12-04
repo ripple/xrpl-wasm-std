@@ -1,7 +1,21 @@
 #![cfg_attr(target_arch = "wasm32", no_std)]
 
-#[cfg(not(target_arch = "wasm32"))]
-extern crate std;
+/// The following are private constants used for testing purposes to enforce value checks in this
+/// contract (to ensure that code changes don't break this contract).
+///
+/// Condition: A0258020121B69A8D20269CFA850F78931EFF3B1FCF3CCA1982A22D7FDB111734C65E5E3810103
+/// This is a PREIMAGE-SHA-256 condition in full crypto-condition format (39 bytes)
+#[cfg(target_arch = "wasm32")]
+const EXPECTED_CONDITION: [u8; 39] = [
+    0xA0, 0x25, 0x80, 0x20, 0x12, 0x1B, 0x69, 0xA8, 0xD2, 0x02, 0x69, 0xCF, 0xA8, 0x50, 0xF7, 0x89,
+    0x31, 0xEF, 0xF3, 0xB1, 0xFC, 0xF3, 0xCC, 0xA1, 0x98, 0x2A, 0x22, 0xD7, 0xFD, 0xB1, 0x11, 0x73,
+    0x4C, 0x65, 0xE5, 0xE3, 0x81, 0x01, 0x03,
+];
+
+/// Fulfillment: A0058003736868
+/// This is a PREIMAGE-SHA-256 fulfillment (7 bytes) for preimage "shh"
+#[cfg(target_arch = "wasm32")]
+const EXPECTED_FULFILLMENT: [u8; 7] = [0xA0, 0x05, 0x80, 0x03, 0x73, 0x68, 0x68];
 
 use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
 use xrpl_wasm_stdlib::core::current_tx::traits::{EscrowFinishFields, TransactionCommonFields};
@@ -12,22 +26,7 @@ use xrpl_wasm_stdlib::host;
 use xrpl_wasm_stdlib::host::trace::{
     DataRepr, trace, trace_account, trace_account_buf, trace_amount, trace_data, trace_num,
 };
-use xrpl_wasm_stdlib::{assert_eq, sfield};
-
-/// The following are private constants used for testing purposes to enforce value checks in this
-/// contract (to ensure that code changes don't break this contract).
-///
-/// Condition: A0258020121B69A8D20269CFA850F78931EFF3B1FCF3CCA1982A22D7FDB111734C65E5E3810103
-/// This is a PREIMAGE-SHA-256 condition in full crypto-condition format (39 bytes)
-const EXPECTED_CONDITION: [u8; 39] = [
-    0xA0, 0x25, 0x80, 0x20, 0x12, 0x1B, 0x69, 0xA8, 0xD2, 0x02, 0x69, 0xCF, 0xA8, 0x50, 0xF7, 0x89,
-    0x31, 0xEF, 0xF3, 0xB1, 0xFC, 0xF3, 0xCC, 0xA1, 0x98, 0x2A, 0x22, 0xD7, 0xFD, 0xB1, 0x11, 0x73,
-    0x4C, 0x65, 0xE5, 0xE3, 0x81, 0x01, 0x03,
-];
-
-/// Fulfillment: A0058003736868
-/// This is a PREIMAGE-SHA-256 fulfillment (7 bytes) for preimage "shh"
-const EXPECTED_FULFILLMENT: [u8; 7] = [0xA0, 0x05, 0x80, 0x03, 0x73, 0x68, 0x68];
+use xrpl_wasm_stdlib::sfield;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -48,12 +47,14 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: Account
         let account = escrow_finish.get_account().unwrap();
         // Account is the wallet that submitted the EscrowFinish - verify it's 20 bytes
-        assert_eq!(account.0.len(), 20);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(account.0.len(), 20);
         let _ = trace_account("  Account:", &account);
 
         // Trace Field: TransactionType
         let transaction_type: TransactionType = escrow_finish.get_transaction_type().unwrap();
-        assert_eq!(transaction_type, TransactionType::EscrowFinish);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(transaction_type, TransactionType::EscrowFinish);
         let tx_type_bytes: [u8; 2] = transaction_type.into();
         let _ = trace_data(
             "  TransactionType (EscrowFinish):",
@@ -80,7 +81,8 @@ pub extern "C" fn finish() -> i32 {
         let opt_account_txn_id = escrow_finish.get_account_txn_id().unwrap();
         if let Some(account_txn_id) = opt_account_txn_id {
             // AccountTxnID is optional - if present, verify it's 32 bytes
-            assert_eq!(account_txn_id.0.len(), 32);
+            #[cfg(target_arch = "wasm32")]
+            xrpl_wasm_stdlib::assert_eq!(account_txn_id.0.len(), 32);
             let _ = trace_data("  AccountTxnID:", &account_txn_id.0, DataRepr::AsHex);
         }
 
@@ -134,6 +136,7 @@ pub extern "C" fn finish() -> i32 {
 
         // Memos array (optional) - require at least one memo for testing
         let array_len = unsafe { host::get_tx_array_len(sfield::Memos) };
+        #[cfg(target_arch = "wasm32")]
         assert!(
             array_len > 0,
             "At least one Memo should be present for testing"
@@ -202,6 +205,7 @@ pub extern "C" fn finish() -> i32 {
         // Signers array (optional) - require at least one signer for testing
         // TODO: Use this logic to fix https://github.com/ripple/xrpl-wasm-stdlib/issues/90
         let array_len = unsafe { host::get_tx_array_len(sfield::Signers) };
+        #[cfg(target_arch = "wasm32")]
         assert!(
             array_len > 0,
             "At least one Signer should be present for testing"
@@ -306,7 +310,8 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: Owner (required)
         let owner: AccountID = escrow_finish.get_owner().unwrap();
         // Owner is the account that created the escrow - verify it's 20 bytes
-        assert_eq!(owner.0.len(), 20);
+        #[cfg(target_arch = "wasm32")]
+        xrpl_wasm_stdlib::assert_eq!(owner.0.len(), 20);
         let _ = trace_account("  Owner:", &owner);
 
         // Trace Field: OfferSequence (required)
@@ -326,12 +331,14 @@ pub extern "C" fn finish() -> i32 {
                     );
 
                     // Assert the condition matches the expected value
-                    assert_eq!(
+                    #[cfg(target_arch = "wasm32")]
+                    xrpl_wasm_stdlib::assert_eq!(
                         condition.len(),
                         EXPECTED_CONDITION.len(),
                         "Condition length mismatch"
                     );
-                    assert_eq!(
+                    #[cfg(target_arch = "wasm32")]
+                    xrpl_wasm_stdlib::assert_eq!(
                         condition.as_slice(),
                         &EXPECTED_CONDITION[..],
                         "Condition bytes mismatch"
@@ -361,12 +368,14 @@ pub extern "C" fn finish() -> i32 {
             );
 
             // Assert the fulfillment matches the expected value
-            assert_eq!(
+            #[cfg(target_arch = "wasm32")]
+            xrpl_wasm_stdlib::assert_eq!(
                 fulfillment.len(),
                 EXPECTED_FULFILLMENT.len(),
                 "Fulfillment length mismatch"
             );
-            assert_eq!(
+            #[cfg(target_arch = "wasm32")]
+            xrpl_wasm_stdlib::assert_eq!(
                 fulfillment.as_slice(),
                 &EXPECTED_FULFILLMENT[..],
                 "Fulfillment bytes mismatch"

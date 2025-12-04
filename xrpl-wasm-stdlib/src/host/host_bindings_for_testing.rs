@@ -1,6 +1,15 @@
 // This file exists as a host_binding stand-in for non-WASM targets. For example, this file will
 // be used during unit tests.
 
+#[cfg(not(target_arch = "wasm32"))]
+mod imports {
+    extern crate std;
+    pub use std::{format, println, slice, string::String, vec::Vec};
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+use imports::*;
+
 // Float rounding mode constants (same as in host_bindings.rs)
 #[allow(unused)]
 pub const FLOAT_ROUNDING_MODES_TO_NEAREST: i32 = 0;
@@ -627,8 +636,35 @@ pub unsafe fn trace(
     _data_read_len: usize,
     _as_hex: i32,
 ) -> i32 {
-    // Prevent overflow: saturate addition and cast
-    let sum = _data_read_len.saturating_add(_msg_read_len);
+    // Read the message bytes from the pointer and convert to UTF-8 string
+    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
+        String::new()
+    } else {
+        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
+        String::from_utf8_lossy(msg_slice).into_owned()
+    };
+
+    // Read the data bytes
+    let data_output = if _data_read_ptr.is_null() || _data_read_len == 0 {
+        String::new()
+    } else {
+        let data_slice = unsafe { slice::from_raw_parts(_data_read_ptr, _data_read_len) };
+        // Print based on format (0 = UTF-8, 1 = hex)
+        if _as_hex == 1 {
+            data_slice
+                .iter()
+                .map(|b| format!("{:02X}", b))
+                .collect::<Vec<_>>()
+                .join("")
+        } else {
+            String::from_utf8_lossy(data_slice).into_owned()
+        }
+    };
+
+    println!("{} {}", msg, data_output);
+
+    // Return the total number of bytes written (message + data)
+    let sum = _msg_read_len.saturating_add(_data_read_len);
     if sum > i32::MAX as usize {
         i32::MAX
     } else {
@@ -636,11 +672,21 @@ pub unsafe fn trace(
     }
 }
 
-#[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn trace_num(_msg_read_ptr: *const u8, _msg_read_len: usize, _number: i64) -> i32 {
-    // Prevent overflow: saturate addition and cast to i32 safely
-    let sum = _msg_read_len.saturating_add(4);
+    // Read the message bytes from the pointer and convert to UTF-8 string
+    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
+        String::new()
+    } else {
+        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
+        String::from_utf8_lossy(msg_slice).into_owned()
+    };
+
+    // Log the message and number to console
+    println!("{} {}", msg, _number);
+
+    // Return the total number of bytes written (message + 8 bytes for i64)
+    let sum = _msg_read_len.saturating_add(8);
     if sum > i32::MAX as usize {
         i32::MAX
     } else {
@@ -656,7 +702,30 @@ pub unsafe fn trace_account(
     _account_ptr: *const u8,
     _account_len: usize,
 ) -> i32 {
-    // Prevent overflow: saturate addition and cast to i32 safely
+    // Read the message bytes from the pointer and convert to UTF-8 string
+    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
+        String::new()
+    } else {
+        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
+        String::from_utf8_lossy(msg_slice).into_owned()
+    };
+
+    // Read the account bytes (should be 20 bytes) and format as hex
+    let account_hex = if _account_ptr.is_null() || _account_len == 0 {
+        String::new()
+    } else {
+        let account_slice = unsafe { slice::from_raw_parts(_account_ptr, _account_len) };
+        account_slice
+            .iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<Vec<_>>()
+            .join("")
+    };
+
+    // Log the message and account to console
+    println!("{} {}", msg, account_hex);
+
+    // Return the total number of bytes written (message + account)
     let sum = _msg_read_len.saturating_add(_account_len);
     if sum > i32::MAX as usize {
         i32::MAX
@@ -673,7 +742,31 @@ pub unsafe fn trace_opaque_float(
     _opaque_float_ptr: *const u8,
     _opaque_float_len: usize,
 ) -> i32 {
-    // Prevent overflow: saturate addition and cast to i32 safely
+    // Read the message bytes from the pointer and convert to UTF-8 string
+    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
+        String::new()
+    } else {
+        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
+        String::from_utf8_lossy(msg_slice).into_owned()
+    };
+
+    // Read the opaque float bytes (should be 8 bytes) and format as hex
+    let float_hex = if _opaque_float_ptr.is_null() || _opaque_float_len == 0 {
+        String::new()
+    } else {
+        let float_slice =
+            unsafe { slice::from_raw_parts(_opaque_float_ptr, _opaque_float_len) };
+        float_slice
+            .iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<Vec<_>>()
+            .join("")
+    };
+
+    // Log the message and opaque float to console
+    println!("{} {}", msg, float_hex);
+
+    // Return the total number of bytes written (message + opaque float)
     let sum = _msg_read_len.saturating_add(_opaque_float_len);
     if sum > i32::MAX as usize {
         i32::MAX
@@ -690,7 +783,30 @@ pub unsafe fn trace_amount(
     _amount_ptr: *const u8,
     _amount_len: usize,
 ) -> i32 {
-    // Prevent overflow: saturate addition and cast to i32 safely
+    // Read the message bytes from the pointer and convert to UTF-8 string
+    let msg = if _msg_read_ptr.is_null() || _msg_read_len == 0 {
+        String::new()
+    } else {
+        let msg_slice = unsafe { slice::from_raw_parts(_msg_read_ptr, _msg_read_len) };
+        String::from_utf8_lossy(msg_slice).into_owned()
+    };
+
+    // Read the amount bytes (48 bytes for STAmount format) and format as hex
+    let amount_hex = if _amount_ptr.is_null() || _amount_len == 0 {
+        String::new()
+    } else {
+        let amount_slice = unsafe { slice::from_raw_parts(_amount_ptr, _amount_len) };
+        amount_slice
+            .iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<Vec<_>>()
+            .join("")
+    };
+
+    // Log the message and amount to console
+    println!("{} {}", msg, amount_hex);
+
+    // Return the total number of bytes written (message + amount)
     let sum = _msg_read_len.saturating_add(_amount_len);
     if sum > i32::MAX as usize {
         i32::MAX
