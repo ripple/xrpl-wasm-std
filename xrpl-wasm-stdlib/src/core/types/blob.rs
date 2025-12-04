@@ -132,9 +132,10 @@ pub type MemoBlob = Blob<MEMO_BLOB_SIZE>;
 /// Type alias for 72-byte blob (for Signature fields).
 pub type SignatureBlob = Blob<SIGNATURE_BLOB_SIZE>;
 
-/// Type alias for 256-byte blob (for URIs and smaller fields)
+/// Type alias for 256-byte blob (for NFT URIs)
 pub type NftUriBlob = Blob<NFT_URI_BLOB_SIZE>;
 
+/// Type alias for 1024-byte blob (for URIs)
 pub type UriBlob = Blob<URI_BLOB_SIZE>;
 
 pub type EmptyBlob = Blob<0>;
