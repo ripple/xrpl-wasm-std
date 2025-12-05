@@ -155,49 +155,39 @@ impl Issue {
 impl FieldGetter for Issue {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
+        get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
             get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
-            Result::Err(e) => Result::Err(e),
-        }
+        })
+        .and_then(|(buffer, len)| Issue::from_buffer(buffer, len))
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
+        get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
             get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
-                Result::Ok(issue) => Result::Ok(Some(issue)),
-                Result::Err(e) => Result::Err(e),
-            },
-            Result::Ok(None) => Result::Ok(None),
-            Result::Err(e) => Result::Err(e),
-        }
+        })
+        .map(|opt| {
+            opt.map(|(buffer, len)| Issue::from_buffer(buffer, len))
+                .transpose()
+        })
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
+        get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
             get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
-            Result::Err(e) => Result::Err(e),
-        }
+        })
+        .and_then(|(buffer, len)| Issue::from_buffer(buffer, len))
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
+        get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
             get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
-                Result::Ok(issue) => Result::Ok(Some(issue)),
-                Result::Err(e) => Result::Err(e),
-            },
-            Result::Ok(None) => Result::Ok(None),
-            Result::Err(e) => Result::Err(e),
-        }
+        })
+        .map(|opt| {
+            opt.map(|(buffer, len)| Issue::from_buffer(buffer, len))
+                .transpose()
+        })
     }
 }
