@@ -3,18 +3,8 @@ pub mod current_escrow;
 pub mod escrow;
 pub mod traits;
 
-use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-use crate::core::types::amount::{AMOUNT_SIZE, Amount};
-use crate::core::types::blob::Blob;
-use crate::core::types::currency::{CURRENCY_SIZE, Currency};
-use crate::core::types::issue::Issue;
-use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
 use crate::host::error_codes::{
     match_result_code_with_expected_bytes, match_result_code_with_expected_bytes_optional,
-};
-use crate::host::field_helpers::{
-    get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
-    get_variable_size_field, get_variable_size_field_optional,
 };
 use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 
@@ -65,7 +55,7 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// - All implementations use appropriately sized buffers for their data types
 /// - Buffer sizes are validated against expected field sizes where applicable
 /// - Unsafe operations are contained within the host function calls
-pub trait FieldGetter: Sized {
+pub trait LedgerObjectFieldGetter: Sized {
     /// Get a required field from the current ledger object.
     ///
     /// # Arguments
@@ -125,7 +115,7 @@ pub trait FieldGetter: Sized {
 
 /// Trait for types that can be retrieved as fixed-size fields from ledger objects.
 ///
-/// This trait enables a generic implementation of `FieldGetter` for all fixed-size
+/// This trait enables a generic implementation of `LedgerObjectFieldGetter` for all fixed-size
 /// unsigned integer types (u8, u16, u32, u64). Types implementing this trait must
 /// have a known, constant size in bytes.
 ///
@@ -156,7 +146,7 @@ impl FixedSizeFieldType for u64 {
     const SIZE: usize = 8;
 }
 
-/// Generic implementation of `FieldGetter` for all fixed-size unsigned integer types.
+/// Generic implementation of `LedgerObjectFieldGetter` for all fixed-size unsigned integer types.
 ///
 /// This single implementation handles u8, u16, u32, and u64 by leveraging the
 /// `FixedSizeFieldType` trait. The implementation:
@@ -169,7 +159,7 @@ impl FixedSizeFieldType for u64 {
 ///
 /// Uses `MaybeUninit` for efficient stack allocation without initialization overhead.
 /// The buffer size is determined at compile-time via the `SIZE` constant.
-impl<T: FixedSizeFieldType> FieldGetter for T {
+impl<T: FixedSizeFieldType> LedgerObjectFieldGetter for T {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut value = core::mem::MaybeUninit::<T>::uninit();
@@ -210,412 +200,11 @@ impl<T: FixedSizeFieldType> FieldGetter for T {
         match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
             Some(unsafe { value.assume_init() })
         })
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL account identifiers.
-///
-/// This implementation handles 20-byte account ID fields in XRPL ledger objects.
-/// Account IDs uniquely identify accounts on the XRPL network and are derived
-/// from public keys using cryptographic hashing.
-///
-/// # Buffer Management
-///
-/// Uses a 20-byte buffer (ACCOUNT_ID_SIZE) and validates that exactly 20 bytes
-/// are returned from the host function. The buffer is converted to an AccountID
-/// using the `From<[u8; 20]>` implementation.
-impl FieldGetter for AccountID {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<ACCOUNT_ID_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<ACCOUNT_ID_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<ACCOUNT_ID_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<ACCOUNT_ID_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL amount values.
-///
-/// This implementation handles amount fields in XRPL ledger objects, which can represent
-/// either XRP amounts (8 bytes) or token amounts (up to 48 bytes including currency code
-/// and issuer information).
-///
-/// # Buffer Management
-///
-/// Uses a 48-byte buffer to accommodate the largest possible amount representation.
-/// The Amount type handles the parsing of different amount formats internally.
-/// No strict byte count validation is performed since amounts can vary in size.
-impl FieldGetter for Amount {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<AMOUNT_SIZE, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<AMOUNT_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(buffer, _len)| Amount::from(buffer))),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<AMOUNT_SIZE, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((buffer, _len)) => Result::Ok(Amount::from(buffer)),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<AMOUNT_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(buffer, _len)| Amount::from(buffer))),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for 128-bit cryptographic hashes.
-///
-/// This implementation handles 16-byte hash fields in XRPL ledger objects.
-/// Hash128 values are commonly used for shorter identifiers and checksums
-/// in XRPL, such as email hashes.
-///
-/// # Buffer Management
-///
-/// Uses a 16-byte buffer (HASH128_SIZE) and validates that exactly 16 bytes
-/// are returned from the host function to ensure data integrity.
-impl FieldGetter for Hash128 {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<HASH128_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<HASH128_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<HASH128_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<HASH128_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for 256-bit cryptographic hashes.
-///
-/// This implementation handles 32-byte hash fields in XRPL ledger objects.
-/// Hash256 values are widely used throughout XRPL for transaction IDs,
-/// ledger indexes, object IDs, and various cryptographic operations.
-///
-/// # Buffer Management
-///
-/// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
-/// are returned from the host function to ensure data integrity.
-impl FieldGetter for Hash256 {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for variable-length binary data.
-///
-/// This implementation handles blob fields in XRPL ledger objects, which can contain
-/// arbitrary binary data such as memos, signatures, public keys, and other
-/// variable-length content.
-///
-/// # Buffer Management
-///
-/// Uses a buffer of size `N` to accommodate blob field data. The actual
-/// length of the data is determined by the return value from the host function
-/// and stored in the Blob's `len` field. No strict byte count validation is
-/// performed since blobs can vary significantly in size.
-///
-/// # Type Parameters
-///
-/// * `N` - The maximum capacity of the blob buffer in bytes
-impl<const N: usize> FieldGetter for Blob<N> {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL currency codes.
-///
-/// This implementation handles 20-byte currency code fields in XRPL ledger objects.
-/// Currency codes uniquely identify different currencies and assets on the XRPL.
-///
-/// # Buffer Management
-///
-/// Uses a 20-byte buffer and validates that exactly 20 bytes are returned
-/// from the host function to ensure data integrity.
-impl FieldGetter for Currency {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_fixed_size_field_with_expected_bytes::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.into()),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_fixed_size_field_with_expected_bytes_optional::<CURRENCY_SIZE, _>(
-            field_code,
-            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
-        ) {
-            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL issues.
-///
-/// This implementation handles issue fields in XRPL ledger objects.
-/// Supports all three Issue variants: XRP, IOU, and MPT.
-///
-/// # Buffer Management
-///
-/// Uses a 40-byte buffer to accommodate all Issue types:
-/// - XRP: 20 bytes (all zeros)
-/// - IOU: 40 bytes (20 bytes currency + 20 bytes issuer)
-/// - MPT: 24 bytes (4 bytes sequence + 20 bytes issuer)
-///
-/// The implementation detects the Issue type based on the number of bytes returned
-/// from the host function.
-impl FieldGetter for Issue {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
-                Result::Ok(issue) => Result::Ok(Some(issue)),
-                Result::Err(e) => Result::Err(e),
-            },
-            Result::Ok(None) => Result::Ok(None),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((buffer, len)) => Issue::from_buffer(buffer, len),
-            Result::Err(e) => Result::Err(e),
-        }
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
-            get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok(Some((buffer, len))) => match Issue::from_buffer(buffer, len) {
-                Result::Ok(issue) => Result::Ok(Some(issue)),
-                Result::Err(e) => Result::Err(e),
-            },
-            Result::Ok(None) => Result::Ok(None),
-            Result::Err(e) => Result::Err(e),
-        }
     }
 }
 
 pub mod current_ledger_object {
-    use super::FieldGetter;
+    use super::LedgerObjectFieldGetter;
     use crate::host::Result;
 
     /// Retrieves a field from the current ledger object.
@@ -630,7 +219,7 @@ pub mod current_ledger_object {
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field<T: FieldGetter>(field_code: i32) -> Result<T> {
+    pub fn get_field<T: LedgerObjectFieldGetter>(field_code: i32) -> Result<T> {
         T::get_from_current_ledger_obj(field_code)
     }
 
@@ -647,13 +236,13 @@ pub mod current_ledger_object {
     /// * `Ok(None)` - If the field is not present
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field_optional<T: FieldGetter>(field_code: i32) -> Result<Option<T>> {
+    pub fn get_field_optional<T: LedgerObjectFieldGetter>(field_code: i32) -> Result<Option<T>> {
         T::get_from_current_ledger_obj_optional(field_code)
     }
 }
 
 pub mod ledger_object {
-    use super::FieldGetter;
+    use super::LedgerObjectFieldGetter;
     use crate::host::Result;
 
     /// Retrieves a field from a specified ledger object.
@@ -669,7 +258,7 @@ pub mod ledger_object {
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field<T: FieldGetter>(register_num: i32, field_code: i32) -> Result<T> {
+    pub fn get_field<T: LedgerObjectFieldGetter>(register_num: i32, field_code: i32) -> Result<T> {
         T::get_from_ledger_obj(register_num, field_code)
     }
 
@@ -687,7 +276,7 @@ pub mod ledger_object {
     /// * `Ok(None)` - If the field is not present in the ledger object
     /// * `Err(Error)` - If the field retrieval operation failed
     #[inline]
-    pub fn get_field_optional<T: FieldGetter>(
+    pub fn get_field_optional<T: LedgerObjectFieldGetter>(
         register_num: i32,
         field_code: i32,
     ) -> Result<Option<T>> {
@@ -706,7 +295,7 @@ pub mod ledger_object {
         use crate::sfield;
 
         // ========================================
-        // Basic smoke tests for FieldGetter implementations
+        // Basic smoke tests for LedgerObjectFieldGetter implementations
         // These tests verify that the trait implementations compile and work with the test host.
         // Note: The test host returns buffer_len as success, so these only verify basic functionality.
         // ========================================
