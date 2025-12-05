@@ -35,7 +35,7 @@ pub const URI_BLOB_SIZE: usize = 256;
 /// # Examples
 ///
 /// ```
-/// use xrpl_wasm_stdlib::core::types::blob::{Blob, StandardBlob, NftUriBlob, DEFAULT_BLOB_SIZE};
+/// use xrpl_wasm_stdlib::core::types::blob::{Blob, StandardBlob, UriBlob, DEFAULT_BLOB_SIZE};
 ///
 /// // Create a standard 1024-byte blob
 /// let standard_blob: Blob<DEFAULT_BLOB_SIZE> = Blob::new();
@@ -44,7 +44,7 @@ pub const URI_BLOB_SIZE: usize = 256;
 /// let standard_blob_typed: StandardBlob = StandardBlob::new();
 ///
 /// // Create a smaller 256-byte blob for URIs
-/// let uri_blob: NftUriBlob = NftUriBlob::new();
+/// let uri_blob: UriBlob = UriBlob::new();
 /// ```
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(C)]
