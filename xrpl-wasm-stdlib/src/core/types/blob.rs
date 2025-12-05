@@ -1,4 +1,8 @@
+use crate::core::current_tx::CurrentTxFieldGetter;
+use crate::core::ledger_objects::LedgerObjectFieldGetter;
 use crate::core::types::nft::NFT_URI_MAX_SIZE;
+use crate::host::field_helpers::{get_variable_size_field, get_variable_size_field_optional};
+use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field, get_tx_field};
 
 /// Default blob size for general use (memos, etc.)
 pub const DEFAULT_BLOB_SIZE: usize = 1024;
@@ -113,6 +117,102 @@ pub const EMPTY_BLOB: EmptyBlob = Blob {
     data: [0u8; 0],
     len: 0usize,
 };
+
+/// Implementation of `LedgerObjectFieldGetter` for variable-length binary data.
+///
+/// This implementation handles blob fields in XRPL ledger objects, which can contain
+/// arbitrary binary data such as memos, signatures, public keys, and other
+/// variable-length content.
+///
+/// # Buffer Management
+///
+/// Uses a buffer of size `N` to accommodate blob field data. The actual
+/// length of the data is determined by the return value from the host function
+/// and stored in the Blob's `len` field. No strict byte count validation is
+/// performed since blobs can vary significantly in size.
+///
+/// # Type Parameters
+///
+/// * `N` - The maximum capacity of the blob buffer in bytes
+impl<const N: usize> LedgerObjectFieldGetter for Blob<N> {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
+            get_current_ledger_obj_field(fc, buf, size)
+        }) {
+            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
+            get_current_ledger_obj_field(fc, buf, size)
+        }) {
+            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
+            get_ledger_obj_field(register_num, fc, buf, size)
+        }) {
+            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
+            get_ledger_obj_field(register_num, fc, buf, size)
+        }) {
+            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+}
+
+/// Implementation of `CurrentTxFieldGetter` for variable-length binary data.
+///
+/// This implementation handles blob fields in XRPL transactions, which can contain
+/// arbitrary binary data such as transaction signatures, memos, fulfillment data,
+/// and other variable-length content that doesn't fit into fixed-size types.
+///
+/// # Buffer Management
+///
+/// Uses a buffer of size `N` to accommodate blob field data. The actual
+/// length of the data is determined by the return value from the host function
+/// and stored in the Blob's `len` field. No strict byte count validation is
+/// performed since blobs can vary significantly in size.
+///
+/// # Type Parameters
+///
+/// * `N` - The maximum capacity of the blob buffer in bytes
+impl<const N: usize> CurrentTxFieldGetter for Blob<N> {
+    #[inline]
+    fn get_from_current_tx(field_code: i32) -> Result<Self> {
+        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
+            get_tx_field(fc, buf, size)
+        }) {
+            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
+        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
+            get_tx_field(fc, buf, size)
+        }) {
+            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
