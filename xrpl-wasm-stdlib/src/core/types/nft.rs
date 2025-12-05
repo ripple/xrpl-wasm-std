@@ -18,15 +18,12 @@
 //! ```
 
 use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-use crate::core::types::blob::Blob;
+use crate::core::types::blob::{URI_BLOB_SIZE, UriBlob};
 use crate::host;
 use crate::host::{Error, Result};
 
 /// Size of an NFTokenID in bytes (256 bits)
 pub const NFT_ID_SIZE: usize = 32;
-
-/// Maximum size for NFT URI data (256 bytes)
-pub const NFT_URI_MAX_SIZE: usize = 256;
 
 /// NFToken flags - see [NFToken documentation](https://xrpl.org/docs/references/protocol/data-types/nftoken)
 pub mod flags {
@@ -49,8 +46,14 @@ pub mod flags {
     pub const TRANSFERABLE: u16 = 0x0008;
 }
 
-// A wrapper around NFToken flags that provides efficient helper methods.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+/// A wrapper around NFToken flags that provides efficient helper methods.
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this 2-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NftFlags(u16);
 
 impl NftFlags {
@@ -128,7 +131,13 @@ impl From<NftFlags> for u16 {
 /// - **Bytes 4-23**: Issuer account address (160 bits)
 /// - **Bytes 24-27**: Scrambled taxon (32 bits, big-endian)
 /// - **Bytes 28-31**: Sequence number (32 bits, big-endian)
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+///
+/// ## Derived Traits
+///
+/// - `Copy`: Efficient for this 32-byte struct, enabling implicit copying
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct NFToken(pub [u8; NFT_ID_SIZE]);
 
@@ -301,12 +310,12 @@ impl NFToken {
     ///
     /// # Returns
     ///
-    /// * `Ok(Blob)` - The URI data (variable length, up to 256 bytes)
+    /// * `Ok(UriBlob)` - The URI data (variable length, up to 256 bytes)
     /// * `Err(Error)` - If the NFT is not found or the host function fails
     ///
     ///
-    pub fn uri(&self, owner: &AccountID) -> Result<Blob<256>> {
-        let mut uri_buf = [0u8; NFT_URI_MAX_SIZE];
+    pub fn uri(&self, owner: &AccountID) -> Result<UriBlob> {
+        let mut uri_buf = [0u8; URI_BLOB_SIZE];
         let result = unsafe {
             host::get_nft(
                 owner.0.as_ptr(),
@@ -319,7 +328,7 @@ impl NFToken {
         };
 
         match result {
-            code if code > 0 => Result::Ok(Blob::from(uri_buf)),
+            code if code > 0 => Result::Ok(UriBlob::from(uri_buf)),
             code => Result::Err(Error::from_code(code)),
         }
     }
@@ -579,6 +588,6 @@ mod tests {
         let result = nft.uri(&owner);
         assert!(result.is_ok());
         let uri = result.unwrap();
-        assert!(uri.len <= NFT_URI_MAX_SIZE);
+        assert!(uri.len <= URI_BLOB_SIZE);
     }
 }

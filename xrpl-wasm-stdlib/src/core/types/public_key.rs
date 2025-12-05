@@ -1,6 +1,24 @@
+use crate::core::current_tx::CurrentTxFieldGetter;
+use crate::host::field_helpers::{
+    get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
+};
+use crate::host::{Result, get_tx_field};
+
 pub const PUBLIC_KEY_BUFFER_SIZE: usize = 33;
 
-/// Holds public key bytes for secp256k1 and ed25519 DSA types.
+/// A 33-byte public key for secp256k1 and ed25519 DSA types.
+///
+/// Public keys on the XRP Ledger are 33 bytes and can be either:
+/// - **secp256k1**: Compressed ECDSA public key (0x02 or 0x03 prefix)
+/// - **ed25519**: EdDSA public key (0xED prefix)
+///
+/// ## Derived Traits
+///
+/// - `PartialEq, Eq`: Enable comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+///
+/// Note: `Copy` is intentionally not derived due to the struct's size (33 bytes).
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PublicKey(pub [u8; PUBLIC_KEY_BUFFER_SIZE]);
 
 impl From<[u8; PUBLIC_KEY_BUFFER_SIZE]> for PublicKey {
@@ -24,6 +42,41 @@ impl From<&[u8]> for PublicKey {
         key_bytes[..bytes.len().min(PUBLIC_KEY_BUFFER_SIZE)]
             .copy_from_slice(&bytes[..bytes.len().min(PUBLIC_KEY_BUFFER_SIZE)]);
         PublicKey(key_bytes)
+    }
+}
+
+/// Implementation of `CurrentTxFieldGetter` for XRPL public keys.
+///
+/// This implementation handles 33-byte compressed public key fields in XRPL transactions.
+/// Public keys are used for cryptographic signature verification and are commonly found
+/// in the SigningPubKey field and various other cryptographic contexts.
+///
+/// # Buffer Management
+///
+/// Uses a 33-byte buffer and validates that exactly 33 bytes are returned
+/// from the host function. The buffer is converted to a PublicKey using
+/// the `From<[u8; 33]>` implementation.
+impl CurrentTxFieldGetter for PublicKey {
+    #[inline]
+    fn get_from_current_tx(field_code: i32) -> Result<Self> {
+        match get_fixed_size_field_with_expected_bytes::<33, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
+        match get_fixed_size_field_with_expected_bytes_optional::<33, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }
 

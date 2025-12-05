@@ -1,4 +1,26 @@
-/// The type of any given XRPL transaction
+use crate::core::current_tx::CurrentTxFieldGetter;
+use crate::host::field_helpers::{
+    get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
+};
+use crate::host::{Result, get_tx_field};
+
+/// The type of any given XRPL transaction.
+///
+/// This enum maps to the transaction type codes used in the XRPL protocol.
+/// Each variant corresponds to a specific transaction type with its associated
+/// numeric code.
+///
+/// ## Derived Traits
+///
+/// - `Debug`: Useful for development and debugging
+/// - `Clone`: Automatically derived with Copy for consistency
+/// - `Copy`: Efficient for this enum (2 bytes due to `#[repr(i16)]`)
+/// - `PartialEq, Eq`: Enable transaction type comparisons
+///
+/// The `Copy` trait is appropriate here because:
+/// - The enum is only 2 bytes, making copies extremely cheap
+/// - Transaction types are frequently checked and compared
+/// - Implicit copying improves ergonomics
 #[repr(i16)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TransactionType {
@@ -133,5 +155,35 @@ impl From<TransactionType> for [u8; 2] {
         let bytes_array: [u8; 2] = value_i16.to_le_bytes();
 
         bytes_array
+    }
+}
+
+/// Implementation of `CurrentTxFieldGetter` for XRPL TransactionType enums.
+///
+/// This implementation handles 2-byte transaction type fields in XRPL transactions.
+///
+/// # Buffer Management
+///
+/// Uses a 2-byte buffer and validates that exactly 2 bytes are returned from the host function.
+impl CurrentTxFieldGetter for TransactionType {
+    #[inline]
+    fn get_from_current_tx(field_code: i32) -> Result<Self> {
+        match get_fixed_size_field_with_expected_bytes::<2, _>(field_code, |fc, buf, size| unsafe {
+            get_tx_field(fc, buf, size)
+        }) {
+            Result::Ok(buffer) => Result::Ok(i16::from_le_bytes(buffer).into()),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
+        match get_fixed_size_field_with_expected_bytes_optional::<2, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| i16::from_le_bytes(b).into())),
+            Result::Err(e) => Result::Err(e),
+        }
     }
 }

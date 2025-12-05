@@ -1,20 +1,20 @@
 use crate::core::ledger_objects::{current_ledger_object, ledger_object};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
-use crate::core::types::blob::{Blob, DEFAULT_BLOB_SIZE};
+use crate::core::types::blob::{
+    Blob, CONDITION_BLOB_SIZE, ConditionBlob, DEFAULT_BLOB_SIZE, UriBlob,
+};
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
-use crate::core::types::crypto_condition::Condition;
-use crate::core::types::nft::NFT_URI_MAX_SIZE;
 use crate::core::types::public_key::PUBLIC_KEY_BUFFER_SIZE;
 use crate::core::types::uint::{Hash128, Hash256};
+
 /// This module provides traits for interacting with XRP Ledger objects.
 ///
 /// It defines common interfaces for accessing and manipulating different types of ledger objects,
 /// particularly focusing on Escrow objects. The traits provide methods to get and set various
 /// fields of ledger objects, with separate traits for current ledger objects and general ledger objects.
 use crate::host::error_codes::{
-    match_result_code, match_result_code_with_expected_bytes,
-    match_result_code_with_expected_bytes_optional,
+    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
 };
 use crate::host::{Error, get_current_ledger_obj_field, get_ledger_obj_field, update_data};
 use crate::host::{Result, Result::Err, Result::Ok};
@@ -25,6 +25,10 @@ use crate::sfield;
 /// This trait defines methods to access standard fields that are common across
 /// different types of ledger objects in the XRP Ledger.
 pub trait LedgerObjectCommonFields {
+    // NOTE: `get_ledger_index()` is not in this trait because `sfLedgerIndex` is not actually a field on a ledger
+    // object (it's a synthetic field that maps to the `index` field, which is the unique ID of an object in the
+    // ledger's state tree). See https://github.com/XRPLF/rippled/issues/3649 for more context.
+
     /// Returns the slot number (register number) where the ledger object is stored.
     ///
     /// This number is used to identify and access the specific ledger object
@@ -34,19 +38,6 @@ pub trait LedgerObjectCommonFields {
     ///
     /// The slot number as an i32 value
     fn get_slot_num(&self) -> i32;
-
-    /// Retrieves the ledger index (unique identifier) of the ledger object.
-    ///
-    /// # Arguments
-    ///
-    /// * `register_num` - The register number where the ledger object is stored
-    ///
-    /// # Returns
-    ///
-    /// The ledger index as a Hash256 value
-    fn get_ledger_index(&self) -> Result<Hash256> {
-        ledger_object::get_field(self.get_slot_num(), sfield::LedgerIndex)
-    }
 
     /// Retrieves the flags field of the ledger object.
     ///
@@ -79,14 +70,9 @@ pub trait LedgerObjectCommonFields {
 /// different types of ledger objects, specifically for the current ledger object
 /// being processed.
 pub trait CurrentLedgerObjectCommonFields {
-    /// Retrieves the ledger index (unique identifier) of the current ledger object.
-    ///
-    /// # Returns
-    ///
-    /// The ledger index as a Hash256 value
-    fn get_ledger_index(&self) -> Result<Hash256> {
-        current_ledger_object::get_field(sfield::LedgerIndex)
-    }
+    // NOTE: `get_ledger_index()` is not in this trait because `sfLedgerIndex` is not actually a field on a ledger
+    // object (it's a synthetic field that maps to the `index` field, which is the unique ID of an object in the
+    // ledger's state tree). See https://github.com/XRPLF/rippled/issues/3649 for more context.
 
     /// Retrieves the flags field of the current ledger object.
     ///
@@ -132,16 +118,26 @@ pub trait CurrentEscrowFields: CurrentLedgerObjectCommonFields {
         current_ledger_object::get_field_optional(sfield::CancelAfter)
     }
 
-    /// A PREIMAGE-SHA-256 crypto-condition, as hexadecimal. If present, the EscrowFinish
+    /// A PREIMAGE-SHA-256 crypto-condition in full crypto-condition format. If present, the EscrowFinish
     /// transaction must contain a fulfillment that satisfies this condition.
-    fn get_condition(&self) -> Result<Option<Condition>> {
-        let mut buffer = [0u8; 32];
+    fn get_condition(&self) -> Result<Option<ConditionBlob>> {
+        let mut buffer = [0u8; CONDITION_BLOB_SIZE];
 
         let result_code = unsafe {
             get_current_ledger_obj_field(sfield::Condition, buffer.as_mut_ptr(), buffer.len())
         };
 
-        match_result_code_with_expected_bytes_optional(result_code, 32, || Some(buffer.into()))
+        match_result_code_optional(result_code, || {
+            if result_code > 0 {
+                let blob = ConditionBlob {
+                    data: buffer,
+                    len: result_code as usize,
+                };
+                Some(blob)
+            } else {
+                None
+            }
+        })
     }
 
     /// The destination address where the XRP is paid if the escrow is successful.
@@ -284,10 +280,10 @@ pub trait EscrowFields: LedgerObjectCommonFields {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::CancelAfter)
     }
 
-    /// A PREIMAGE-SHA-256 crypto-condition, as hexadecimal. If present, the EscrowFinish
+    /// A PREIMAGE-SHA-256 crypto-condition in full crypto-condition format. If present, the EscrowFinish
     /// transaction must contain a fulfillment that satisfies this condition.
-    fn get_condition(&self) -> Result<Option<Condition>> {
-        let mut buffer = [0u8; 32];
+    fn get_condition(&self) -> Result<Option<ConditionBlob>> {
+        let mut buffer = [0u8; CONDITION_BLOB_SIZE];
 
         let result_code = unsafe {
             get_ledger_obj_field(
@@ -298,7 +294,17 @@ pub trait EscrowFields: LedgerObjectCommonFields {
             )
         };
 
-        match_result_code_with_expected_bytes_optional(result_code, 32, || Some(buffer.into()))
+        match_result_code_optional(result_code, || {
+            if result_code > 0 {
+                let blob = ConditionBlob {
+                    data: buffer,
+                    len: result_code as usize,
+                };
+                Some(blob)
+            } else {
+                None
+            }
+        })
     }
 
     /// The destination address where the XRP is paid if the escrow is successful.
@@ -308,7 +314,7 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 
     /// A hint indicating which page of the destination's owner directory links to this object, in
     /// case the directory consists of multiple pages. Omitted on escrows created before enabling the fix1523 amendment.
-    fn get_destination_node(&self) -> Result<Option<Hash256>> {
+    fn get_destination_node(&self) -> Result<Option<u64>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::DestinationNode)
     }
 
@@ -333,7 +339,7 @@ pub trait EscrowFields: LedgerObjectCommonFields {
 
     /// A hint indicating which page of the sender's owner directory links to this entry, in case
     /// the directory consists of multiple pages.
-    fn get_owner_node(&self) -> Result<Hash256> {
+    fn get_owner_node(&self) -> Result<u64> {
         ledger_object::get_field(self.get_slot_num(), sfield::OwnerNode)
     }
 
@@ -432,7 +438,7 @@ pub trait AccountFields: LedgerObjectCommonFields {
 
     /// A domain associated with this account. In JSON, this is the hexadecimal for the ASCII representation of the
     /// domain. Cannot be more than 256 bytes in length.
-    fn domain(&self) -> Result<Option<Blob<NFT_URI_MAX_SIZE>>> {
+    fn domain(&self) -> Result<Option<UriBlob>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::Domain)
     }
 
@@ -506,7 +512,7 @@ pub trait AccountFields: LedgerObjectCommonFields {
 
     /// How many significant digits to use for exchange rates of Offers involving currencies issued by this address.
     /// Valid values are 3 to 15, inclusive. (Added by the TickSize amendment.)
-    fn tick_size(&self) -> Result<Option<u32>> {
+    fn tick_size(&self) -> Result<Option<u8>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::TickSize)
     }
 
@@ -519,9 +525,78 @@ pub trait AccountFields: LedgerObjectCommonFields {
     fn wallet_locator(&self) -> Result<Option<Hash256>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::WalletLocator)
     }
+}
 
-    /// Unused. (The code supports this field but there is no way to set it.)
-    fn wallet_size(&self) -> Result<Option<u32>> {
-        ledger_object::get_field_optional(self.get_slot_num(), sfield::WalletSize)
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::ledger_objects::current_escrow::CurrentEscrow;
+    use crate::core::ledger_objects::escrow::Escrow;
+
+    #[test]
+    fn test_current_escrow_get_condition_returns_some_with_data() {
+        // When the mock host function returns a positive value (buffer length),
+        // get_condition should return Ok(Some(ConditionBlob))
+        let escrow = CurrentEscrow;
+        let result = escrow.get_condition();
+
+        // The mock returns buffer.len() which is CONDITION_BLOB_SIZE (128)
+        assert!(result.is_ok());
+        let condition_opt = result.unwrap();
+        assert!(condition_opt.is_some());
+
+        let condition = condition_opt.unwrap();
+        assert_eq!(condition.len, CONDITION_BLOB_SIZE);
+        assert_eq!(condition.capacity(), CONDITION_BLOB_SIZE);
+    }
+
+    #[test]
+    fn test_escrow_get_condition_returns_some_with_data() {
+        // When the mock host function returns a positive value (buffer length),
+        // get_condition should return Ok(Some(ConditionBlob))
+        let escrow = Escrow { slot_num: 0 };
+        let result = escrow.get_condition();
+
+        // The mock returns buffer.len() which is CONDITION_BLOB_SIZE (128)
+        assert!(result.is_ok());
+        let condition_opt = result.unwrap();
+        assert!(condition_opt.is_some());
+
+        let condition = condition_opt.unwrap();
+        assert_eq!(condition.len, CONDITION_BLOB_SIZE);
+        assert_eq!(condition.capacity(), CONDITION_BLOB_SIZE);
+    }
+
+    #[test]
+    fn test_escrow_get_condition_with_different_slots() {
+        // Verify that get_condition works with different slot numbers
+        let escrow1 = Escrow { slot_num: 0 };
+        let escrow2 = Escrow { slot_num: 1 };
+        let escrow3 = Escrow { slot_num: 5 };
+
+        let result1 = escrow1.get_condition();
+        let result2 = escrow2.get_condition();
+        let result3 = escrow3.get_condition();
+
+        assert!(result1.is_ok());
+        assert!(result2.is_ok());
+        assert!(result3.is_ok());
+
+        // All should return Some with the same buffer size
+        assert!(result1.unwrap().is_some());
+        assert!(result2.unwrap().is_some());
+        assert!(result3.unwrap().is_some());
+    }
+
+    #[test]
+    fn test_current_escrow_struct_get_condition() {
+        // Test the actual CurrentEscrow struct implementation
+        let escrow = CurrentEscrow;
+        let result = escrow.get_condition();
+
+        assert!(result.is_ok());
+        if let Some(condition) = result.unwrap() {
+            assert_eq!(condition.capacity(), CONDITION_BLOB_SIZE);
+        }
     }
 }

@@ -1,7 +1,30 @@
 //! Generic unsigned integer types with configurable bit sizes
 
+use crate::core::current_tx::CurrentTxFieldGetter;
+use crate::core::ledger_objects::LedgerObjectFieldGetter;
+use crate::host::field_helpers::{
+    get_fixed_size_field_with_expected_bytes, get_fixed_size_field_with_expected_bytes_optional,
+};
+use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field, get_tx_field};
+
+/// A generic unsigned integer type with configurable byte size.
+///
+/// This type provides a zero-cost abstraction for fixed-size unsigned integers
+/// of arbitrary byte lengths. Common instantiations include UInt128, UInt160,
+/// UInt192, and UInt256.
+///
+/// # Type Parameters
+///
+/// * `N` - The size of the integer in bytes
+///
+/// ## Derived Traits
+///
+/// - `PartialEq, Eq`: Essential for comparisons and use in collections
+/// - `Debug, Clone`: Standard traits for development and consistency
+///
+/// Note: `Copy` is intentionally not derived because `N` can be arbitrarily large.
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UInt<const N: usize>(pub [u8; N]);
 
 impl<const N: usize> From<[u8; N]> for UInt<N> {
@@ -40,6 +63,152 @@ pub type Hash128 = UInt128;
 pub type Hash160 = UInt160;
 pub type Hash192 = UInt192;
 pub type Hash256 = UInt256;
+
+/// Implementation of `LedgerObjectFieldGetter` for 128-bit cryptographic hashes.
+///
+/// This implementation handles 16-byte hash fields in XRPL ledger objects.
+/// Hash128 values are commonly used for shorter identifiers and checksums
+/// in XRPL, such as email hashes.
+///
+/// # Buffer Management
+///
+/// Uses a 16-byte buffer (HASH128_SIZE) and validates that exactly 16 bytes
+/// are returned from the host function to ensure data integrity.
+impl LedgerObjectFieldGetter for Hash128 {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        match get_fixed_size_field_with_expected_bytes::<HASH128_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH128_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        match get_fixed_size_field_with_expected_bytes::<HASH128_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH128_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+}
+
+/// Implementation of `LedgerObjectFieldGetter` for 256-bit cryptographic hashes.
+///
+/// This implementation handles 32-byte hash fields in XRPL ledger objects.
+/// Hash256 values are widely used throughout XRPL for transaction IDs,
+/// ledger indexes, object IDs, and various cryptographic operations.
+///
+/// # Buffer Management
+///
+/// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
+/// are returned from the host function to ensure data integrity.
+impl LedgerObjectFieldGetter for Hash256 {
+    #[inline]
+    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
+        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_current_ledger_obj_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
+        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_ledger_obj_field(register_num, fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+}
+
+/// Implementation of `CurrentTxFieldGetter` for 256-bit cryptographic hashes.
+///
+/// This implementation handles 32-byte hash fields in XRPL transactions.
+/// Hash256 values are used for transaction IDs, account transaction IDs,
+/// references to other transactions, and various cryptographic identifiers.
+///
+/// # Buffer Management
+///
+/// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
+/// are returned from the host function to ensure data integrity.
+impl CurrentTxFieldGetter for Hash256 {
+    #[inline]
+    fn get_from_current_tx(field_code: i32) -> Result<Self> {
+        match get_fixed_size_field_with_expected_bytes::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.into()),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+
+    #[inline]
+    fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>> {
+        match get_fixed_size_field_with_expected_bytes_optional::<HASH256_SIZE, _>(
+            field_code,
+            |fc, buf, size| unsafe { get_tx_field(fc, buf, size) },
+        ) {
+            Result::Ok(buffer) => Result::Ok(buffer.map(|b| b.into())),
+            Result::Err(e) => Result::Err(e),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -119,7 +288,7 @@ mod tests {
         let uint1 = UInt::<4>::from(bytes);
 
         // Copy it (implicit copy due to Copy trait)
-        let uint2 = uint1;
+        let uint2 = uint1.clone();
 
         // Both should be usable and equal
         assert_eq!(uint1, uint2);

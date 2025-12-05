@@ -3,13 +3,8 @@ pub mod current_escrow;
 pub mod escrow;
 pub mod traits;
 
-use crate::core::types::account_id::{ACCOUNT_ID_SIZE, AccountID};
-use crate::core::types::amount::Amount;
-use crate::core::types::blob::Blob;
-use crate::core::types::uint::{HASH128_SIZE, HASH256_SIZE, Hash128, Hash256};
 use crate::host::error_codes::{
-    match_result_code, match_result_code_optional, match_result_code_with_expected_bytes,
-    match_result_code_with_expected_bytes_optional,
+    match_result_code_with_expected_bytes, match_result_code_with_expected_bytes_optional,
 };
 use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 
@@ -21,6 +16,7 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// ## Supported Types
 ///
 /// The following types implement this trait:
+/// - `u8` - 8-bit unsigned integers (1 byte)
 /// - `u16` - 16-bit unsigned integers (2 bytes)
 /// - `u32` - 32-bit unsigned integers (4 bytes)
 /// - `u64` - 64-bit unsigned integers (8 bytes)
@@ -59,7 +55,7 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// - All implementations use appropriately sized buffers for their data types
 /// - Buffer sizes are validated against expected field sizes where applicable
 /// - Unsafe operations are contained within the host function calls
-pub trait FieldGetter: Sized {
+pub trait LedgerObjectFieldGetter: Sized {
     /// Get a required field from the current ledger object.
     ///
     /// # Arguments
@@ -117,488 +113,98 @@ pub trait FieldGetter: Sized {
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>>;
 }
 
-/// Implementation of `FieldGetter` for 16-bit unsigned integers.
+/// Trait for types that can be retrieved as fixed-size fields from ledger objects.
 ///
-/// This implementation handles 2-byte integer fields in XRPL ledger objects.
-/// Common use cases include ledger entry types and small enumerated values.
+/// This trait enables a generic implementation of `LedgerObjectFieldGetter` for all fixed-size
+/// unsigned integer types (u8, u16, u32, u64). Types implementing this trait must
+/// have a known, constant size in bytes.
+///
+/// # Implementing Types
+///
+/// - `u8` - 1 byte
+/// - `u16` - 2 bytes
+/// - `u32` - 4 bytes
+/// - `u64` - 8 bytes
+trait FixedSizeFieldType: Sized {
+    /// The size of this type in bytes
+    const SIZE: usize;
+}
+
+impl FixedSizeFieldType for u8 {
+    const SIZE: usize = 1;
+}
+
+impl FixedSizeFieldType for u16 {
+    const SIZE: usize = 2;
+}
+
+impl FixedSizeFieldType for u32 {
+    const SIZE: usize = 4;
+}
+
+impl FixedSizeFieldType for u64 {
+    const SIZE: usize = 8;
+}
+
+/// Generic implementation of `LedgerObjectFieldGetter` for all fixed-size unsigned integer types.
+///
+/// This single implementation handles u8, u16, u32, and u64 by leveraging the
+/// `FixedSizeFieldType` trait. The implementation:
+/// - Allocates a buffer of the appropriate size
+/// - Calls the host function to retrieve the field
+/// - Validates that the returned byte count matches the expected size
+/// - Converts the buffer to the target type
 ///
 /// # Buffer Management
 ///
-/// Uses a 2-byte buffer and validates that exactly 2 bytes are returned
-/// from the host function to ensure data integrity.
-impl FieldGetter for u16 {
+/// Uses `MaybeUninit` for efficient stack allocation without initialization overhead.
+/// The buffer size is determined at compile-time via the `SIZE` constant.
+impl<T: FixedSizeFieldType> LedgerObjectFieldGetter for T {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let mut value = core::mem::MaybeUninit::<T>::uninit();
         let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 2) };
-        match_result_code_with_expected_bytes(result_code, 2, || unsafe { value.assume_init() })
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), T::SIZE) };
+        match_result_code_with_expected_bytes(result_code, T::SIZE, || unsafe {
+            value.assume_init()
+        })
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value = core::mem::MaybeUninit::<u16>::uninit();
+        let mut value = core::mem::MaybeUninit::<T>::uninit();
         let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 2) };
-        match_result_code_with_expected_bytes_optional(result_code, 2, || {
+            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), T::SIZE) };
+        match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
             Some(unsafe { value.assume_init() })
         })
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value = core::mem::MaybeUninit::<u16>::uninit();
-        let result_code =
-            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 2) };
-        match_result_code_with_expected_bytes(result_code, 2, || unsafe { value.assume_init() })
+        let mut value = core::mem::MaybeUninit::<T>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), T::SIZE)
+        };
+        match_result_code_with_expected_bytes(result_code, T::SIZE, || unsafe {
+            value.assume_init()
+        })
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value = core::mem::MaybeUninit::<u16>::uninit();
-        let result_code =
-            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 2) };
-        match_result_code_with_expected_bytes_optional(result_code, 2, || {
+        let mut value = core::mem::MaybeUninit::<T>::uninit();
+        let result_code = unsafe {
+            get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), T::SIZE)
+        };
+        match_result_code_with_expected_bytes_optional(result_code, T::SIZE, || {
             Some(unsafe { value.assume_init() })
-        })
-    }
-}
-
-/// Implementation of `FieldGetter` for 32-bit unsigned integers.
-///
-/// This implementation handles 4-byte integer fields in XRPL ledger objects.
-/// Common use cases include sequence numbers, flags, timestamps, and various counters.
-///
-/// # Buffer Management
-///
-/// Uses a 4-byte buffer and validates that exactly 4 bytes are returned
-/// from the host function to ensure data integrity.
-impl FieldGetter for u32 {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value = core::mem::MaybeUninit::<u32>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 4) };
-        match_result_code_with_expected_bytes(result_code, 4, || unsafe { value.assume_init() })
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value = core::mem::MaybeUninit::<u32>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 4) };
-        match_result_code_with_expected_bytes_optional(result_code, 4, || {
-            Some(unsafe { value.assume_init() })
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value = core::mem::MaybeUninit::<u32>::uninit();
-        let result_code =
-            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 4) };
-        match_result_code_with_expected_bytes(result_code, 4, || unsafe { value.assume_init() })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value = core::mem::MaybeUninit::<u32>::uninit();
-        let result_code =
-            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 4) };
-        match_result_code_with_expected_bytes_optional(result_code, 4, || {
-            Some(unsafe { value.assume_init() })
-        })
-    }
-}
-
-/// Implementation of `FieldGetter` for 64-bit unsigned integers.
-///
-/// This implementation handles 8-byte integer fields in XRPL ledger objects.
-/// Common use cases include large numeric values, balances represented as integers,
-/// and 64-bit identifiers.
-///
-/// # Buffer Management
-///
-/// Uses an 8-byte buffer and validates that exactly 8 bytes are returned
-/// from the host function to ensure data integrity.
-impl FieldGetter for u64 {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut value = core::mem::MaybeUninit::<u64>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 8) };
-        match_result_code_with_expected_bytes(result_code, 8, || unsafe { value.assume_init() })
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut value = core::mem::MaybeUninit::<u64>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, value.as_mut_ptr().cast(), 8) };
-        match_result_code_with_expected_bytes_optional(result_code, 8, || {
-            Some(unsafe { value.assume_init() })
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut value = core::mem::MaybeUninit::<u64>::uninit();
-        let result_code =
-            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 8) };
-        match_result_code_with_expected_bytes(result_code, 8, || unsafe { value.assume_init() })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut value = core::mem::MaybeUninit::<u64>::uninit();
-        let result_code =
-            unsafe { get_ledger_obj_field(register_num, field_code, value.as_mut_ptr().cast(), 8) };
-        match_result_code_with_expected_bytes_optional(result_code, 8, || {
-            Some(unsafe { value.assume_init() })
-        })
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL account identifiers.
-///
-/// This implementation handles 20-byte account ID fields in XRPL ledger objects.
-/// Account IDs uniquely identify accounts on the XRPL network and are derived
-/// from public keys using cryptographic hashing.
-///
-/// # Buffer Management
-///
-/// Uses a 20-byte buffer (ACCOUNT_ID_SIZE) and validates that exactly 20 bytes
-/// are returned from the host function. The buffer is converted to an AccountID
-/// using the `From<[u8; 20]>` implementation.
-impl FieldGetter for AccountID {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE)
-        };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
-            unsafe { buffer.assume_init() }.into()
-        })
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), ACCOUNT_ID_SIZE)
-        };
-        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(unsafe { buffer.assume_init() }.into())
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                ACCOUNT_ID_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes(result_code, ACCOUNT_ID_SIZE, || {
-            unsafe { buffer.assume_init() }.into()
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; ACCOUNT_ID_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                ACCOUNT_ID_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes_optional(result_code, ACCOUNT_ID_SIZE, || {
-            Some(unsafe { buffer.assume_init() }.into())
-        })
-    }
-}
-
-/// Implementation of `FieldGetter` for XRPL amount values.
-///
-/// This implementation handles amount fields in XRPL ledger objects, which can represent
-/// either XRP amounts (8 bytes) or token amounts (up to 48 bytes including currency code
-/// and issuer information).
-///
-/// # Buffer Management
-///
-/// Uses a 48-byte buffer to accommodate the largest possible amount representation.
-/// The Amount type handles the parsing of different amount formats internally.
-/// No strict byte count validation is performed since amounts can vary in size.
-impl FieldGetter for Amount {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        const BUFFER_SIZE: usize = 48;
-        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BUFFER_SIZE)
-        };
-        match_result_code(result_code, || {
-            Amount::from(unsafe { buffer.assume_init() })
-        })
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        const BUFFER_SIZE: usize = 48;
-        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), BUFFER_SIZE)
-        };
-        match_result_code_optional(result_code, || {
-            Some(Amount::from(unsafe { buffer.assume_init() }))
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        const BUFFER_SIZE: usize = 48;
-        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                BUFFER_SIZE,
-            )
-        };
-        match_result_code(result_code, || {
-            Amount::from(unsafe { buffer.assume_init() })
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        const BUFFER_SIZE: usize = 48;
-        let mut buffer = core::mem::MaybeUninit::<[u8; BUFFER_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                BUFFER_SIZE,
-            )
-        };
-        match_result_code_optional(result_code, || {
-            Some(Amount::from(unsafe { buffer.assume_init() }))
-        })
-    }
-}
-
-/// Implementation of `FieldGetter` for 128-bit cryptographic hashes.
-///
-/// This implementation handles 16-byte hash fields in XRPL ledger objects.
-/// Hash128 values are commonly used for shorter identifiers and checksums
-/// in XRPL, such as email hashes.
-///
-/// # Buffer Management
-///
-/// Uses a 16-byte buffer (HASH128_SIZE) and validates that exactly 16 bytes
-/// are returned from the host function to ensure data integrity.
-impl FieldGetter for Hash128 {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH128_SIZE)
-        };
-        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
-            Hash128::from(unsafe { buffer.assume_init() })
-        })
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH128_SIZE)
-        };
-        match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
-            Some(Hash128::from(unsafe { buffer.assume_init() }))
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                HASH128_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes(result_code, HASH128_SIZE, || {
-            Hash128::from(unsafe { buffer.assume_init() })
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH128_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                HASH128_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes_optional(result_code, HASH128_SIZE, || {
-            Some(Hash128::from(unsafe { buffer.assume_init() }))
-        })
-    }
-}
-
-/// Implementation of `FieldGetter` for 256-bit cryptographic hashes.
-///
-/// This implementation handles 32-byte hash fields in XRPL ledger objects.
-/// Hash256 values are widely used throughout XRPL for transaction IDs,
-/// ledger indexes, object IDs, and various cryptographic operations.
-///
-/// # Buffer Management
-///
-/// Uses a 32-byte buffer (HASH256_SIZE) and validates that exactly 32 bytes
-/// are returned from the host function to ensure data integrity.
-impl FieldGetter for Hash256 {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE)
-        };
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Hash256::from(unsafe { buffer.assume_init() })
-        })
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), HASH256_SIZE)
-        };
-        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
-            Some(Hash256::from(unsafe { buffer.assume_init() }))
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                HASH256_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes(result_code, HASH256_SIZE, || {
-            Hash256::from(unsafe { buffer.assume_init() })
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; HASH256_SIZE]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(
-                register_num,
-                field_code,
-                buffer.as_mut_ptr().cast(),
-                HASH256_SIZE,
-            )
-        };
-        match_result_code_with_expected_bytes_optional(result_code, HASH256_SIZE, || {
-            Some(Hash256::from(unsafe { buffer.assume_init() }))
-        })
-    }
-}
-
-/// Implementation of `FieldGetter` for variable-length binary data.
-///
-/// This implementation handles blob fields in XRPL ledger objects, which can contain
-/// arbitrary binary data such as memos, signatures, public keys, and other
-/// variable-length content.
-///
-/// # Buffer Management
-///
-/// Uses a buffer of size `N` to accommodate blob field data. The actual
-/// length of the data is determined by the return value from the host function
-/// and stored in the Blob's `len` field. No strict byte count validation is
-/// performed since blobs can vary significantly in size.
-///
-/// # Type Parameters
-///
-/// * `N` - The maximum capacity of the blob buffer in bytes
-impl<const N: usize> FieldGetter for Blob<N> {
-    #[inline]
-    fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; N]>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), N) };
-        match_result_code(result_code, || Blob {
-            data: unsafe { buffer.assume_init() },
-            len: result_code as usize,
-        })
-    }
-
-    #[inline]
-    fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; N]>::uninit();
-        let result_code =
-            unsafe { get_current_ledger_obj_field(field_code, buffer.as_mut_ptr().cast(), N) };
-        match_result_code_optional(result_code, || {
-            Some(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            })
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; N]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), N)
-        };
-        match_result_code(result_code, || Blob {
-            data: unsafe { buffer.assume_init() },
-            len: result_code as usize,
-        })
-    }
-
-    #[inline]
-    fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        let mut buffer = core::mem::MaybeUninit::<[u8; N]>::uninit();
-        let result_code = unsafe {
-            get_ledger_obj_field(register_num, field_code, buffer.as_mut_ptr().cast(), N)
-        };
-        match_result_code_optional(result_code, || {
-            Some(Blob {
-                data: unsafe { buffer.assume_init() },
-                len: result_code as usize,
-            })
         })
     }
 }
 
 pub mod current_ledger_object {
-    use super::FieldGetter;
+    use super::LedgerObjectFieldGetter;
     use crate::host::Result;
 
     /// Retrieves a field from the current ledger object.
@@ -613,7 +219,7 @@ pub mod current_ledger_object {
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field<T: FieldGetter>(field_code: i32) -> Result<T> {
+    pub fn get_field<T: LedgerObjectFieldGetter>(field_code: i32) -> Result<T> {
         T::get_from_current_ledger_obj(field_code)
     }
 
@@ -630,13 +236,13 @@ pub mod current_ledger_object {
     /// * `Ok(None)` - If the field is not present
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field_optional<T: FieldGetter>(field_code: i32) -> Result<Option<T>> {
+    pub fn get_field_optional<T: LedgerObjectFieldGetter>(field_code: i32) -> Result<Option<T>> {
         T::get_from_current_ledger_obj_optional(field_code)
     }
 }
 
 pub mod ledger_object {
-    use super::FieldGetter;
+    use super::LedgerObjectFieldGetter;
     use crate::host::Result;
 
     /// Retrieves a field from a specified ledger object.
@@ -652,7 +258,7 @@ pub mod ledger_object {
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field<T: FieldGetter>(register_num: i32, field_code: i32) -> Result<T> {
+    pub fn get_field<T: LedgerObjectFieldGetter>(register_num: i32, field_code: i32) -> Result<T> {
         T::get_from_ledger_obj(register_num, field_code)
     }
 
@@ -670,7 +276,7 @@ pub mod ledger_object {
     /// * `Ok(None)` - If the field is not present in the ledger object
     /// * `Err(Error)` - If the field retrieval operation failed
     #[inline]
-    pub fn get_field_optional<T: FieldGetter>(
+    pub fn get_field_optional<T: LedgerObjectFieldGetter>(
         register_num: i32,
         field_code: i32,
     ) -> Result<Option<T>> {
@@ -689,7 +295,7 @@ pub mod ledger_object {
         use crate::sfield;
 
         // ========================================
-        // Basic smoke tests for FieldGetter implementations
+        // Basic smoke tests for LedgerObjectFieldGetter implementations
         // These tests verify that the trait implementations compile and work with the test host.
         // Note: The test host returns buffer_len as success, so these only verify basic functionality.
         // ========================================
