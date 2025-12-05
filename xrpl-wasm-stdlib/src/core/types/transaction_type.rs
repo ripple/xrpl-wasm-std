@@ -160,7 +160,7 @@ impl From<TransactionType> for [u8; 2] {
 
 /// Implementation of `CurrentTxFieldGetter` for XRPL TransactionType enums.
 ///
-/// This implementation handles 2byte transaction type fields in XRPL transactions.
+/// This implementation handles 2-byte transaction type fields in XRPL transactions.
 ///
 /// # Buffer Management
 ///

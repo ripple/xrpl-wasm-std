@@ -153,7 +153,7 @@ pub trait CurrentTxFieldGetter: Sized {
     fn get_from_current_tx_optional(field_code: i32) -> Result<Option<Self>>;
 }
 
-/// Trait for types that can be retrieved as fixed-size fields from ledger objects.
+/// Trait for types that can be retrieved as fixed-size fields from transactions.
 ///
 /// This trait enables a generic implementation of `CurrentTxFieldGetter` for all fixed-size
 /// unsigned integer types (u8, u16, u32, u64). Types implementing this trait must
