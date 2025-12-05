@@ -3,7 +3,7 @@ use crate::core::types::account_id::AccountID;
 use crate::core::types::currency::Currency;
 use crate::core::types::mpt_id::MptId;
 use crate::host::field_helpers::{get_variable_size_field, get_variable_size_field_optional};
-use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
+use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field, transpose_option};
 
 /// Struct to represent an Issue of type XRP. Exists so that other structs can restrict type
 /// information to XRP in their declarations (this is not possible with just the `Issue` enum below).
@@ -166,10 +166,7 @@ impl FieldGetter for Issue {
         get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
             get_current_ledger_obj_field(fc, buf, size)
         })
-        .map(|opt| {
-            opt.map(|(buffer, len)| Issue::from_buffer(buffer, len))
-                .transpose()
-        })
+        .and_then(|opt| transpose_option(opt.map(|(buffer, len)| Issue::from_buffer(buffer, len))))
     }
 
     #[inline]
@@ -185,9 +182,6 @@ impl FieldGetter for Issue {
         get_variable_size_field_optional::<40, _>(field_code, |fc, buf, size| unsafe {
             get_ledger_obj_field(register_num, fc, buf, size)
         })
-        .map(|opt| {
-            opt.map(|(buffer, len)| Issue::from_buffer(buffer, len))
-                .transpose()
-        })
+        .and_then(|opt| transpose_option(opt.map(|(buffer, len)| Issue::from_buffer(buffer, len))))
     }
 }

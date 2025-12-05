@@ -133,42 +133,34 @@ pub const EMPTY_BLOB: EmptyBlob = Blob {
 impl<const N: usize> FieldGetter for Blob<N> {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
+        get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
             get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
-            Result::Err(e) => Result::Err(e),
-        }
+        })
+        .map(|(data, len)| Blob { data, len })
     }
 
     #[inline]
     fn get_from_current_ledger_obj_optional(field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
+        get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
             get_current_ledger_obj_field(fc, buf, size)
-        }) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
-            Result::Err(e) => Result::Err(e),
-        }
+        })
+        .map(|opt| opt.map(|(data, len)| Blob { data, len }))
     }
 
     #[inline]
     fn get_from_ledger_obj(register_num: i32, field_code: i32) -> Result<Self> {
-        match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
+        get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
             get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok((data, len)) => Result::Ok(Blob { data, len }),
-            Result::Err(e) => Result::Err(e),
-        }
+        })
+        .map(|(data, len)| Blob { data, len })
     }
 
     #[inline]
     fn get_from_ledger_obj_optional(register_num: i32, field_code: i32) -> Result<Option<Self>> {
-        match get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
+        get_variable_size_field_optional::<N, _>(field_code, |fc, buf, size| unsafe {
             get_ledger_obj_field(register_num, fc, buf, size)
-        }) {
-            Result::Ok(opt) => Result::Ok(opt.map(|(data, len)| Blob { data, len })),
-            Result::Err(e) => Result::Err(e),
-        }
+        })
+        .map(|opt| opt.map(|(data, len)| Blob { data, len }))
     }
 }
 
