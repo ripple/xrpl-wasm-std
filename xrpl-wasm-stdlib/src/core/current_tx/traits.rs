@@ -42,10 +42,9 @@ use crate::core::current_tx::{get_field, get_field_optional};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
 use crate::core::types::blob::{
-    CONDITION_BLOB_SIZE, ConditionBlob, FULFILLMENT_BLOB_SIZE, FulfillmentBlob,
+    CONDITION_BLOB_SIZE, ConditionBlob, FULFILLMENT_BLOB_SIZE, FulfillmentBlob, SignatureBlob,
 };
 use crate::core::types::public_key::PublicKey;
-use crate::core::types::signature::Signature;
 use crate::core::types::transaction_type::TransactionType;
 use crate::core::types::uint::Hash256;
 use crate::host::error_codes::match_result_code_optional;
@@ -286,7 +285,7 @@ pub trait TransactionCommonFields {
     /// The signature is validated by the XRPL network before transaction execution.
     /// In the programmability context, you can access the signature for logging or
     /// analysis purposes, but signature validation has already been performed.
-    fn get_txn_signature(&self) -> Result<Signature> {
+    fn get_txn_signature(&self) -> Result<SignatureBlob> {
         get_field(sfield::TxnSignature)
     }
 }
@@ -411,5 +410,66 @@ pub trait EscrowFinishFields: TransactionCommonFields {
             };
             Some(blob)
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::current_tx::escrow_finish::EscrowFinish;
+
+    #[test]
+    fn test_get_condition_returns_some_with_data() {
+        // When the mock host function returns a positive value (buffer length),
+        // get_condition should return Ok(Some(ConditionBlob))
+        let escrow = EscrowFinish;
+        let result = escrow.get_condition();
+
+        // The mock returns buffer.len() which is CONDITION_BLOB_SIZE (128)
+        assert!(result.is_ok());
+        let condition_opt = result.unwrap();
+        assert!(condition_opt.is_some());
+
+        let condition = condition_opt.unwrap();
+        assert_eq!(condition.len, CONDITION_BLOB_SIZE);
+        assert_eq!(condition.capacity(), CONDITION_BLOB_SIZE);
+    }
+
+    #[test]
+    fn test_get_fulfillment_returns_some_with_data() {
+        // When the mock host function returns a positive value (buffer length),
+        // get_fulfillment should return Ok(Some(FulfillmentBlob))
+        let escrow = EscrowFinish;
+        let result = escrow.get_fulfillment();
+
+        // The mock returns buffer.len() which is 256 (the size passed to get_tx_field)
+        assert!(result.is_ok());
+        let fulfillment_opt = result.unwrap();
+        assert!(fulfillment_opt.is_some());
+
+        let fulfillment = fulfillment_opt.unwrap();
+        assert_eq!(fulfillment.len, 256);
+        assert_eq!(fulfillment.capacity(), FULFILLMENT_BLOB_SIZE);
+    }
+
+    #[test]
+    fn test_get_condition_and_fulfillment_independence() {
+        // Verify that get_condition and get_fulfillment can be called independently
+        let escrow = EscrowFinish;
+
+        let condition_result = escrow.get_condition();
+        let fulfillment_result = escrow.get_fulfillment();
+
+        assert!(condition_result.is_ok());
+        assert!(fulfillment_result.is_ok());
+
+        // Verify they have different sizes
+        if let (Some(condition), Some(fulfillment)) =
+            (condition_result.unwrap(), fulfillment_result.unwrap())
+        {
+            assert_eq!(condition.capacity(), CONDITION_BLOB_SIZE);
+            assert_eq!(fulfillment.capacity(), FULFILLMENT_BLOB_SIZE);
+            assert_ne!(condition.capacity(), fulfillment.capacity());
+        }
     }
 }

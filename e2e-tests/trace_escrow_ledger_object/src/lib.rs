@@ -130,16 +130,16 @@ pub extern "C" fn finish() -> i32 {
 
         // TODO: Uncomment this once https://github.com/ripple/xrpl-wasm-stdlib/issues/86 is fixed.
         // Trace Field: FinishFunction
-        // let opt_finish_function = current_escrow.get_finish_function().unwrap();
-        // if let Some(finish_function) = opt_finish_function {
-        //     // FinishFunction is the WASM code - just verify it exists and has reasonable length
-        //     let _ = trace_num("  FinishFunction length:", finish_function.len as i64);
-        //     let _ = trace_data(
-        //         "  FinishFunction:",
-        //         &finish_function.data[..finish_function.len],
-        //         DataRepr::AsHex,
-        //     );
-        // }
+        let opt_finish_function = current_escrow.get_finish_function().unwrap();
+        if let Some(finish_function) = opt_finish_function {
+            // FinishFunction is the WASM code - just verify it exists and has reasonable length
+            let _ = trace_num("  FinishFunction length:", finish_function.len as i64);
+            let _ = trace_data(
+                "  FinishFunction:",
+                &finish_function.data[..finish_function.len],
+                DataRepr::AsHex,
+            );
+        }
 
         // Trace Field: OwnerNode
         let owner_node = current_escrow.get_owner_node().unwrap();

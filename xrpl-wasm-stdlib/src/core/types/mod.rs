@@ -11,6 +11,5 @@ pub mod nft;
 pub mod object;
 pub mod opaque_float;
 pub mod public_key;
-pub mod signature;
 pub mod transaction_type;
 pub mod uint;

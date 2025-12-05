@@ -1,9 +1,10 @@
 use crate::core::ledger_objects::{current_ledger_object, ledger_object};
 use crate::core::types::account_id::AccountID;
 use crate::core::types::amount::Amount;
-use crate::core::types::blob::{Blob, CONDITION_BLOB_SIZE, ConditionBlob, DEFAULT_BLOB_SIZE};
+use crate::core::types::blob::{
+    Blob, CONDITION_BLOB_SIZE, ConditionBlob, DEFAULT_BLOB_SIZE, UriBlob,
+};
 use crate::core::types::contract_data::{ContractData, XRPL_CONTRACT_DATA_SIZE};
-use crate::core::types::nft::NFT_URI_MAX_SIZE;
 use crate::core::types::public_key::PUBLIC_KEY_BUFFER_SIZE;
 use crate::core::types::uint::{Hash128, Hash256};
 
@@ -437,7 +438,7 @@ pub trait AccountFields: LedgerObjectCommonFields {
 
     /// A domain associated with this account. In JSON, this is the hexadecimal for the ASCII representation of the
     /// domain. Cannot be more than 256 bytes in length.
-    fn domain(&self) -> Result<Option<Blob<NFT_URI_MAX_SIZE>>> {
+    fn domain(&self) -> Result<Option<UriBlob>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::Domain)
     }
 
@@ -523,5 +524,79 @@ pub trait AccountFields: LedgerObjectCommonFields {
     /// An arbitrary 256-bit value that users can set.
     fn wallet_locator(&self) -> Result<Option<Hash256>> {
         ledger_object::get_field_optional(self.get_slot_num(), sfield::WalletLocator)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::ledger_objects::current_escrow::CurrentEscrow;
+    use crate::core::ledger_objects::escrow::Escrow;
+
+    #[test]
+    fn test_current_escrow_get_condition_returns_some_with_data() {
+        // When the mock host function returns a positive value (buffer length),
+        // get_condition should return Ok(Some(ConditionBlob))
+        let escrow = CurrentEscrow;
+        let result = escrow.get_condition();
+
+        // The mock returns buffer.len() which is CONDITION_BLOB_SIZE (128)
+        assert!(result.is_ok());
+        let condition_opt = result.unwrap();
+        assert!(condition_opt.is_some());
+
+        let condition = condition_opt.unwrap();
+        assert_eq!(condition.len, CONDITION_BLOB_SIZE);
+        assert_eq!(condition.capacity(), CONDITION_BLOB_SIZE);
+    }
+
+    #[test]
+    fn test_escrow_get_condition_returns_some_with_data() {
+        // When the mock host function returns a positive value (buffer length),
+        // get_condition should return Ok(Some(ConditionBlob))
+        let escrow = Escrow { slot_num: 0 };
+        let result = escrow.get_condition();
+
+        // The mock returns buffer.len() which is CONDITION_BLOB_SIZE (128)
+        assert!(result.is_ok());
+        let condition_opt = result.unwrap();
+        assert!(condition_opt.is_some());
+
+        let condition = condition_opt.unwrap();
+        assert_eq!(condition.len, CONDITION_BLOB_SIZE);
+        assert_eq!(condition.capacity(), CONDITION_BLOB_SIZE);
+    }
+
+    #[test]
+    fn test_escrow_get_condition_with_different_slots() {
+        // Verify that get_condition works with different slot numbers
+        let escrow1 = Escrow { slot_num: 0 };
+        let escrow2 = Escrow { slot_num: 1 };
+        let escrow3 = Escrow { slot_num: 5 };
+
+        let result1 = escrow1.get_condition();
+        let result2 = escrow2.get_condition();
+        let result3 = escrow3.get_condition();
+
+        assert!(result1.is_ok());
+        assert!(result2.is_ok());
+        assert!(result3.is_ok());
+
+        // All should return Some with the same buffer size
+        assert!(result1.unwrap().is_some());
+        assert!(result2.unwrap().is_some());
+        assert!(result3.unwrap().is_some());
+    }
+
+    #[test]
+    fn test_current_escrow_struct_get_condition() {
+        // Test the actual CurrentEscrow struct implementation
+        let escrow = CurrentEscrow;
+        let result = escrow.get_condition();
+
+        assert!(result.is_ok());
+        if let Some(condition) = result.unwrap() {
+            assert_eq!(condition.capacity(), CONDITION_BLOB_SIZE);
+        }
     }
 }
