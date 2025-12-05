@@ -415,8 +415,8 @@ pub trait EscrowFinishFields: TransactionCommonFields {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::current_tx::escrow_finish::EscrowFinish;
     use super::*;
+    use crate::core::current_tx::escrow_finish::EscrowFinish;
 
     #[test]
     fn test_get_condition_returns_some_with_data() {
