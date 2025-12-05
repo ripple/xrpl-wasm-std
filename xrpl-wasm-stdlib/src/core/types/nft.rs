@@ -310,7 +310,7 @@ impl NFToken {
     ///
     /// # Returns
     ///
-    /// * `Ok(NftBlob)` - The URI data (variable length, up to 256 bytes)
+    /// * `Ok(UriBlob)` - The URI data (variable length, up to 256 bytes)
     /// * `Err(Error)` - If the NFT is not found or the host function fails
     ///
     ///
