@@ -1,5 +1,5 @@
 use crate::core::current_tx::CurrentTxFieldGetter;
-use crate::core::ledger_objects::FieldGetter;
+use crate::core::ledger_objects::LedgerObjectFieldGetter;
 use crate::core::types::nft::NFT_URI_MAX_SIZE;
 use crate::host::field_helpers::{get_variable_size_field, get_variable_size_field_optional};
 use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field, get_tx_field};
@@ -114,7 +114,7 @@ pub const EMPTY_BLOB: EmptyBlob = Blob {
     len: 0usize,
 };
 
-/// Implementation of `FieldGetter` for variable-length binary data.
+/// Implementation of `LedgerObjectFieldGetter` for variable-length binary data.
 ///
 /// This implementation handles blob fields in XRPL ledger objects, which can contain
 /// arbitrary binary data such as memos, signatures, public keys, and other
@@ -130,7 +130,7 @@ pub const EMPTY_BLOB: EmptyBlob = Blob {
 /// # Type Parameters
 ///
 /// * `N` - The maximum capacity of the blob buffer in bytes
-impl<const N: usize> FieldGetter for Blob<N> {
+impl<const N: usize> LedgerObjectFieldGetter for Blob<N> {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         match get_variable_size_field::<N, _>(field_code, |fc, buf, size| unsafe {
