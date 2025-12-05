@@ -16,6 +16,7 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// ## Supported Types
 ///
 /// The following types implement this trait:
+/// - `u8` - 8-bit unsigned integers (1 byte)
 /// - `u16` - 16-bit unsigned integers (2 bytes)
 /// - `u32` - 32-bit unsigned integers (4 bytes)
 /// - `u64` - 64-bit unsigned integers (8 bytes)
