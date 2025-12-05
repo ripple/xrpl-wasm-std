@@ -54,7 +54,7 @@ use crate::host::{Result, get_current_ledger_obj_field, get_ledger_obj_field};
 /// - All implementations use appropriately sized buffers for their data types
 /// - Buffer sizes are validated against expected field sizes where applicable
 /// - Unsafe operations are contained within the host function calls
-pub trait FieldGetter: Sized {
+pub trait LedgerObjectFieldGetter: Sized {
     /// Get a required field from the current ledger object.
     ///
     /// # Arguments
@@ -114,7 +114,7 @@ pub trait FieldGetter: Sized {
 
 /// Trait for types that can be retrieved as fixed-size fields from ledger objects.
 ///
-/// This trait enables a generic implementation of `FieldGetter` for all fixed-size
+/// This trait enables a generic implementation of `LedgerObjectFieldGetter` for all fixed-size
 /// unsigned integer types (u8, u16, u32, u64). Types implementing this trait must
 /// have a known, constant size in bytes.
 ///
@@ -145,7 +145,7 @@ impl FixedSizeFieldType for u64 {
     const SIZE: usize = 8;
 }
 
-/// Generic implementation of `FieldGetter` for all fixed-size unsigned integer types.
+/// Generic implementation of `LedgerObjectFieldGetter` for all fixed-size unsigned integer types.
 ///
 /// This single implementation handles u8, u16, u32, and u64 by leveraging the
 /// `FixedSizeFieldType` trait. The implementation:
@@ -158,7 +158,7 @@ impl FixedSizeFieldType for u64 {
 ///
 /// Uses `MaybeUninit` for efficient stack allocation without initialization overhead.
 /// The buffer size is determined at compile-time via the `SIZE` constant.
-impl<T: FixedSizeFieldType> FieldGetter for T {
+impl<T: FixedSizeFieldType> LedgerObjectFieldGetter for T {
     #[inline]
     fn get_from_current_ledger_obj(field_code: i32) -> Result<Self> {
         let mut value = core::mem::MaybeUninit::<T>::uninit();
@@ -203,7 +203,7 @@ impl<T: FixedSizeFieldType> FieldGetter for T {
 }
 
 pub mod current_ledger_object {
-    use super::FieldGetter;
+    use super::LedgerObjectFieldGetter;
     use crate::host::Result;
 
     /// Retrieves a field from the current ledger object.
@@ -218,7 +218,7 @@ pub mod current_ledger_object {
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field<T: FieldGetter>(field_code: i32) -> Result<T> {
+    pub fn get_field<T: LedgerObjectFieldGetter>(field_code: i32) -> Result<T> {
         T::get_from_current_ledger_obj(field_code)
     }
 
@@ -235,13 +235,13 @@ pub mod current_ledger_object {
     /// * `Ok(None)` - If the field is not present
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field_optional<T: FieldGetter>(field_code: i32) -> Result<Option<T>> {
+    pub fn get_field_optional<T: LedgerObjectFieldGetter>(field_code: i32) -> Result<Option<T>> {
         T::get_from_current_ledger_obj_optional(field_code)
     }
 }
 
 pub mod ledger_object {
-    use super::FieldGetter;
+    use super::LedgerObjectFieldGetter;
     use crate::host::Result;
 
     /// Retrieves a field from a specified ledger object.
@@ -257,7 +257,7 @@ pub mod ledger_object {
     /// * `Ok(T)` - The field value for the specified field
     /// * `Err(Error)` - If the field cannot be retrieved or has unexpected size
     #[inline]
-    pub fn get_field<T: FieldGetter>(register_num: i32, field_code: i32) -> Result<T> {
+    pub fn get_field<T: LedgerObjectFieldGetter>(register_num: i32, field_code: i32) -> Result<T> {
         T::get_from_ledger_obj(register_num, field_code)
     }
 
@@ -275,7 +275,7 @@ pub mod ledger_object {
     /// * `Ok(None)` - If the field is not present in the ledger object
     /// * `Err(Error)` - If the field retrieval operation failed
     #[inline]
-    pub fn get_field_optional<T: FieldGetter>(
+    pub fn get_field_optional<T: LedgerObjectFieldGetter>(
         register_num: i32,
         field_code: i32,
     ) -> Result<Option<T>> {
@@ -294,7 +294,7 @@ pub mod ledger_object {
         use crate::sfield;
 
         // ========================================
-        // Basic smoke tests for FieldGetter implementations
+        // Basic smoke tests for LedgerObjectFieldGetter implementations
         // These tests verify that the trait implementations compile and work with the test host.
         // Note: The test host returns buffer_len as success, so these only verify basic functionality.
         // ========================================
