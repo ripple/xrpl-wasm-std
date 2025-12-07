@@ -142,7 +142,7 @@ mod tests {
         let _guard = {
             super::set_mock("get_nft_transfer_fee", move |args| {
                 // args[0] is pointer, args[1] is length
-                let ptr = args[0] as *const u8;
+                let ptr = args[0];
                 let len = args[1] as usize;
                 let actual_data = unsafe { slice::from_raw_parts(ptr, len) };
                 assert_eq!(actual_data, &[1, 2, 3, 4]);
