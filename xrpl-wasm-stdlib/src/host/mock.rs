@@ -132,4 +132,29 @@ mod tests {
         // Should return 0 (the length passed) when not mocked
         assert_eq!(unsafe { super::super::get_nft_flags(ptr::null(), 0) }, 0);
     }
+
+    #[test]
+    fn test_mock_with_verification() {
+        use core::slice;
+
+        let expected_data = [1u8, 2, 3, 4];
+
+        let _guard = {
+            super::set_mock("get_nft_transfer_fee", move |args| {
+                // args[0] is pointer, args[1] is length
+                let ptr = args[0] as *const u8;
+                let len = args[1] as usize;
+                let actual_data = unsafe { slice::from_raw_parts(ptr, len) };
+                assert_eq!(actual_data, &[1, 2, 3, 4]);
+
+                42
+            });
+            super::MockGuard
+        };
+
+        let result = unsafe {
+            super::super::get_nft_transfer_fee(expected_data.as_ptr(), expected_data.len())
+        };
+        assert_eq!(result, 42);
+    }
 }
