@@ -1,4 +1,4 @@
-console.log('📦 EscrowSync.js starting to load...')
+console.log("📦 EscrowSync.js starting to load...")
 
 class EscrowSyncClass {
   constructor() {
@@ -23,13 +23,13 @@ class EscrowSyncClass {
    */
   setNetwork(network, autoLoad = true) {
     this.currentNetwork = network
-    
+
     if (autoLoad && this._setEscrows) {
       const loaded = this.loadEscrows()
       this._setEscrows(loaded)
       return loaded
     }
-    
+
     return []
   }
 
@@ -41,8 +41,8 @@ class EscrowSyncClass {
   autoSync(getEscrows, setEscrows) {
     this._getEscrows = getEscrows
     this._setEscrows = setEscrows
-    
-    console.log('✓ EscrowSync auto-sync enabled')
+
+    console.log("✓ EscrowSync auto-sync enabled")
   }
 
   /**
@@ -55,7 +55,9 @@ class EscrowSyncClass {
       const escrows = this._getEscrows()
       return this.saveEscrows(escrows)
     }
-    console.warn('EscrowSync: sync() called but getEscrows not set. Call autoSync() first.')
+    console.warn(
+      "EscrowSync: sync() called but getEscrows not set. Call autoSync() first.",
+    )
     return false
   }
 
@@ -65,10 +67,10 @@ class EscrowSyncClass {
    */
   getStorageKey() {
     if (!this.currentNetwork) {
-      console.warn('No network set, using default key')
-      return 'xrpl_escrows_default'
+      console.warn("No network set, using default key")
+      return "xrpl_escrows_default"
     }
-    const sanitized = this.currentNetwork.replace(/[^a-zA-Z0-9]/g, '_')
+    const sanitized = this.currentNetwork.replace(/[^a-zA-Z0-9]/g, "_")
     return `xrpl_escrows_${sanitized}`
   }
 
@@ -81,11 +83,11 @@ class EscrowSyncClass {
     try {
       const key = this.getStorageKey()
       localStorage.setItem(key, JSON.stringify(escrows))
-      
+
       console.log(`✓ Saved ${escrows.length} escrow(s) to ${key}`)
       return true
     } catch (error) {
-      console.error('Failed to save escrows:', error)
+      console.error("Failed to save escrows:", error)
       return false
     }
   }
@@ -98,18 +100,18 @@ class EscrowSyncClass {
     try {
       const key = this.getStorageKey()
       const data = localStorage.getItem(key)
-      
+
       if (!data) {
         console.log(`No escrows found for ${key}`)
         return []
       }
 
       const escrows = JSON.parse(data)
-      
+
       console.log(`✓ Loaded ${escrows.length} escrow(s) from ${key}`)
       return escrows
     } catch (error) {
-      console.error('Failed to load escrows:', error)
+      console.error("Failed to load escrows:", error)
       return []
     }
   }
@@ -125,7 +127,7 @@ class EscrowSyncClass {
       console.log(`✓ Cleared escrows for ${key}`)
       return true
     } catch (error) {
-      console.error('Failed to clear escrows:', error)
+      console.error("Failed to clear escrows:", error)
       return false
     }
   }
@@ -137,7 +139,7 @@ class EscrowSyncClass {
    */
   removeEscrow(index) {
     if (!this._getEscrows || !this._setEscrows) {
-      console.warn('EscrowSync: removeEscrow() called but autoSync not enabled')
+      console.warn("EscrowSync: removeEscrow() called but autoSync not enabled")
       return false
     }
 
@@ -151,11 +153,11 @@ class EscrowSyncClass {
       escrows.splice(index, 1)
       this._setEscrows(escrows)
       this.sync()
-      
+
       console.log(`✓ Removed escrow at index ${index}`)
       return true
     } catch (error) {
-      console.error('Failed to remove escrow:', error)
+      console.error("Failed to remove escrow:", error)
       return false
     }
   }
@@ -167,7 +169,7 @@ class EscrowSyncClass {
    */
   addEscrow(escrow) {
     if (!this._getEscrows || !this._setEscrows) {
-      console.warn('EscrowSync: addEscrow() called but autoSync not enabled')
+      console.warn("EscrowSync: addEscrow() called but autoSync not enabled")
       return false
     }
 
@@ -176,11 +178,11 @@ class EscrowSyncClass {
       escrows.push(escrow)
       this._setEscrows(escrows)
       this.sync()
-      
+
       console.log(`✓ Added escrow (sequence: ${escrow.sequence})`)
       return true
     } catch (error) {
-      console.error('Failed to add escrow:', error)
+      console.error("Failed to add escrow:", error)
       return false
     }
   }
@@ -193,13 +195,13 @@ class EscrowSyncClass {
     try {
       const key = this.getStorageKey()
       const data = localStorage.getItem(key)
-      
+
       if (!data) return null
-      
+
       const escrows = JSON.parse(data)
       return JSON.stringify(escrows, null, 2)
     } catch (error) {
-      console.error('Failed to export escrows:', error)
+      console.error("Failed to export escrows:", error)
       return null
     }
   }
@@ -211,21 +213,21 @@ class EscrowSyncClass {
    */
   initialize() {
     if (!this._setEscrows) {
-      console.warn('EscrowSync: initialize() called but autoSync not enabled')
+      console.warn("EscrowSync: initialize() called but autoSync not enabled")
       return { escrows: [], count: 0, message: null }
     }
 
     const loaded = this.loadEscrows()
     this._setEscrows(loaded)
-    
+
     const count = loaded.length
     let message = null
-    
+
     if (count > 0) {
-      message = `Loaded ${count} escrow${count > 1 ? 's' : ''} from storage`
+      message = `Loaded ${count} escrow${count > 1 ? "s" : ""} from storage`
       console.log(`✓ Initialized with ${count} escrow(s) for current network`)
     }
-    
+
     return { escrows: loaded, count, message }
   }
 
@@ -237,26 +239,26 @@ class EscrowSyncClass {
     try {
       const key = this.getStorageKey()
       const data = localStorage.getItem(key)
-      
+
       if (!data) return 0
-      
+
       const escrows = JSON.parse(data)
       return escrows.length
     } catch (error) {
-      console.error('Failed to get escrow count:', error)
+      console.error("Failed to get escrow count:", error)
       return 0
     }
   }
 }
 
-(function() {
+;(function () {
   const escrowSync = new EscrowSyncClass()
-  
-  if (typeof window !== 'undefined') {
+
+  if (typeof window !== "undefined") {
     window.EscrowSync = escrowSync
-    console.log('✓ EscrowSync singleton loaded and available globally')
+    console.log("✓ EscrowSync singleton loaded and available globally")
   }
-  if (typeof module !== 'undefined' && module.exports) {
+  if (typeof module !== "undefined" && module.exports) {
     module.exports = escrowSync
   }
 })()

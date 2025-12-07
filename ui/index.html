@@ -14,7 +14,12 @@
       <div class="header">
         <h1>Smart Escrow Testing UI</h1>
         <p>Deploy and test XRPL Smart Escrows with ease</p>
-        <button id="themeToggle" class="btn btn-small btn-info" onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px;">
+        <button
+          id="themeToggle"
+          class="btn btn-small btn-info"
+          onclick="toggleTheme()"
+          style="position: absolute; top: 20px; right: 20px"
+        >
           ☀️ Light
         </button>
         <div class="status-bar">
@@ -505,29 +510,29 @@
 
       // Theme Management
       function toggleTheme() {
-        const currentTheme = localStorage.getItem('theme') || 'dark'
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
-        
-        localStorage.setItem('theme', newTheme)
+        const currentTheme = localStorage.getItem("theme") || "dark"
+        const newTheme = currentTheme === "dark" ? "light" : "dark"
+
+        localStorage.setItem("theme", newTheme)
         applyTheme(newTheme)
       }
 
       function applyTheme(theme) {
         const link = document.querySelector('link[rel="stylesheet"]')
-        const themeToggleBtn = document.getElementById('themeToggle')
-        
-        if (theme === 'dark') {
-          link.href = 'stylesDark.css'
-          themeToggleBtn.innerHTML = '☀️ Light'
+        const themeToggleBtn = document.getElementById("themeToggle")
+
+        if (theme === "dark") {
+          link.href = "stylesDark.css"
+          themeToggleBtn.innerHTML = "☀️ Light"
         } else {
-          link.href = 'styles.css'
-          themeToggleBtn.innerHTML = '🌙 Dark'
+          link.href = "styles.css"
+          themeToggleBtn.innerHTML = "🌙 Dark"
         }
       }
 
       // Initialize theme on load
-      window.addEventListener('DOMContentLoaded', () => {
-        const savedTheme = localStorage.getItem('theme') || 'dark'
+      window.addEventListener("DOMContentLoaded", () => {
+        const savedTheme = localStorage.getItem("theme") || "dark"
         applyTheme(savedTheme)
       })
 
@@ -743,18 +748,20 @@
 
           await client.connect()
 
-          if (typeof AccountSync !== 'undefined') {
+          if (typeof AccountSync !== "undefined") {
             const result = AccountSync.initialize()
             if (result.message) {
-              showToast(result.message, 'success')
+              showToast(result.message, "success")
               log(result.message)
             } else {
-              log('No accounts found for this network. Generate accounts to get started.')
+              log(
+                "No accounts found for this network. Generate accounts to get started.",
+              )
             }
             await updateAccountsList()
           }
 
-          if (typeof EscrowSync !== 'undefined') {
+          if (typeof EscrowSync !== "undefined") {
             const result = EscrowSync.initialize()
             if (result.message) {
               log(result.message)
@@ -991,7 +998,7 @@
           }
 
           accounts.push(fundedWallet)
-          if (typeof AccountSync !== 'undefined') {
+          if (typeof AccountSync !== "undefined") {
             AccountSync.sync()
           }
           await updateAccountsList()
@@ -1148,13 +1155,13 @@
 
         // Extract the hostname from the WebSocket URL
         let explorerHost = selectedNetwork
-          .replace('wss://', '')
-          .replace('ws://', '')
-          .split(':')[0] // Remove port
-          .split('/')[0] // Remove any path
+          .replace("wss://", "")
+          .replace("ws://", "")
+          .split(":")[0] // Remove port
+          .split("/")[0] // Remove any path
 
         const explorerUrl = `http://custom.xrpl.org/${explorerHost}/accounts/${address}`
-        window.open(explorerUrl, '_blank')
+        window.open(explorerUrl, "_blank")
         log(`Opening account in explorer: ${explorerUrl}`)
       }
 
@@ -1177,9 +1184,9 @@
       function downloadAllAccounts() {
         try {
           const jsonData = AccountSync.exportAccounts()
-          const blob = new Blob([jsonData], { type: 'application/json' })
+          const blob = new Blob([jsonData], { type: "application/json" })
           const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
+          const a = document.createElement("a")
           a.href = url
           a.download = `xrpl_accounts_${Date.now()}.json`
           document.body.appendChild(a)
@@ -1195,7 +1202,11 @@
       }
 
       function clearAccountsStorage() {
-        if (confirm('Are you sure you want to clear all accounts? This cannot be undone.')) {
+        if (
+          confirm(
+            "Are you sure you want to clear all accounts? This cannot be undone.",
+          )
+        ) {
           try {
             AccountSync.clearAccounts()
             accounts = []
@@ -1216,12 +1227,12 @@
             const removedAccount = accounts[index]
             AccountSync.removeAccount(index)
             accounts.splice(index, 1)
-            
+
             // Clear selection if we removed the selected account
             if (selectedAccount === removedAccount) {
               selectedAccount = null
             }
-            
+
             updateAccountsList()
             showToast(`Account ${index + 1} removed`, "success")
             log(`Removed account: ${removedAccount.address}`)
@@ -1292,11 +1303,11 @@
                         <div class="item-header">
                             <div>
                                 <strong>Escrow ${i + 1}</strong>
-                                ${escrow.wasmName ? `<div class="wasm-label">WASM: ${escrow.wasmName}</div>` : ''}
+                                ${escrow.wasmName ? `<div class="wasm-label">WASM: ${escrow.wasmName}</div>` : ""}
                             </div>
                             <div>
                                 <button class="btn btn-small btn-success" onclick="openEscrowInExplorer('${escrow.hash}'); event.stopPropagation();" title="View in Explorer">🔍</button>
-                                ${escrow.id ? `<button class="btn btn-small btn-warning" onclick="copyToClipboard('${escrow.id}'); event.stopPropagation();" title="Copy escrow ID">📄</button>` : ''}
+                                ${escrow.id ? `<button class="btn btn-small btn-warning" onclick="copyToClipboard('${escrow.id}'); event.stopPropagation();" title="Copy escrow ID">📄</button>` : ""}
                             </div>
                         </div>
                         <div class="item-details">
@@ -1351,13 +1362,13 @@
 
         // Extract the hostname from the WebSocket URL
         let explorerHost = selectedNetwork
-          .replace('wss://', '')
-          .replace('ws://', '')
-          .split(':')[0] // Remove port
-          .split('/')[0] // Remove any path
+          .replace("wss://", "")
+          .replace("ws://", "")
+          .split(":")[0] // Remove port
+          .split("/")[0] // Remove any path
 
         const explorerUrl = `http://custom.xrpl.org/${explorerHost}/transactions/${txHash}`
-        window.open(explorerUrl, '_blank')
+        window.open(explorerUrl, "_blank")
         log(`Opening escrow transaction in explorer: ${explorerUrl}`)
       }
 
@@ -1514,12 +1525,12 @@
             escrows = escrows.filter(
               (escrow) => escrow.sequence !== sequenceNum,
             )
-            
+
             // Sync to storage to remove the finished escrow
-            if (typeof EscrowSync !== 'undefined') {
+            if (typeof EscrowSync !== "undefined") {
               EscrowSync.sync()
             }
-            
+
             await updateEscrowsList()
 
             // Clear the finish form
@@ -1768,7 +1779,7 @@
             })
 
             // Save escrows to storage
-            if (typeof EscrowSync !== 'undefined') {
+            if (typeof EscrowSync !== "undefined") {
               EscrowSync.sync()
             }
 
@@ -1834,27 +1845,29 @@
         log("Smart Escrow Testing UI loaded")
 
         // Initialize selectedNetwork from checked radio button
-        const checkedRadio = document.querySelector('input[name="network"]:checked')
+        const checkedRadio = document.querySelector(
+          'input[name="network"]:checked',
+        )
         if (checkedRadio) {
           selectedNetwork = checkedRadio.value
         }
 
         // Setup network switch listeners
-        document.querySelectorAll('input[name="network"]').forEach(radio => {
-          radio.addEventListener('change', async function() {
+        document.querySelectorAll('input[name="network"]').forEach((radio) => {
+          radio.addEventListener("change", async function () {
             const wasConnected = client && client.isConnected()
             selectedNetwork = this.value
-            
-            if (typeof AccountSync !== 'undefined') {
+
+            if (typeof AccountSync !== "undefined") {
               AccountSync.setNetwork(selectedNetwork, false)
             }
 
-            if (typeof EscrowSync !== 'undefined') {
+            if (typeof EscrowSync !== "undefined") {
               EscrowSync.setNetwork(selectedNetwork, false)
             }
-            
+
             log(`Network selection changed to ${selectedNetwork}`)
-            
+
             // If already connected, disconnect and reconnect to new network
             if (wasConnected) {
               log("Reconnecting to new network...")
@@ -1877,69 +1890,69 @@
               )
             } else {
               log("✅ XRPL library loaded successfully")
-              
+
               // Initialize AccountSync
-              if (typeof AccountSync !== 'undefined') {
+              if (typeof AccountSync !== "undefined") {
                 AccountSync.init(xrpl, selectedNetwork)
                 AccountSync.autoSync(
                   () => accounts,
                   (newAccounts) => {
                     accounts = newAccounts
                     updateAccountsList()
-                  }
+                  },
                 )
               } else {
                 logError("AccountSync.js failed to load")
               }
               // Initialize EscrowSync
-              if (typeof EscrowSync !== 'undefined') {
+              if (typeof EscrowSync !== "undefined") {
                 EscrowSync.init(selectedNetwork)
                 EscrowSync.autoSync(
                   () => escrows,
                   (newEscrows) => {
                     escrows = newEscrows
                     updateEscrowsList()
-                  }
+                  },
                 )
               } else {
                 logError("EscrowSync.js failed to load")
               }
-              
+
               log("Connect to a network and generate accounts to get started")
             }
           }, 2000)
         } else {
           log("✅ XRPL library loaded successfully")
-          
-          console.log('AccountSync type:', typeof AccountSync)
-          console.log('AccountSync value:', AccountSync)
-          if (typeof AccountSync !== 'undefined' && AccountSync.init) {
+
+          console.log("AccountSync type:", typeof AccountSync)
+          console.log("AccountSync value:", AccountSync)
+          if (typeof AccountSync !== "undefined" && AccountSync.init) {
             AccountSync.init(xrpl, selectedNetwork)
             AccountSync.autoSync(
               () => accounts,
               (newAccounts) => {
                 accounts = newAccounts
                 updateAccountsList()
-              }
+              },
             )
           } else {
             logError("AccountSync.js failed to load or init method not found")
           }
 
           // Initialize EscrowSync
-          if (typeof EscrowSync !== 'undefined' && EscrowSync.init) {
+          if (typeof EscrowSync !== "undefined" && EscrowSync.init) {
             EscrowSync.init(selectedNetwork)
             EscrowSync.autoSync(
               () => escrows,
               (newEscrows) => {
                 escrows = newEscrows
                 updateEscrowsList()
-              }
+              },
             )
           } else {
             logError("EscrowSync.js failed to load or init method not found")
           }
-          
+
           log("Connect to a network and generate accounts to get started")
         }
       })
