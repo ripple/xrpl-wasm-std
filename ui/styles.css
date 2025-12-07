@@ -115,7 +115,7 @@ body {
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   transition: background 0.3s;
   margin-right: 10px;
   margin-bottom: 10px;
@@ -126,11 +126,11 @@ body {
 }
 
 .btn-success {
-  background: #27ae60;
+  background: #2ecc71;
 }
 
 .btn-success:hover {
-  background: #229954;
+  background: #27ae60;
 }
 
 .btn-warning {
@@ -149,9 +149,26 @@ body {
   background: #c0392b;
 }
 
+.btn-primary {
+  background: #2980b9;
+}
+
+.btn-primary:hover {
+  background: #1f6391;
+}
+
+.btn-info {
+  background: #5dade2;
+}
+
+.btn-info:hover {
+  background: #3498db;
+}
+
 .btn-small {
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .radio-group {
@@ -198,6 +215,36 @@ body {
 .account-balance {
   font-weight: 500;
   color: #27ae60;
+}
+
+.account-seed {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.account-seed strong {
+  color: #856404;
+}
+
+.seed-value {
+  font-family: monospace;
+  color: #856404;
+  word-break: break-all;
+  flex: 1;
+}
+
+.wasm-label {
+  font-size: 11px;
+  color: #3498db;
+  font-weight: 500;
+  margin-top: 5px;
 }
 
 .log-area {
