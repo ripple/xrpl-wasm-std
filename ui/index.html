@@ -7,13 +7,16 @@
     <script src="https://unpkg.com/xrpl@4.5.0-smartescrow.4/build/xrpl-latest-min.js"></script>
     <script src="accountSync.js"></script>
     <script src="escrowSync.js"></script>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="stylesDark.css" />
   </head>
   <body>
     <div class="container">
       <div class="header">
         <h1>Smart Escrow Testing UI</h1>
         <p>Deploy and test XRPL Smart Escrows with ease</p>
+        <button id="themeToggle" class="btn btn-small btn-info" onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px;">
+          ☀️ Light
+        </button>
         <div class="status-bar">
           <div
             id="connectionStatus"
@@ -492,13 +495,41 @@
       // Global state
       let client = null
       let currentWasm = null
-      let currentWasmName = null // Track which WASM is currently loaded
+      let currentWasmName = null
       let accounts = []
       let escrows = []
       let selectedAccount = null
       let lastOfferSequence = null
       let ledgerInterval = null
-      let selectedNetwork = "wss://wasm.devnet.rippletest.net:51233" // Default network
+      let selectedNetwork = "wss://wasm.devnet.rippletest.net:51233"
+
+      // Theme Management
+      function toggleTheme() {
+        const currentTheme = localStorage.getItem('theme') || 'dark'
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+        
+        localStorage.setItem('theme', newTheme)
+        applyTheme(newTheme)
+      }
+
+      function applyTheme(theme) {
+        const link = document.querySelector('link[rel="stylesheet"]')
+        const themeToggleBtn = document.getElementById('themeToggle')
+        
+        if (theme === 'dark') {
+          link.href = 'stylesDark.css'
+          themeToggleBtn.innerHTML = '☀️ Light'
+        } else {
+          link.href = 'styles.css'
+          themeToggleBtn.innerHTML = '🌙 Dark'
+        }
+      }
+
+      // Initialize theme on load
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark'
+        applyTheme(savedTheme)
+      })
 
       // Utility Functions
       function log(message, isHtml = false) {
@@ -712,7 +743,6 @@
 
           await client.connect()
 
-          // Load accounts for this network now that we're connected
           if (typeof AccountSync !== 'undefined') {
             const result = AccountSync.initialize()
             if (result.message) {
@@ -721,11 +751,9 @@
             } else {
               log('No accounts found for this network. Generate accounts to get started.')
             }
-            // Wait for account list to update before loading escrows
             await updateAccountsList()
           }
 
-          // Load escrows for this network (after accounts are loaded)
           if (typeof EscrowSync !== 'undefined') {
             const result = EscrowSync.initialize()
             if (result.message) {
@@ -761,12 +789,10 @@
             await client.disconnect()
           }
 
-          // Clear accounts and escrows from UI (but keep them in storage)
           accounts = []
           escrows = []
           selectedAccount = null
 
-          // Update UI to reflect cleared state
           await updateAccountsList()
           await updateEscrowsList()
 
@@ -791,7 +817,7 @@
             .map((b) => b.toString(16).padStart(2, "0"))
             .join("")
 
-          currentWasmName = file.name // Track the uploaded file name
+          currentWasmName = file.name
           const wasmInfo = `${file.name} (${Math.round(arrayBuffer.byteLength / 1024)}KB)`
           document.getElementById("currentWasm").textContent = wasmInfo
           document.getElementById("deployWasmStatus").textContent = wasmInfo
@@ -812,7 +838,7 @@
         }
 
         currentWasm = hex.replace(/\s/g, "")
-        currentWasmName = "Custom Hex" // Track that this is custom hex data
+        currentWasmName = "Custom Hex"
         const wasmInfo = `Hex data (${Math.round(currentWasm.length / 2 / 1024)}KB)`
         document.getElementById("currentWasm").textContent = wasmInfo
         document.getElementById("deployWasmStatus").textContent = wasmInfo
@@ -886,7 +912,7 @@
           const wasmHex = EMBEDDED_WASM[exampleName]
           if (wasmHex) {
             currentWasm = wasmHex
-            currentWasmName = exampleName // Track the WASM name
+            currentWasmName = exampleName
             const wasmInfo = `${exampleName} example (${Math.round(wasmHex.length / 2 / 1024)}KB)`
             document.getElementById("currentWasm").textContent = wasmInfo
             document.getElementById("deployWasmStatus").textContent = wasmInfo
@@ -1090,7 +1116,6 @@
 
         accountsList.innerHTML = html
 
-        // Update dropdowns
         updateAccountDropdowns()
         await updateEscrowsList()
       }
@@ -1820,14 +1845,12 @@
             const wasConnected = client && client.isConnected()
             selectedNetwork = this.value
             
-            // Update AccountSync network but don't load accounts yet
             if (typeof AccountSync !== 'undefined') {
-              AccountSync.setNetwork(selectedNetwork, false) // false = don't auto-load
+              AccountSync.setNetwork(selectedNetwork, false)
             }
 
-            // Update EscrowSync network but don't load escrows yet
             if (typeof EscrowSync !== 'undefined') {
-              EscrowSync.setNetwork(selectedNetwork, false) // false = don't auto-load
+              EscrowSync.setNetwork(selectedNetwork, false)
             }
             
             log(`Network selection changed to ${selectedNetwork}`)
@@ -1855,7 +1878,7 @@
             } else {
               log("✅ XRPL library loaded successfully")
               
-              // Initialize AccountSync now that xrpl is loaded (but don't load accounts yet)
+              // Initialize AccountSync
               if (typeof AccountSync !== 'undefined') {
                 AccountSync.init(xrpl, selectedNetwork)
                 AccountSync.autoSync(
@@ -1865,12 +1888,10 @@
                     updateAccountsList()
                   }
                 )
-                // Don't call AccountSync.initialize() here - wait until connected
               } else {
                 logError("AccountSync.js failed to load")
               }
-
-              // Initialize EscrowSync (but don't load escrows yet)
+              // Initialize EscrowSync
               if (typeof EscrowSync !== 'undefined') {
                 EscrowSync.init(selectedNetwork)
                 EscrowSync.autoSync(
@@ -1890,7 +1911,6 @@
         } else {
           log("✅ XRPL library loaded successfully")
           
-          // Initialize AccountSync (but don't load accounts yet)
           console.log('AccountSync type:', typeof AccountSync)
           console.log('AccountSync value:', AccountSync)
           if (typeof AccountSync !== 'undefined' && AccountSync.init) {
@@ -1902,12 +1922,11 @@
                 updateAccountsList()
               }
             )
-            // Don't call AccountSync.initialize() here - wait until connected
           } else {
             logError("AccountSync.js failed to load or init method not found")
           }
 
-          // Initialize EscrowSync (but don't load escrows yet)
+          // Initialize EscrowSync
           if (typeof EscrowSync !== 'undefined' && EscrowSync.init) {
             EscrowSync.init(selectedNetwork)
             EscrowSync.autoSync(

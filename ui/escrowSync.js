@@ -1,12 +1,3 @@
-/**
- * EscrowSync.js
- * Network-specific escrow persistence for XRPL Smart Escrow Testing UI
- * 
- * Handles storing and loading escrow metadata in localStorage with separate
- * storage per network to prevent escrow mix-ups between networks.
- * 
- */
-
 console.log('📦 EscrowSync.js starting to load...')
 
 class EscrowSyncClass {
@@ -18,7 +9,7 @@ class EscrowSyncClass {
 
   /**
    * Initialize the EscrowSync with the current network
-   * @param {string} network - The network URL (e.g., "wss://wasm.devnet.rippletest.net:51233")
+   * @param {string} network
    */
   init(network) {
     this.currentNetwork = network
@@ -26,9 +17,9 @@ class EscrowSyncClass {
 
   /**
    * Set the current network and optionally trigger escrow reload
-   * @param {string} network - The network URL
-   * @param {boolean} autoLoad - Whether to automatically load escrows for the new network (default: true)
-   * @returns {Array} - Loaded escrows (if autoLoad is true)
+   * @param {string} network
+   * @param {boolean} autoLoad
+   * @returns {Array}
    */
   setNetwork(network, autoLoad = true) {
     this.currentNetwork = network
@@ -44,8 +35,8 @@ class EscrowSyncClass {
 
   /**
    * Enable auto-sync - automatically save/load escrows when they change
-   * @param {Function} getEscrows - Function that returns current escrows array
-   * @param {Function} setEscrows - Function to set escrows array and update UI
+   * @param {Function} getEscrows
+   * @param {Function} setEscrows
    */
   autoSync(getEscrows, setEscrows) {
     this._getEscrows = getEscrows
@@ -57,7 +48,7 @@ class EscrowSyncClass {
   /**
    * Manually trigger a save of current escrows
    * Call this after adding/removing/modifying escrows
-   * @returns {boolean} - Success status
+   * @returns {boolean}
    */
   sync() {
     if (this._getEscrows) {
@@ -70,22 +61,21 @@ class EscrowSyncClass {
 
   /**
    * Get the storage key for the current network
-   * @returns {string} - The localStorage key
+   * @returns {string}
    */
   getStorageKey() {
     if (!this.currentNetwork) {
       console.warn('No network set, using default key')
       return 'xrpl_escrows_default'
     }
-    // Sanitize the network URL for use as a key
     const sanitized = this.currentNetwork.replace(/[^a-zA-Z0-9]/g, '_')
     return `xrpl_escrows_${sanitized}`
   }
 
   /**
    * Save escrows to localStorage for the current network
-   * @param {Array} escrows - Array of escrow metadata objects
-   * @returns {boolean} - Success status
+   * @param {Array} escrows
+   * @returns {boolean}
    */
   saveEscrows(escrows) {
     try {
@@ -102,7 +92,7 @@ class EscrowSyncClass {
 
   /**
    * Load escrows from localStorage for the current network
-   * @returns {Array} - Array of escrow metadata objects
+   * @returns {Array}
    */
   loadEscrows() {
     try {
@@ -126,7 +116,7 @@ class EscrowSyncClass {
 
   /**
    * Clear escrows for the current network
-   * @returns {boolean} - Success status
+   * @returns {boolean}
    */
   clearEscrows() {
     try {
@@ -142,8 +132,8 @@ class EscrowSyncClass {
 
   /**
    * Remove a single escrow by index
-   * @param {number} index - The index of the escrow to remove
-   * @returns {boolean} - Success status
+   * @param {number} index
+   * @returns {boolean}
    */
   removeEscrow(index) {
     if (!this._getEscrows || !this._setEscrows) {
@@ -172,8 +162,8 @@ class EscrowSyncClass {
 
   /**
    * Add a new escrow (called after WASM creates one)
-   * @param {object} escrow - Escrow metadata object to add
-   * @returns {boolean} - Success status
+   * @param {object} escrow
+   * @returns {boolean}
    */
   addEscrow(escrow) {
     if (!this._getEscrows || !this._setEscrows) {
@@ -197,7 +187,7 @@ class EscrowSyncClass {
 
   /**
    * Export escrows for the current network as JSON
-   * @returns {string} - JSON string of escrows
+   * @returns {string}
    */
   exportEscrows() {
     try {
@@ -217,7 +207,7 @@ class EscrowSyncClass {
   /**
    * Load escrows for the current network on demand
    * Useful for initial page load
-   * @returns {Object} - {escrows: Array, count: number, message: string}
+   * @returns {Object}
    */
   initialize() {
     if (!this._setEscrows) {
@@ -241,7 +231,7 @@ class EscrowSyncClass {
 
   /**
    * Get the count of escrows for the current network
-   * @returns {number} - Number of escrows
+   * @returns {number}
    */
   getEscrowCount() {
     try {
@@ -259,17 +249,13 @@ class EscrowSyncClass {
   }
 }
 
-// Create a singleton instance and export immediately
 (function() {
   const escrowSync = new EscrowSyncClass()
   
-  // Export for use in browser
   if (typeof window !== 'undefined') {
     window.EscrowSync = escrowSync
     console.log('✓ EscrowSync singleton loaded and available globally')
   }
-  
-  // Export for module systems (Node.js, etc.)
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = escrowSync
   }

@@ -1,11 +1,3 @@
-/**
- * AccountSync.js
- * Network-specific account persistence for XRPL Smart Escrow Testing UI
- * 
- * Handles storing and loading XRPL accounts in localStorage with separate
- * storage per network to prevent account mix-ups between networks.
- */
-
 console.log('📦 AccountSync.js starting to load...')
 
 class AccountSyncClass {
@@ -19,8 +11,8 @@ class AccountSyncClass {
 
   /**
    * Initialize the AccountSync with the XRPL library and current network
-   * @param {object} xrplLib - The XRPL library instance
-   * @param {string} network - The network URL (e.g., "wss://wasm.devnet.rippletest.net:51233")
+   * @param {object} xrplLib
+   * @param {string} network
    */
   init(xrplLib, network) {
     this.xrpl = xrplLib
@@ -29,9 +21,9 @@ class AccountSyncClass {
 
   /**
    * Set the current network and optionally trigger account reload
-   * @param {string} network - The network URL
-   * @param {boolean} autoLoad - Whether to automatically load accounts for the new network (default: true)
-   * @returns {Array} - Loaded accounts (if autoLoad is true)
+   * @param {string} network 
+   * @param {boolean} autoLoad
+   * @returns {Array}
    */
   setNetwork(network, autoLoad = true) {
     this.currentNetwork = network
@@ -40,7 +32,6 @@ class AccountSyncClass {
       const loaded = this.loadAccounts()
       this._setAccounts(loaded)
       
-      // Trigger callback if registered
       if (this._onNetworkChange) {
         this._onNetworkChange(network, loaded)
       }
@@ -53,9 +44,9 @@ class AccountSyncClass {
 
   /**
    * Enable auto-sync - automatically save/load accounts when they change
-   * @param {Function} getAccounts - Function that returns current accounts array
-   * @param {Function} setAccounts - Function to set accounts array and update UI
-   * @param {Function} onNetworkChange - Optional callback when network changes (network, accounts) => {}
+   * @param {Function} getAccounts
+   * @param {Function} setAccounts
+   * @param {Function} onNetworkChange
    */
   autoSync(getAccounts, setAccounts, onNetworkChange = null) {
     this._getAccounts = getAccounts
@@ -68,7 +59,7 @@ class AccountSyncClass {
   /**
    * Manually trigger a save of current accounts
    * Call this after adding/removing/modifying accounts
-   * @returns {boolean} - Success status
+   * @returns {boolean}
    */
   sync() {
     if (this._getAccounts) {
@@ -81,22 +72,21 @@ class AccountSyncClass {
 
   /**
    * Get the storage key for the current network
-   * @returns {string} - The localStorage key
+   * @returns {string}
    */
   getStorageKey() {
     if (!this.currentNetwork) {
       console.warn('No network set, using default key')
       return 'xrpl_accounts_default'
     }
-    // Sanitize the network URL for use as a key
     const sanitized = this.currentNetwork.replace(/[^a-zA-Z0-9]/g, '_')
     return `xrpl_accounts_${sanitized}`
   }
 
   /**
    * Save accounts to localStorage for the current network
-   * @param {Array} accounts - Array of XRPL Wallet objects
-   * @returns {boolean} - Success status
+   * @param {Array} accounts
+   * @returns {boolean}
    */
   saveAccounts(accounts) {
     try {
@@ -120,7 +110,7 @@ class AccountSyncClass {
 
   /**
    * Load accounts from localStorage for the current network
-   * @returns {Array} - Array of XRPL Wallet objects
+   * @returns {Array}
    */
   loadAccounts() {
     try {
@@ -152,7 +142,7 @@ class AccountSyncClass {
 
   /**
    * Clear accounts for the current network
-   * @returns {boolean} - Success status
+   * @returns {boolean}
    */
   clearAccounts() {
     try {
@@ -168,7 +158,7 @@ class AccountSyncClass {
 
   /**
    * Get all networks that have stored accounts
-   * @returns {Array} - Array of network keys
+   * @returns {Array}
    */
   getAllNetworks() {
     const networks = []
@@ -186,8 +176,8 @@ class AccountSyncClass {
 
   /**
    * Get the count of accounts for a specific network
-   * @param {string} network - The network URL (optional, uses current if not provided)
-   * @returns {number} - Number of accounts
+   * @param {string} network
+   * @returns {number}
    */
   getAccountCount(network = null) {
     try {
@@ -215,7 +205,7 @@ class AccountSyncClass {
 
   /**
    * Export accounts for the current network as JSON
-   * @returns {string} - JSON string of accounts
+   * @returns {string}
    */
   exportAccounts() {
     try {
@@ -234,9 +224,9 @@ class AccountSyncClass {
 
   /**
    * Import accounts for the current network from JSON
-   * @param {string} jsonData - JSON string of accounts
-   * @param {boolean} append - Whether to append to existing accounts (default: false)
-   * @returns {number} - Number of accounts imported
+   * @param {string} jsonData
+   * @param {boolean} append
+   * @returns {number}
    */
   importAccounts(jsonData, append = false) {
     try {
@@ -246,7 +236,6 @@ class AccountSyncClass {
         throw new Error('Invalid format: expected array of accounts')
       }
 
-      // Validate account structure
       for (const acc of newAccounts) {
         if (!acc.address || !acc.seed) {
           throw new Error('Invalid account structure: missing address or seed')
@@ -277,7 +266,7 @@ class AccountSyncClass {
 
   /**
    * Clear all accounts across all networks
-   * @returns {number} - Number of networks cleared
+   * @returns {number}
    */
   clearAllNetworks() {
     try {
@@ -298,8 +287,8 @@ class AccountSyncClass {
 
   /**
    * Remove a single account by index
-   * @param {number} index - The index of the account to remove
-   * @returns {boolean} - Success status
+   * @param {number} index
+   * @returns {boolean}
    */
   removeAccount(index) {
     if (!this._getAccounts || !this._setAccounts) {
@@ -328,8 +317,8 @@ class AccountSyncClass {
 
   /**
    * Add a new account
-   * @param {object} account - XRPL Wallet object to add
-   * @returns {boolean} - Success status
+   * @param {object} account
+   * @returns {boolean}
    */
   addAccount(account) {
     if (!this._getAccounts || !this._setAccounts) {
@@ -354,7 +343,7 @@ class AccountSyncClass {
   /**
    * Load accounts for the current network on demand
    * Useful for initial page load
-   * @returns {Object} - {accounts: Array, count: number, message: string}
+   * @returns {Object}
    */
   initialize() {
     if (!this._setAccounts) {
@@ -377,18 +366,15 @@ class AccountSyncClass {
   }
 }
 
-// Create a singleton instance and export immediately
 (function() {
   const accountSync = new AccountSyncClass()
   
-  // Export for use in browser
   if (typeof window !== 'undefined') {
     window.AccountSync = accountSync
     console.log('✓ AccountSync singleton loaded and available globally')
     console.log('✓ AccountSync.init is:', typeof accountSync.init)
   }
   
-  // Export for module systems (Node.js, etc.)
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = accountSync
   }
