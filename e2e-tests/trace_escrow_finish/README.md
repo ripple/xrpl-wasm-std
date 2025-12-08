@@ -32,7 +32,7 @@ cd ../..
 
 ```shell
 cd ../..
-CI=1 ./scripts/run-tests.sh e2e-tests/trace_escrow_finish
+DEVNET=true ./scripts/run-tests.sh e2e-tests/trace_escrow_finish
 ```
 
 This will:
