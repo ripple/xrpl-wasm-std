@@ -3,8 +3,8 @@
 //! This module provides assertion macros that work in WASM environments by using
 //! the trace functions to emit readable error messages when assertions fail.
 
-use xrpl_wasm_stdlib::host::trace::{DataRepr, trace_data, trace_num};
 use xrpl_wasm_stdlib::core::types::transaction_type::TransactionType;
+use xrpl_wasm_stdlib::host::trace::{DataRepr, trace_data, trace_num};
 
 /// Trait for types that can be traced in assertions.
 ///
@@ -219,4 +219,3 @@ macro_rules! assert_ne {
     };
 
 }
-

@@ -26,4 +26,3 @@
 #![no_std]
 
 pub mod assert;
-

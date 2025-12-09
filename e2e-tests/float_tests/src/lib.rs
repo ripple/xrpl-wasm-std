@@ -16,11 +16,11 @@ use xrpl_wasm_stdlib::host::{
     float_subtract, get_ledger_obj_array_len, get_ledger_obj_field, get_ledger_obj_nested_field,
     trace_opaque_float,
 };
+use xrpl_wasm_stdlib::sfield;
 use xrpl_wasm_stdlib::sfield::{
     Account, AccountTxnID, Balance, Domain, EmailHash, Flags, LedgerEntryType, MessageKey,
     OwnerCount, PreviousTxnID, PreviousTxnLgrSeq, RegularKey, Sequence, TicketCount, TransferRate,
 };
-use xrpl_wasm_stdlib::sfield;
 
 fn test_float_from_host() {
     let _ = trace("\n$$$ test_float_from_host $$$");
