@@ -2,6 +2,10 @@
 //!
 //! This module provides assertion macros that work in WASM environments by using
 //! the trace functions to emit readable error messages when assertions fail.
+//!
+//! **Note**: These assertions are only active on `wasm32` targets. On non-wasm32
+//! targets, the expressions are evaluated (preserving side effects) but the
+//! assertions themselves are skipped.
 
 use xrpl_wasm_stdlib::core::types::transaction_type::TransactionType;
 use xrpl_wasm_stdlib::host::trace::{DataRepr, trace_data, trace_num};
@@ -106,8 +110,10 @@ pub fn trace_value_generic<T>(msg: &str, value: &T) {
 
 /// Asserts that two expressions are equal.
 ///
-/// If the assertion fails, a trace message is emitted with the values of both expressions,
-/// and then the program panics.
+/// On `wasm32` targets, if the assertion fails, a trace message is emitted with
+/// the values of both expressions, and then the program panics.
+///
+/// On non-wasm32 targets, the expressions are evaluated but the assertion is skipped.
 ///
 /// # Examples
 ///
@@ -115,7 +121,7 @@ pub fn trace_value_generic<T>(msg: &str, value: &T) {
 /// // This will pass
 /// assert_eq!(1, 1);
 ///
-/// // This would fail and emit a trace message
+/// // This would fail and emit a trace message on wasm32
 /// // assert_eq!(1, 2);
 /// ```
 #[macro_export]
@@ -124,11 +130,14 @@ macro_rules! assert_eq {
         {
             let left_val = $left;
             let right_val = $right;
-            if left_val != right_val {
-                let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($left), " != ", stringify!($right)));
-                <_ as $crate::assert::TraceValue>::trace_value("  left: ", &left_val);
-                <_ as $crate::assert::TraceValue>::trace_value("  right: ", &right_val);
-                panic!("assertion failed: {} != {}", stringify!($left), stringify!($right));
+            #[cfg(target_arch = "wasm32")]
+            {
+                if left_val != right_val {
+                    let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($left), " != ", stringify!($right)));
+                    <_ as $crate::assert::TraceValue>::trace_value("  left: ", &left_val);
+                    <_ as $crate::assert::TraceValue>::trace_value("  right: ", &right_val);
+                    panic!("assertion failed: {} != {}", stringify!($left), stringify!($right));
+                }
             }
         }
     };
@@ -136,12 +145,15 @@ macro_rules! assert_eq {
         {
             let left_val = $left;
             let right_val = $right;
-            if left_val != right_val {
-                let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($left), " != ", stringify!($right)));
-                <_ as $crate::assert::TraceValue>::trace_value("  left: ", &left_val);
-                <_ as $crate::assert::TraceValue>::trace_value("  right: ", &right_val);
-                let _ = xrpl_wasm_stdlib::host::trace::trace("  message: (see panic message for details)");
-                panic!("assertion failed: {} != {}: {}", stringify!($left), stringify!($right), format_args!($($arg)+));
+            #[cfg(target_arch = "wasm32")]
+            {
+                if left_val != right_val {
+                    let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($left), " != ", stringify!($right)));
+                    <_ as $crate::assert::TraceValue>::trace_value("  left: ", &left_val);
+                    <_ as $crate::assert::TraceValue>::trace_value("  right: ", &right_val);
+                    let _ = xrpl_wasm_stdlib::host::trace::trace("  message: (see panic message for details)");
+                    panic!("assertion failed: {} != {}: {}", stringify!($left), stringify!($right), format_args!($($arg)+));
+                }
             }
         }
     };
@@ -149,8 +161,10 @@ macro_rules! assert_eq {
 
 /// Asserts that a condition is true.
 ///
-/// If the assertion fails, a trace message is emitted with the condition,
-/// and then the program panics.
+/// On `wasm32` targets, if the assertion fails, a trace message is emitted with
+/// the condition, and then the program panics.
+///
+/// On non-wasm32 targets, the condition is evaluated but the assertion is skipped.
 ///
 /// # Examples
 ///
@@ -158,30 +172,44 @@ macro_rules! assert_eq {
 /// // This will pass
 /// assert!(true);
 ///
-/// // This would fail and emit a trace message
+/// // This would fail and emit a trace message on wasm32
 /// // assert!(false);
 /// ```
 #[macro_export]
 macro_rules! assert {
     ($cond:expr) => {
-        if !$cond {
-            let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($cond)));
-            panic!("assertion failed: {}", stringify!($cond));
+        {
+            let cond_val = $cond;
+            #[cfg(target_arch = "wasm32")]
+            {
+                if !cond_val {
+                    let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($cond)));
+                    panic!("assertion failed: {}", stringify!($cond));
+                }
+            }
         }
     };
     ($cond:expr, $($arg:tt)+) => {
-        if !$cond {
-            let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($cond)));
-            let _ = xrpl_wasm_stdlib::host::trace::trace("  message: (see panic message for details)");
-            panic!("assertion failed: {}: {}", stringify!($cond), format_args!($($arg)+));
+        {
+            let cond_val = $cond;
+            #[cfg(target_arch = "wasm32")]
+            {
+                if !cond_val {
+                    let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($cond)));
+                    let _ = xrpl_wasm_stdlib::host::trace::trace("  message: (see panic message for details)");
+                    panic!("assertion failed: {}: {}", stringify!($cond), format_args!($($arg)+));
+                }
+            }
         }
     };
 }
 
 /// Asserts that two expressions are not equal.
 ///
-/// If the assertion fails, a trace message is emitted with the values of both expressions,
-/// and then the program panics.
+/// On `wasm32` targets, if the assertion fails, a trace message is emitted with
+/// the values of both expressions, and then the program panics.
+///
+/// On non-wasm32 targets, the expressions are evaluated but the assertion is skipped.
 ///
 /// # Examples
 ///
@@ -189,7 +217,7 @@ macro_rules! assert {
 /// // This will pass
 /// assert_ne!(1, 2);
 ///
-/// // This would fail and emit a trace message
+/// // This would fail and emit a trace message on wasm32
 /// // assert_ne!(1, 1);
 /// ```
 #[macro_export]
@@ -198,10 +226,13 @@ macro_rules! assert_ne {
         {
             let left_val = $left;
             let right_val = $right;
-            if left_val == right_val {
-                let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($left), " == ", stringify!($right)));
-                <_ as $crate::assert::TraceValue>::trace_value("  value: ", &left_val);
-                panic!("assertion failed: {} == {}", stringify!($left), stringify!($right));
+            #[cfg(target_arch = "wasm32")]
+            {
+                if left_val == right_val {
+                    let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($left), " == ", stringify!($right)));
+                    <_ as $crate::assert::TraceValue>::trace_value("  value: ", &left_val);
+                    panic!("assertion failed: {} == {}", stringify!($left), stringify!($right));
+                }
             }
         }
     };
@@ -209,11 +240,14 @@ macro_rules! assert_ne {
         {
             let left_val = $left;
             let right_val = $right;
-            if left_val == right_val {
-                let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($left), " == ", stringify!($right)));
-                <_ as $crate::assert::TraceValue>::trace_value("  value: ", &left_val);
-                let _ = xrpl_wasm_stdlib::host::trace::trace("  message: (see panic message for details)");
-                panic!("assertion failed: {} == {}: {}", stringify!($left), stringify!($right), format_args!($($arg)+));
+            #[cfg(target_arch = "wasm32")]
+            {
+                if left_val == right_val {
+                    let _ = xrpl_wasm_stdlib::host::trace::trace(concat!("Assertion failed: ", stringify!($left), " == ", stringify!($right)));
+                    <_ as $crate::assert::TraceValue>::trace_value("  value: ", &left_val);
+                    let _ = xrpl_wasm_stdlib::host::trace::trace("  message: (see panic message for details)");
+                    panic!("assertion failed: {} == {}: {}", stringify!($left), stringify!($right), format_args!($($arg)+));
+                }
             }
         }
     };
