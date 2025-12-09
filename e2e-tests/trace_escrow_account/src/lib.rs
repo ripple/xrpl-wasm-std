@@ -14,10 +14,14 @@ use xrpl_wasm_stdlib::core::current_tx::traits::TransactionCommonFields;
 use xrpl_wasm_stdlib::core::ledger_objects::account_root::AccountRoot;
 use xrpl_wasm_stdlib::core::ledger_objects::traits::{AccountFields, LedgerObjectCommonFields};
 use xrpl_wasm_stdlib::core::types::account_id::AccountID;
-use xrpl_wasm_stdlib::core::types::amount::Amount;
 use xrpl_wasm_stdlib::core::types::keylets::account_keylet;
 use xrpl_wasm_stdlib::host::cache_ledger_obj;
 use xrpl_wasm_stdlib::host::trace::{DataRepr, trace, trace_amount, trace_data, trace_num};
+
+// NOTE: This is only available on WASM targets because in CI, the coverage test returns random memory (whereas locally
+// this returns the bytes 0x00).
+#[cfg(target_arch = "wasm32")]
+use xrpl_wasm_stdlib::core::types::amount::Amount;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn finish() -> i32 {
@@ -103,6 +107,8 @@ pub extern "C" fn finish() -> i32 {
             .unwrap()
             .expect("Balance should be present");
         let _ = trace_amount("Balance of Account Finishing the Escrow:", &balance_amount);
+        // NOTE: This is only available on WASM targets because in CI, the coverage test returns random memory
+        // (whereas locally this returns the bytes 0x00).
         #[cfg(target_arch = "wasm32")]
         match balance_amount {
             Amount::XRP { num_drops } => {
