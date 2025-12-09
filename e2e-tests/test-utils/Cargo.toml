@@ -1,0 +1,13 @@
+[package]
+name = "test-utils"
+version = "0.5.1-devnet5"
+edition = "2024"
+description = "Test utilities for XRPL WASM e2e tests"
+license = "ISC"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+xrpl-wasm-stdlib = { path = "../../xrpl-wasm-stdlib" }
+

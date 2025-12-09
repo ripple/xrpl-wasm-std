@@ -20,7 +20,7 @@ use xrpl_wasm_stdlib::sfield::{
     Account, AccountTxnID, Balance, Domain, EmailHash, Flags, LedgerEntryType, MessageKey,
     OwnerCount, PreviousTxnID, PreviousTxnLgrSeq, RegularKey, Sequence, TicketCount, TransferRate,
 };
-use xrpl_wasm_stdlib::{assert_eq, sfield};
+use xrpl_wasm_stdlib::sfield;
 
 fn test_float_from_host() {
     let _ = trace("\n$$$ test_float_from_host $$$");

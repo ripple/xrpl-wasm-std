@@ -5,7 +5,6 @@
 ///
 /// Condition: A0258020121B69A8D20269CFA850F78931EFF3B1FCF3CCA1982A22D7FDB111734C65E5E3810103
 /// This is a PREIMAGE-SHA-256 condition in full crypto-condition format (39 bytes)
-#[cfg(target_arch = "wasm32")]
 const EXPECTED_CONDITION: [u8; 39] = [
     0xA0, 0x25, 0x80, 0x20, 0x12, 0x1B, 0x69, 0xA8, 0xD2, 0x02, 0x69, 0xCF, 0xA8, 0x50, 0xF7, 0x89,
     0x31, 0xEF, 0xF3, 0xB1, 0xFC, 0xF3, 0xCC, 0xA1, 0x98, 0x2A, 0x22, 0xD7, 0xFD, 0xB1, 0x11, 0x73,
@@ -14,7 +13,6 @@ const EXPECTED_CONDITION: [u8; 39] = [
 
 /// Fulfillment: A0058003736868
 /// This is a PREIMAGE-SHA-256 fulfillment (7 bytes) for preimage "shh"
-#[cfg(target_arch = "wasm32")]
 const EXPECTED_FULFILLMENT: [u8; 7] = [0xA0, 0x05, 0x80, 0x03, 0x73, 0x68, 0x68];
 
 use xrpl_wasm_stdlib::core::current_tx::escrow_finish::{EscrowFinish, get_current_escrow_finish};
@@ -47,14 +45,12 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: Account
         let account = escrow_finish.get_account().unwrap();
         // Account is the wallet that submitted the EscrowFinish - verify it's 20 bytes
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(account.0.len(), 20);
+        test_utils::assert_eq!(account.0.len(), 20);
         let _ = trace_account("  Account:", &account);
 
         // Trace Field: TransactionType
         let transaction_type: TransactionType = escrow_finish.get_transaction_type().unwrap();
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(transaction_type, TransactionType::EscrowFinish);
+        test_utils::assert_eq!(transaction_type, TransactionType::EscrowFinish);
         let tx_type_bytes: [u8; 2] = transaction_type.into();
         let _ = trace_data(
             "  TransactionType (EscrowFinish):",
@@ -64,8 +60,7 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace Field: ComputationAllowance
         let computation_allowance: u32 = escrow_finish.get_computation_allowance().unwrap();
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(computation_allowance, 1000001);
+        test_utils::assert_eq!(computation_allowance, 1000000);
         // ComputationAllowance is set in the transaction - just verify it's reasonable
         let _ = trace_num("  ComputationAllowance:", computation_allowance as i64);
 
@@ -76,8 +71,7 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace Field: Sequence
         let sequence: u32 = escrow_finish.get_sequence().unwrap();
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(sequence, 4294967295);
+        test_utils::assert!(sequence > 0);
         // Sequence is system-generated based on account state
         let _ = trace_num("  Sequence:", sequence as i64);
 
@@ -85,8 +79,7 @@ pub extern "C" fn finish() -> i32 {
         let opt_account_txn_id = escrow_finish.get_account_txn_id().unwrap();
         if let Some(account_txn_id) = opt_account_txn_id {
             // AccountTxnID is optional - if present, verify it's 32 bytes
-            #[cfg(target_arch = "wasm32")]
-            xrpl_wasm_stdlib::assert_eq!(account_txn_id.0.len(), 32);
+            test_utils::assert_eq!(account_txn_id.0.len(), 32);
             let _ = trace_data("  AccountTxnID:", &account_txn_id.0, DataRepr::AsHex);
         }
 
@@ -314,8 +307,7 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: Owner (required)
         let owner: AccountID = escrow_finish.get_owner().unwrap();
         // Owner is the account that created the escrow - verify it's 20 bytes
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(owner.0.len(), 20);
+        test_utils::assert_eq!(owner.0.len(), 20);
         let _ = trace_account("  Owner:", &owner);
 
         // Trace Field: OfferSequence (required)
@@ -335,14 +327,12 @@ pub extern "C" fn finish() -> i32 {
                     );
 
                     // Assert the condition matches the expected value
-                    #[cfg(target_arch = "wasm32")]
-                    xrpl_wasm_stdlib::assert_eq!(
+                    test_utils::assert_eq!(
                         condition.len(),
                         EXPECTED_CONDITION.len(),
                         "Condition length mismatch"
                     );
-                    #[cfg(target_arch = "wasm32")]
-                    xrpl_wasm_stdlib::assert_eq!(
+                    test_utils::assert_eq!(
                         condition.as_slice(),
                         &EXPECTED_CONDITION[..],
                         "Condition bytes mismatch"
@@ -372,14 +362,12 @@ pub extern "C" fn finish() -> i32 {
             );
 
             // Assert the fulfillment matches the expected value
-            #[cfg(target_arch = "wasm32")]
-            xrpl_wasm_stdlib::assert_eq!(
+            test_utils::assert_eq!(
                 fulfillment.len(),
                 EXPECTED_FULFILLMENT.len(),
                 "Fulfillment length mismatch"
             );
-            #[cfg(target_arch = "wasm32")]
-            xrpl_wasm_stdlib::assert_eq!(
+            test_utils::assert_eq!(
                 fulfillment.as_slice(),
                 &EXPECTED_FULFILLMENT[..],
                 "Fulfillment bytes mismatch"

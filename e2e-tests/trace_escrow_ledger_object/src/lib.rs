@@ -9,7 +9,6 @@
 //! escrow data correctly.
 #![cfg_attr(target_arch = "wasm32", no_std)]
 
-#[cfg(target_arch = "wasm32")]
 /// The following are private constants used for testing purposes to enforce value checks in this
 /// contract (to ensure that code changes don't break this contract).
 ///
@@ -45,8 +44,7 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace Field: Account
         let account = current_escrow.get_account().unwrap();
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(account.0.len(), 20);
+        test_utils::assert_eq!(account.0.len(), 20);
         let _ = trace_data("  Account:", &account.0, DataRepr::AsHex);
 
         // Trace Field: Amount
@@ -55,8 +53,7 @@ pub extern "C" fn finish() -> i32 {
 
         // Trace Field: LedgerEntryType
         let ledger_entry_type = current_escrow.get_ledger_entry_type().unwrap();
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(ledger_entry_type, 117);
+        test_utils::assert_eq!(ledger_entry_type, 117);
         let _ = trace_num("  LedgerEntryType:", ledger_entry_type as i64);
 
         // Trace Field: CancelAfter (optional - require it for testing)
@@ -75,14 +72,12 @@ pub extern "C" fn finish() -> i32 {
                         DataRepr::AsHex,
                     );
 
-                    #[cfg(target_arch = "wasm32")]
-                    xrpl_wasm_stdlib::assert_eq!(
+                    test_utils::assert_eq!(
                         condition.len(),
                         EXPECTED_CONDITION.len(),
                         "Condition length mismatch"
                     );
-                    #[cfg(target_arch = "wasm32")]
-                    xrpl_wasm_stdlib::assert_eq!(
+                    test_utils::assert_eq!(
                         condition.as_slice(),
                         &EXPECTED_CONDITION[..],
                         "Condition bytes mismatch"
@@ -102,16 +97,14 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: Destination
         let destination = current_escrow.get_destination().unwrap();
         // Destination is set in runTest.js (destWallet), just verify it's a valid AccountID
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(destination.0.len(), 20);
+        test_utils::assert_eq!(destination.0.len(), 20);
         let _ = trace_data("  Destination:", &destination.0, DataRepr::AsHex);
 
         // Trace Field: DestinationTag (optional - already set in runTest.js)
         let opt_destination_tag = current_escrow.get_destination_tag().unwrap();
         let destination_tag =
             opt_destination_tag.expect("DestinationTag should be set for testing");
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(destination_tag, 23480);
+        test_utils::assert_eq!(destination_tag, 23480);
         let _ = trace_num("  DestinationTag:", destination_tag as i64);
 
         // Trace Field: FinishAfter (optional - require it for testing)
@@ -130,16 +123,16 @@ pub extern "C" fn finish() -> i32 {
 
         // TODO: Uncomment this once https://github.com/ripple/xrpl-wasm-stdlib/issues/86 is fixed.
         // Trace Field: FinishFunction
-        let opt_finish_function = current_escrow.get_finish_function().unwrap();
-        if let Some(finish_function) = opt_finish_function {
-            // FinishFunction is the WASM code - just verify it exists and has reasonable length
-            let _ = trace_num("  FinishFunction length:", finish_function.len as i64);
-            let _ = trace_data(
-                "  FinishFunction:",
-                &finish_function.data[..finish_function.len],
-                DataRepr::AsHex,
-            );
-        }
+        // let opt_finish_function = current_escrow.get_finish_function().unwrap();
+        // if let Some(finish_function) = opt_finish_function {
+        //     FinishFunction is the WASM code - just verify it exists and has reasonable length
+        // let _ = trace_num("  FinishFunction length:", finish_function.len as i64);
+        // let _ = trace_data(
+        //     "  FinishFunction:",
+        //     &finish_function.data[..finish_function.len],
+        //     DataRepr::AsHex,
+        // );
+        // }
 
         // Trace Field: OwnerNode
         let owner_node = current_escrow.get_owner_node().unwrap();
@@ -159,8 +152,7 @@ pub extern "C" fn finish() -> i32 {
         let previous_txn_id = current_escrow.get_previous_txn_id().unwrap();
         // PreviousTxnID is the hash of the EscrowCreate transaction - unpredictable
         // Just verify it's 32 bytes (valid Hash256)
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(previous_txn_id.0.len(), 32);
+        test_utils::assert_eq!(previous_txn_id.0.len(), 32);
         let _ = trace_data("  PreviousTxnID:", &previous_txn_id.0, DataRepr::AsHex);
 
         // Trace Field: PreviousTxnLgrSeq
@@ -171,8 +163,7 @@ pub extern "C" fn finish() -> i32 {
         // Trace Field: SourceTag (optional - already set in runTest.js)
         let opt_source_tag = current_escrow.get_source_tag().unwrap();
         let source_tag = opt_source_tag.expect("SourceTag should be set for testing");
-        #[cfg(target_arch = "wasm32")]
-        xrpl_wasm_stdlib::assert_eq!(source_tag, 11747);
+        test_utils::assert_eq!(source_tag, 11747);
         let _ = trace_num("  SourceTag:", source_tag as i64);
 
         // Trace Field: Data (contract data)
