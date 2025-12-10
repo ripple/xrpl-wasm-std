@@ -13,7 +13,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! test-utils = { workspace = true }
+//! test_utils = { workspace = true }
 //! ```
 //!
 //! Then use the assertion macros in your test code:

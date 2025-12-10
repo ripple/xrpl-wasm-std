@@ -5,7 +5,7 @@ members = [
     "gas_benchmark",
     "host_functions_test",
     "keylet_exists",
-    "test-utils",
+    "test_utils",
     "trace_escrow_account",
     "trace_escrow_finish",
     "trace_escrow_ledger_object",
@@ -13,7 +13,7 @@ members = [
 
 [workspace.dependencies]
 xrpl-wasm-stdlib = { path = "../xrpl-wasm-stdlib" }
-test-utils = { path = "test-utils" }
+test_utils = { path = "test_utils" }
 
 [profile.release]
 opt-level = "s"   # Optimize for size
