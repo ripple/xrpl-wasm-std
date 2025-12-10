@@ -133,8 +133,7 @@ pub extern "C" fn finish() -> i32 {
 
         // Memos array (optional) - require at least one memo for testing
         let array_len = unsafe { host::get_tx_array_len(sfield::Memos) };
-        #[cfg(target_arch = "wasm32")]
-        assert!(
+        test_utils::assert!(
             array_len > 0,
             "At least one Memo should be present for testing"
         );
