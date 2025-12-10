@@ -225,7 +225,7 @@ pub extern "C" fn finish() -> i32 {
             };
             if output_len < 0 {
                 let _ = trace_num("  cannot get Account, error:", output_len as i64);
-                continue;
+                panic!()
             }
             let _ = trace_num("    Signer #:", i as i64);
             // Account should be 20 bytes
@@ -238,6 +238,7 @@ pub extern "C" fn finish() -> i32 {
                     &buf[..output_len as usize],
                     DataRepr::AsHex,
                 );
+                panic!()
             }
 
             locator.repack_last(sfield::TxnSignature);
@@ -251,7 +252,7 @@ pub extern "C" fn finish() -> i32 {
             };
             if output_len < 0 {
                 let _ = trace_num("  cannot get TxnSignature, error:", output_len as i64);
-                continue;
+                panic!()
             }
             let _ = trace_data(
                 "     TxnSignature:",
@@ -273,7 +274,7 @@ pub extern "C" fn finish() -> i32 {
                     "     Error getting SigningPubKey. error_code = ",
                     output_len as i64,
                 );
-                continue;
+                panic!()
             }
             // SigningPubKey should be 33 bytes (compressed public key)
             let _ = trace_num("     SigningPubKey length:", output_len as i64);
