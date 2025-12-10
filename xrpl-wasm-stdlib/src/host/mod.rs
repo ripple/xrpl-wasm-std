@@ -23,6 +23,12 @@ pub mod error_codes;
 pub mod field_helpers;
 pub mod trace;
 
+/// Mocking infrastructure for testing host functions.
+///
+/// This module is only available when running tests (not in WASM builds).
+#[cfg(all(test, not(target_arch = "wasm32")))]
+pub mod mock;
+
 //////////////////////////////////////
 // Host functions (defined by the host)
 //////////////////////////////////////

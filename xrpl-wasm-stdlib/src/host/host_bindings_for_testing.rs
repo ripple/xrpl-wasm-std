@@ -430,6 +430,17 @@ pub unsafe fn get_nft(
     _out_buff_ptr: *mut u8,
     _out_buff_len: usize,
 ) -> i32 {
+    #[cfg(test)]
+    if let Some(mock_fn) = mock::get_mock("get_nft") {
+        return mock_fn(&[
+            _account_ptr,
+            _account_len as *const u8,
+            _nft_id_ptr,
+            _nft_id_len as *const u8,
+            _out_buff_ptr as *const u8,
+            _out_buff_len as *const u8,
+        ]);
+    }
     _out_buff_len as i32
 }
 
@@ -458,12 +469,20 @@ pub unsafe fn get_nft_taxon(
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn get_nft_flags(_nft_id_ptr: *const u8, _nft_id_len: usize) -> i32 {
+    #[cfg(test)]
+    if let Some(mock_fn) = mock::get_mock("get_nft_flags") {
+        return mock_fn(&[_nft_id_ptr, _nft_id_len as *const u8]);
+    }
     _nft_id_len as i32
 }
 
 #[allow(unused)]
 #[allow(clippy::missing_safety_doc)]
 pub unsafe fn get_nft_transfer_fee(_nft_id_ptr: *const u8, _nft_id_len: usize) -> i32 {
+    #[cfg(test)]
+    if let Some(mock_fn) = mock::get_mock("get_nft_transfer_fee") {
+        return mock_fn(&[_nft_id_ptr, _nft_id_len as *const u8]);
+    }
     _nft_id_len as i32
 }
 
