@@ -18,7 +18,6 @@
 //!
 //! See the host_bindings documentation for detailed function signatures.
 
-pub mod assert;
 pub mod error_codes;
 pub mod field_helpers;
 pub mod trace;
