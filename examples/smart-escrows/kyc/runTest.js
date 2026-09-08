@@ -8,8 +8,8 @@ async function test(testContext) {
 
   // Without the credential, finish must fail.
   await finishEscrow(testContext, sourceWallet, {
-    owner: sourceWallet.address,
-    offerSequence: escrowResult.sequence,
+    Owner: sourceWallet.address,
+    OfferSequence: escrowResult.sequence,
     expect: "tecBYTECODE_REJECTED",
   })
 
@@ -32,8 +32,8 @@ async function test(testContext) {
 
   // Once the credential exists, finish succeeds.
   await finishEscrow(testContext, sourceWallet, {
-    owner: sourceWallet.address,
-    offerSequence: escrowResult.sequence,
+    Owner: sourceWallet.address,
+    OfferSequence: escrowResult.sequence,
   })
 }
 

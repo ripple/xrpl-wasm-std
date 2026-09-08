@@ -11,15 +11,15 @@ async function test(testContext) {
 
   // Non-notary submitter is rejected.
   await finishEscrow(testContext, sourceWallet, {
-    owner: sourceWallet.address,
-    offerSequence: escrowResult.sequence,
+    Owner: sourceWallet.address,
+    OfferSequence: escrowResult.sequence,
     expect: "tecBYTECODE_REJECTED",
   })
 
   // Notary succeeds.
   await finishEscrow(testContext, notary, {
-    owner: sourceWallet.address,
-    offerSequence: escrowResult.sequence,
+    Owner: sourceWallet.address,
+    OfferSequence: escrowResult.sequence,
   })
 }
 

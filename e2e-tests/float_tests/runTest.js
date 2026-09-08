@@ -4,8 +4,8 @@ async function test(testContext) {
   // is broken.
   const { sequence } = await deploy(sourceWallet, sourceWallet, finish)
   await finishEscrow(testContext, sourceWallet, {
-    owner: sourceWallet.address,
-    offerSequence: sequence,
+    Owner: sourceWallet.address,
+    OfferSequence: sequence,
   })
 }
 

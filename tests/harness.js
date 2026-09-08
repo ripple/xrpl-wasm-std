@@ -11,6 +11,12 @@
 //     const { finishEscrow, expectResult, expectEscrowConsumed } = testContext
 //
 // rather than repeating the same 8-line EscrowFinish + assert pattern.
+//
+// Convention for options bags (`finishEscrow(..., opts)`, `deploy(..., opts)`):
+// any key that is a PascalCase XRPL transaction field is spread verbatim onto
+// the transaction, so new fields work without harness changes. Only harness
+// meta (`expect`, `cancelAfterOffset`) is camelCase and destructured out
+// before the spread.
 
 const fs = require("fs")
 const path = require("path")
@@ -18,32 +24,27 @@ const path = require("path")
 /**
  * Submit an `EscrowFinish` and assert on its result code.
  *
- * @param {object}      ctx            Test context (needs `submit`).
- * @param {xrpl.Wallet} wallet         Signer.
- * @param {object}      opts
- * @param {string}      opts.owner     `EscrowCreate` account (the escrow owner).
- * @param {number}      opts.offerSequence  `Sequence` of the create tx.
- * @param {number}     [opts.gas=1_000_000] WASM gas budget for the finish.
- * @param {string|string[]} [opts.expect="tesSUCCESS"] Expected result code(s).
- * @param {any[]}      [opts.memos]    Optional Memos array.
- * @returns {Promise<object>}          The full submit response.
+ * Any key other than `expect` is spread verbatim onto the transaction, so
+ * `Owner`, `OfferSequence`, `Gas`, `Memos`, `Condition`, `Fulfillment`,
+ * `CredentialIDs`, etc. all work without touching this helper.
+ *
+ * Defaults:
+ *   - `Gas`:   `1_000_000`
+ *   - `expect`: `"tesSUCCESS"` (single code or array of acceptable codes)
+ *
+ * @param {object}      ctx     Test context (needs `submit`).
+ * @param {xrpl.Wallet} wallet  Signer.
+ * @param {object}      opts    XRPL fields + harness meta (see above).
+ * @returns {Promise<object>}   The full submit response.
  */
 async function finishEscrow(ctx, wallet, opts) {
-  const {
-    owner,
-    offerSequence,
-    gas = 1_000_000,
-    expect = "tesSUCCESS",
-    memos = null,
-  } = opts
+  const { expect = "tesSUCCESS", Gas = 1_000_000, ...fields } = opts
   const tx = {
     TransactionType: "EscrowFinish",
     Account: wallet.address,
-    Owner: owner,
-    OfferSequence: parseInt(offerSequence),
-    Gas: gas,
+    Gas,
+    ...fields,
   }
-  if (memos) tx.Memos = memos
   const response = await ctx.submit(tx, wallet)
   expectResult(response, expect, "EscrowFinish")
   return response

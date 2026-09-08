@@ -38,9 +38,9 @@ async function test(testContext) {
 
   // destWallet does not yet own the NFT — finish must reject.
   await finishEscrow(testContext, sourceWallet, {
-    owner: sourceWallet.address,
-    offerSequence: escrowResult.sequence,
-    memos: nftIdMemo,
+    Owner: sourceWallet.address,
+    OfferSequence: escrowResult.sequence,
+    Memos: nftIdMemo,
     expect: "tecBYTECODE_REJECTED",
   })
 
@@ -77,9 +77,9 @@ async function test(testContext) {
 
   // destWallet now owns it — finish succeeds.
   await finishEscrow(testContext, sourceWallet, {
-    owner: sourceWallet.address,
-    offerSequence: escrowResult.sequence,
-    memos: nftIdMemo,
+    Owner: sourceWallet.address,
+    OfferSequence: escrowResult.sequence,
+    Memos: nftIdMemo,
   })
 }
 

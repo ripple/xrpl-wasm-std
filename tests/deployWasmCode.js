@@ -19,36 +19,20 @@ async function submit(tx, wallet, debug = false) {
 /**
  * Deploy a smart-escrow by submitting an `EscrowCreate` transaction.
  *
- * Two calling styles:
+ * `opts` follows the harness convention: any PascalCase XRPL transaction
+ * field (`Amount`, `Data`, `FinishAfter`, `Condition`, `SourceTag`,
+ * `DestinationTag`, ...) is spread verbatim onto the tx, so new fields
+ * work without touching this helper.
  *
- *   deploy(source, dest, finish, "DEADBEEF")            // legacy positional data
- *   deploy(source, dest, finish, { data, amount, ... }) // options bag
+ * The only camelCase key is `cancelAfterOffset` — a harness convenience
+ * that's added to the most-recent validated `close_time` to compute
+ * `CancelAfter`. Pass `CancelAfter` directly to override it entirely.
  *
- * Options bag fields (all optional):
- *   - data:              string hex `Data` payload
- *   - amount:            string drops, default "100000"
- *   - cancelAfterOffset: seconds added to validated close_time, default 2000
- *   - finishAfter:       absolute Ripple-epoch seconds
- *   - condition:         hex preimage-SHA256 crypto-condition
- *   - sourceTag:         u32
- *   - destinationTag:    u32
+ * Defaults:
+ *   - `Amount`:            `"100000"`
+ *   - `cancelAfterOffset`: `2000` (seconds)
  */
-async function deploy(sourceWallet, destWallet, finish, dataOrOpts = null) {
-  const opts =
-    typeof dataOrOpts === "string" || dataOrOpts === null
-      ? { data: dataOrOpts }
-      : dataOrOpts
-
-  const {
-    data = null,
-    amount = "100000",
-    cancelAfterOffset = 2000,
-    finishAfter = null,
-    condition = null,
-    sourceTag = null,
-    destinationTag = null,
-  } = opts
-
+async function deploy(sourceWallet, destWallet, finish, opts = {}) {
   await client.connect()
   console.log("connected")
 
@@ -59,19 +43,22 @@ async function deploy(sourceWallet, destWallet, finish, dataOrOpts = null) {
     })
   ).result.ledger.close_time
 
+  const {
+    cancelAfterOffset = 2000,
+    Amount = "100000",
+    CancelAfter = close_time + cancelAfterOffset,
+    ...fields
+  } = opts
+
   const tx = {
     TransactionType: "EscrowCreate",
     Account: sourceWallet.address,
-    Amount: amount,
     Destination: destWallet.address,
-    CancelAfter: close_time + cancelAfterOffset,
     Bytecode: finish,
+    Amount,
+    CancelAfter,
+    ...fields,
   }
-  if (data != null) tx.Data = data
-  if (finishAfter != null) tx.FinishAfter = finishAfter
-  if (condition != null) tx.Condition = condition
-  if (sourceTag != null) tx.SourceTag = sourceTag
-  if (destinationTag != null) tx.DestinationTag = destinationTag
 
   const response1 = await submit(tx, sourceWallet)
 

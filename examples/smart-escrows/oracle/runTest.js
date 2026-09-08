@@ -50,8 +50,8 @@ async function test(testContext) {
 
   // Contract requires price > 1 → escrow must reject.
   await finishEscrow(testContext, sourceWallet, {
-    owner: sourceWallet.address,
-    offerSequence: escrowResult.sequence,
+    Owner: sourceWallet.address,
+    OfferSequence: escrowResult.sequence,
     expect: "tecBYTECODE_REJECTED",
   })
 
@@ -83,8 +83,8 @@ async function test(testContext) {
 
   // Escrow now succeeds.
   await finishEscrow(testContext, sourceWallet, {
-    owner: sourceWallet.address,
-    offerSequence: escrowResult.sequence,
+    Owner: sourceWallet.address,
+    OfferSequence: escrowResult.sequence,
   })
 }
 

@@ -47,17 +47,17 @@ async function test(testContext) {
 
   const createEscrow = (escrowData) =>
     deploy(sourceWallet, destWallet, finish, {
-      data: escrowData,
-      amount: "500000",
+      Data: escrowData,
+      Amount: "500000",
       cancelAfterOffset: 3600,
     }).then((r) => r.sequence)
 
   // Local shorthand: submit an EscrowFinish carrying an intent memo.
   const finishWithIntent = (sender, seq, intent, expect) =>
     finishEscrow(testContext, sender, {
-      owner: sourceWallet.address,
-      offerSequence: seq,
-      memos: intentMemo(intent),
+      Owner: sourceWallet.address,
+      OfferSequence: seq,
+      Memos: intentMemo(intent),
       expect,
     })
 

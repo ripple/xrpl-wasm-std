@@ -184,7 +184,7 @@ async function test(testContext) {
   const offerSequence = createResponse.result.tx_json.Sequence
 
   await finishEscrow(testContext, testAccount, {
-    owner: testAccount.address,
+    Owner: testAccount.address,
     offerSequence,
   })
   console.log("✅  Successfully finished escrow with Bytecode")
