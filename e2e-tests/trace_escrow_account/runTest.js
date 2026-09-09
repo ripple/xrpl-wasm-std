@@ -185,7 +185,7 @@ async function test(testContext) {
 
   await finishEscrow(testContext, testAccount, {
     Owner: testAccount.address,
-    offerSequence,
+    OfferSequence: offerSequence,
   })
   console.log("✅  Successfully finished escrow with Bytecode")
 }

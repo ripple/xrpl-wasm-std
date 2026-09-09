@@ -25,12 +25,9 @@ async function test(testContext) {
   //     been consumed. Alice must be rejected.
 
   const swap1Result = await deploy(sourceWallet, destWallet, finish)
-  const swap2Result = await deploy(
-    destWallet,
-    sourceWallet,
-    atomicSwap2Wasm,
-    swap1Result.escrowId,
-  )
+  const swap2Result = await deploy(destWallet, sourceWallet, atomicSwap2Wasm, {
+    Data: swap1Result.escrowId,
+  })
 
   // atomic_swap2 phase 1 (tecBYTECODE_REJECTED, escrow survives).
   const responseSwap2Phase1 = await finishEscrow(testContext, destWallet, {
@@ -70,7 +67,7 @@ async function test(testContext) {
     destWallet,
     sourceWallet,
     atomicSwap2Wasm,
-    finalSwap1Result.escrowId,
+    { Data: finalSwap1Result.escrowId },
   )
 
   // atomic_swap2 phase 1 (tecBYTECODE_REJECTED, escrow survives).
